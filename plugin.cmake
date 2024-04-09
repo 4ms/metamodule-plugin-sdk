@@ -2,16 +2,26 @@ set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/arm-none-eabi-gcc.cmake
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 
+# metamodule-rack-interface: library to interface with RackSDK adaptor
 include(${CMAKE_CURRENT_LIST_DIR}/metamodule-rack-interface/interface.cmake)
 
+# chip arch
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/arch_mp15xa7.cmake)
 target_link_libraries(metamodule-rack-interface INTERFACE arch_mp15x_a7)
 
+# cpputil
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/cpputil cpputil)
 
+# Plugin library
 add_library(metamodule-sdk STATIC ${CMAKE_CURRENT_LIST_DIR}/libc_stub.c)
-
 target_link_libraries(metamodule-sdk PUBLIC metamodule-rack-interface cpputil)
+target_compile_options(metamodule-sdk PUBLIC
+	-shared
+	-fPIC
+	-nostartfiles
+	-nostdlib
+)
+
 
 # PLUGIN is the name of the cmake target
 function(create_plugin PLUGIN)
@@ -54,7 +64,6 @@ function(create_plugin PLUGIN)
 	# TODO: generate plugin directory structure
 	# TODO: copy artwork files (given a dir) to the plugin dir
 	# TODO: ?? target to convert a dir of SVGs to PNGs?
-    # TODO: move libc_stub.c to here?
 
 endfunction()
 
