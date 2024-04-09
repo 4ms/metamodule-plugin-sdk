@@ -1,0 +1,6 @@
+[submodule "metamodule-rack-interface"]
+	path = metamodule-rack-interface
+	url = git@github.com:4ms/metamodule-rack-interface.git
+[submodule "cpputil"]
+	path = cpputil
+	url = https://github.com/4ms/cpputil
