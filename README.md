@@ -11,7 +11,7 @@ git clone https://github.com/4ms/metamodule-plugin-sdk.git --recursive
 mkdir MyPlugin
 cd MyPlugin
 
-cat CMakeLists.txt <<<EOF
+cat << EOF > CMakeLists.txt
 
 cmake_minimum_required(VERSION 3.19)
 include(../metamodule-plugin-sdk/plugin.cmake)
@@ -34,7 +34,7 @@ target_include_directories(MyPlugin PRIVATE ${SOURCEDIR}/src)
 
 # Call this to link and create the plugin file
 create_plugin("MyPlugin")
-<<<EOF
+EOF
 
 cmake -B build -GNinja
 cmake --build build
