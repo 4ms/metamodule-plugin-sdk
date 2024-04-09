@@ -1,15 +1,8 @@
-cmake_minimum_required(VERSION 3.22)
-
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/arm-none-eabi-gcc.cmake)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 
-
-add_subdirectory(
-	${CMAKE_CURRENT_LIST_DIR}/metamodule-rack-interface 
-	${CMAKE_CURRENT_BINARY_DIR}/metamodule-rack-interface
-)
-
+include(${CMAKE_CURRENT_LIST_DIR}/metamodule-rack-interface/interface.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/arch_mp15xa7.cmake)
 target_link_libraries(metamodule-rack-interface PUBLIC arch_mp15x_a7)
 
