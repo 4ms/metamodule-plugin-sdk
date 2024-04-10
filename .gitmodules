@@ -4,3 +4,6 @@
 [submodule "cpputil"]
 	path = cpputil
 	url = https://github.com/4ms/cpputil
+[submodule "metamodule-core-interface"]
+	path = metamodule-core-interface
+	url = https://github.com/4ms/metamodule-core-interface.git
