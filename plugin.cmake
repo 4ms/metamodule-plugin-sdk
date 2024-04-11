@@ -28,7 +28,10 @@ function(create_plugin PLUGIN)
 
     set_property(TARGET ${PLUGIN} PROPERTY CXX_STANDARD 20)
 
-    target_include_directories(${PLUGIN} PUBLIC ${CMAKE_CURRENT_FUNCTION_LIST_DIR})
+    target_include_directories(${PLUGIN} PUBLIC 
+        ${CMAKE_CURRENT_FUNCTION_LIST_DIR}
+        ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/metamodule-core-interface
+    )
 
     target_link_libraries(${PLUGIN} PRIVATE metamodule-sdk)
 
