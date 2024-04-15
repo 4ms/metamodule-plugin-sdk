@@ -47,7 +47,6 @@ target_compile_options(arch_mp15x_a7 INTERFACE
  	-fPIC
 	"$<$<COMPILE_LANGUAGE:CXX>:-Wno-register>"
 	"$<$<COMPILE_LANGUAGE:CXX>:-Wno-volatile>"
-	"$<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>"
 	"$<$<COMPILE_LANGUAGE:CXX>:-ffold-simple-inlines>"
 	"$<$<COMPILE_LANGUAGE:CXX>:-fno-threadsafe-statics>"
 )
