@@ -3,7 +3,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 
 # metamodule-rack-interface: library to interface with RackSDK adaptor
-include(${CMAKE_CURRENT_LIST_DIR}/metamodule-rack-interface/interface.cmake)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/metamodule-rack-interface metamodule-rack-interface)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/metamodule-core-interface metamodule-core-interface)
 
 # chip arch
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/arch_mp15xa7.cmake)
@@ -14,7 +15,11 @@ add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/cpputil cpputil)
 
 # Plugin library
 add_library(metamodule-sdk STATIC ${CMAKE_CURRENT_LIST_DIR}/libc_stub.c)
-target_link_libraries(metamodule-sdk PUBLIC metamodule-rack-interface cpputil)
+target_link_libraries(metamodule-sdk PUBLIC 
+    metamodule-rack-interface
+    metamodule-core-interface
+    cpputil
+)
 target_compile_options(metamodule-sdk PUBLIC
 	-shared
 	-fPIC
@@ -30,7 +35,6 @@ function(create_plugin PLUGIN)
 
     target_include_directories(${PLUGIN} PUBLIC 
         ${CMAKE_CURRENT_FUNCTION_LIST_DIR}
-        ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/metamodule-core-interface
     )
 
     target_link_libraries(${PLUGIN} PRIVATE metamodule-sdk)
@@ -40,7 +44,8 @@ function(create_plugin PLUGIN)
         ${ARCH_MP15x_A7_FLAGS}
         -Wl,-Map,plugin.map,--cref
         -Wl,--gc-sections
-        -nostartfiles -nostdlib
+        -nostartfiles 
+        -nostdlib
     )
 
 	# Link objects into a shared library (CMake won't do it for us)
