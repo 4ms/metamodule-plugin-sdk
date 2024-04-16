@@ -13,6 +13,9 @@ add_subdirectory(${CMAKE_CURRENT_LIST_DIR})
 # PLUGIN is the name of the cmake target
 function(create_plugin PLUGIN)
 
+    set(PLUGIN_FILE_FULL ${PLUGIN}-debug.so)
+    set(PLUGIN_FILE      ${PLUGIN}.so)
+
     target_link_libraries(${PLUGIN} PRIVATE metamodule-sdk)
 
 	set(LFLAGS
@@ -25,9 +28,9 @@ function(create_plugin PLUGIN)
 
 	# Link objects into a shared library (CMake won't do it for us)
     add_custom_command(
-		OUTPUT ${PLUGIN}-debug.so
+		OUTPUT ${PLUGIN_FILE_FULL}
 		DEPENDS ${PLUGIN}
-		COMMAND ${CMAKE_CXX_COMPILER} ${LFLAGS} -o ${PLUGIN}-debug.so
+		COMMAND ${CMAKE_CXX_COMPILER} ${LFLAGS} -o ${PLUGIN_FILE_FULL}
 				$<TARGET_OBJECTS:${PLUGIN}> $<TARGET_OBJECTS:metamodule-sdk>
 		COMMAND_EXPAND_LISTS
 		VERBATIM USES_TERMINAL
@@ -35,14 +38,14 @@ function(create_plugin PLUGIN)
 
 	# Strip symbols to create a smaller plugin file
     add_custom_command(
-        OUTPUT ${PLUGIN}.so
-        DEPENDS ${PLUGIN}-debug.so
-        COMMAND ${CMAKE_STRIP} -g -v -o ${PLUGIN}.so ${PLUGIN}-debug.so
-		COMMAND ls -l ${PLUGIN}.so
+        OUTPUT ${PLUGIN_FILE}
+        DEPENDS ${PLUGIN_FILE_FULL}
+        COMMAND ${CMAKE_STRIP} -g -v -o ${PLUGIN_FILE} ${PLUGIN_FILE_FULL}
+		COMMAND ls -l ${PLUGIN_FILE}
         VERBATIM USES_TERMINAL
     )
 
-    add_custom_target(plugin ALL DEPENDS ${PLUGIN}.so)
+    add_custom_target(plugin ALL DEPENDS ${PLUGIN_FILE})
 
 	# TODO: generate plugin directory structure
 	# TODO: copy artwork files (given a dir) to the plugin dir
