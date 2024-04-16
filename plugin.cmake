@@ -7,35 +7,13 @@ set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/arch_mp15xa7.cmake)
 link_libraries(arch_mp15x_a7)
 
-# metamodule-rack-interface: library to interface with RackSDK adaptor
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/metamodule-rack-interface metamodule-rack-interface)
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/metamodule-core-interface metamodule-core-interface)
-
-# cpputil
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/cpputil cpputil)
-
-# Plugin library
-add_library(metamodule-sdk STATIC ${CMAKE_CURRENT_LIST_DIR}/libc_stub.c)
-target_link_libraries(metamodule-sdk PUBLIC 
-    metamodule-rack-interface
-    metamodule-core-interface
-    cpputil
-)
-target_compile_options(metamodule-sdk PUBLIC
-	-shared
-	-fPIC
-	-nostartfiles
-	-nostdlib
-)
+# Add plugin SDK
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR})
 
 # PLUGIN is the name of the cmake target
 function(create_plugin PLUGIN)
 
     set_property(TARGET ${PLUGIN} PROPERTY CXX_STANDARD 20)
-
-    target_include_directories(${PLUGIN} PUBLIC 
-        ${CMAKE_CURRENT_FUNCTION_LIST_DIR}
-    )
 
     target_link_libraries(${PLUGIN} PRIVATE metamodule-sdk)
 
