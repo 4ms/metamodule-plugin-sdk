@@ -13,8 +13,6 @@ add_subdirectory(${CMAKE_CURRENT_LIST_DIR})
 # PLUGIN is the name of the cmake target
 function(create_plugin PLUGIN)
 
-    set_property(TARGET ${PLUGIN} PROPERTY CXX_STANDARD 20)
-
     target_link_libraries(${PLUGIN} PRIVATE metamodule-sdk)
 
 	set(LFLAGS
