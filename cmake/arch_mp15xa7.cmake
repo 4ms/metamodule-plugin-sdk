@@ -16,6 +16,14 @@ set(ARCH_MP15x_A7_FLAGS
 
 target_compile_options(arch_mp15x_a7 INTERFACE
 	${ARCH_MP15x_A7_FLAGS}
+)
+
+target_link_options(arch_mp15x_a7 INTERFACE
+	${ARCH_MP15x_A7_FLAGS}
+)
+
+target_compile_options(arch_mp15x_a7 INTERFACE
+	${ARCH_MP15x_A7_FLAGS}
 	"SHELL:--param l1-cache-size=32"
 	"SHELL:--param l1-cache-line-size=64"
 	"SHELL:--param l2-cache-size=256"

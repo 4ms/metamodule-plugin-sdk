@@ -2,46 +2,41 @@ set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/arm-none-eabi-gcc.cmake
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 
-# metamodule-rack-interface: library to interface with RackSDK adaptor
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/metamodule-rack-interface metamodule-rack-interface)
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/metamodule-core-interface metamodule-core-interface)
-
 # chip arch
+# all further targets needs to be built and linked with those options
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/arch_mp15xa7.cmake)
-target_link_libraries(metamodule-rack-interface INTERFACE arch_mp15x_a7)
+link_libraries(arch_mp15x_a7)
 
-# cpputil
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/cpputil cpputil)
+# Add plugin SDK
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR})
 
-# Plugin library
-add_library(metamodule-sdk STATIC ${CMAKE_CURRENT_LIST_DIR}/libc_stub.c)
-target_link_libraries(metamodule-sdk PUBLIC 
-    metamodule-rack-interface
-    metamodule-core-interface
-    cpputil
-)
-target_compile_options(metamodule-sdk PUBLIC
-	-shared
-	-fPIC
-	-nostartfiles
-	-nostdlib
-)
+# Function to create a ready to use plugin from a static library
+function(create_plugin)
 
+    ################
 
-# PLUGIN is the name of the cmake target
-function(create_plugin PLUGIN)
+    set(oneValueArgs SOURCE_LIB SOURCE_ASSETS DESTINATION)
+    cmake_parse_arguments(PLUGIN_OPTIONS "" "${oneValueArgs}" "" ${ARGN} )
 
-    set_property(TARGET ${PLUGIN} PROPERTY CXX_STANDARD 20)
+    # TODO: Add more checking and validation for arguments
 
-    target_include_directories(${PLUGIN} PUBLIC 
-        ${CMAKE_CURRENT_FUNCTION_LIST_DIR}
-    )
+    set(LIB_NAME ${PLUGIN_OPTIONS_SOURCE_LIB})
 
-    target_link_libraries(${PLUGIN} PRIVATE metamodule-sdk)
+    set(PLUGIN_FILE_FULL ${LIB_NAME}-debug.so)
+    cmake_path(APPEND PLUGIN_FILE ${PLUGIN_OPTIONS_DESTINATION} ${LIB_NAME}.so)
+
+    file(MAKE_DIRECTORY ${PLUGIN_OPTIONS_DESTINATION})
+
+    if (PLUGIN_OPTIONS_SOURCE_ASSETS)
+        file(COPY ${PLUGIN_OPTIONS_SOURCE_ASSETS}/ DESTINATION ${PLUGIN_OPTIONS_DESTINATION})
+    endif()
+
+    ###############
+
+    target_link_libraries(${LIB_NAME} PRIVATE metamodule-sdk)
 
 	set(LFLAGS
         -shared
-        ${ARCH_MP15x_A7_FLAGS}
         -Wl,-Map,plugin.map,--cref
         -Wl,--gc-sections
         -nostartfiles 
@@ -50,27 +45,25 @@ function(create_plugin PLUGIN)
 
 	# Link objects into a shared library (CMake won't do it for us)
     add_custom_command(
-		OUTPUT ${PLUGIN}-debug.so
-		DEPENDS ${PLUGIN}
-		COMMAND ${CMAKE_CXX_COMPILER} ${LFLAGS} -o ${PLUGIN}-debug.so
-				$<TARGET_OBJECTS:${PLUGIN}> $<TARGET_OBJECTS:metamodule-sdk>
+		OUTPUT ${PLUGIN_FILE_FULL}
+		DEPENDS ${LIB_NAME}
+		COMMAND ${CMAKE_CXX_COMPILER} ${LFLAGS} -o ${PLUGIN_FILE_FULL}
+				$<TARGET_OBJECTS:${LIB_NAME}> $<TARGET_OBJECTS:metamodule-sdk>
 		COMMAND_EXPAND_LISTS
 		VERBATIM USES_TERMINAL
     )
 
 	# Strip symbols to create a smaller plugin file
     add_custom_command(
-        OUTPUT ${PLUGIN}.so
-        DEPENDS ${PLUGIN}-debug.so
-        COMMAND ${CMAKE_STRIP} -g -v -o ${PLUGIN}.so ${PLUGIN}-debug.so
-		COMMAND ls -l ${PLUGIN}.so
+        OUTPUT ${PLUGIN_FILE}
+        DEPENDS ${PLUGIN_FILE_FULL}
+        COMMAND ${CMAKE_STRIP} -g -v -o ${PLUGIN_FILE} ${PLUGIN_FILE_FULL}
+		COMMAND ls -l ${PLUGIN_FILE}
         VERBATIM USES_TERMINAL
     )
 
-    add_custom_target(plugin ALL DEPENDS ${PLUGIN}.so)
+    add_custom_target(plugin ALL DEPENDS ${PLUGIN_FILE})
 
-	# TODO: generate plugin directory structure
-	# TODO: copy artwork files (given a dir) to the plugin dir
 	# TODO: ?? target to convert a dir of SVGs to PNGs?
 
 endfunction()
