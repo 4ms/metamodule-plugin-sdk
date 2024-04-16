@@ -2,13 +2,14 @@ set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/arm-none-eabi-gcc.cmake
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 
+# chip arch
+# all further targets needs to be built and linked with those options
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/arch_mp15xa7.cmake)
+link_libraries(arch_mp15x_a7)
+
 # metamodule-rack-interface: library to interface with RackSDK adaptor
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/metamodule-rack-interface metamodule-rack-interface)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/metamodule-core-interface metamodule-core-interface)
-
-# chip arch
-include(${CMAKE_CURRENT_LIST_DIR}/cmake/arch_mp15xa7.cmake)
-target_link_libraries(metamodule-rack-interface INTERFACE arch_mp15x_a7)
 
 # cpputil
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/cpputil cpputil)
@@ -27,7 +28,6 @@ target_compile_options(metamodule-sdk PUBLIC
 	-nostdlib
 )
 
-
 # PLUGIN is the name of the cmake target
 function(create_plugin PLUGIN)
 
@@ -41,7 +41,6 @@ function(create_plugin PLUGIN)
 
 	set(LFLAGS
         -shared
-        ${ARCH_MP15x_A7_FLAGS}
         -Wl,-Map,plugin.map,--cref
         -Wl,--gc-sections
         -nostartfiles 
