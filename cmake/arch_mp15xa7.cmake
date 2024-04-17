@@ -35,6 +35,7 @@ target_compile_options(arch_mp15x_a7 INTERFACE
 	-fno-common
 	-fdata-sections
 	-ffunction-sections
+	-nostdlib
 	-nostartfiles
 	-fno-unwind-tables
 	-Wall
@@ -43,6 +44,8 @@ target_compile_options(arch_mp15x_a7 INTERFACE
 	-Wno-psabi
 	-Wno-double-promotion
 	-Wno-attributes
+ 	-shared
+ 	-fPIC
 	"$<$<COMPILE_LANGUAGE:CXX>:-Wno-register>"
 	"$<$<COMPILE_LANGUAGE:CXX>:-Wno-volatile>"
 	"$<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>"
