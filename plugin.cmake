@@ -3,6 +3,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/ccache.cmake)
 
+# TODO: put this file in the sdk repo, somehow sync it with the main firmware repo
+set(FIRMWARE_SYMTAB_PATH ${CMAKE_CURRENT_LIST_DIR}/a7_symbols.json)
+
 # chip arch
 # all further targets needs to be built and linked with those options
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/arch_mp15xa7.cmake)
@@ -69,6 +72,16 @@ function(create_plugin)
 
     add_custom_target(plugin ALL DEPENDS ${PLUGIN_FILE})
 
+    add_custom_command(
+        TARGET plugin
+        POST_BUILD
+        COMMAND scripts/check_syms.py 
+            --plugin ${PLUGIN_FILE}
+            --api ${FIRMWARE_SYMTAB_PATH}
+            # -v
+        WORKING_DIRECTORY ${CMAKE_CURRENT_FUNCTION_LIST_DIR}
+        VERBATIM USES_TERMINAL
+    )
 
     # Helpful outputs for debugging plugin elf file:
     add_custom_command(
