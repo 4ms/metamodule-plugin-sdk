@@ -69,6 +69,33 @@ function(create_plugin)
 
     add_custom_target(plugin ALL DEPENDS ${PLUGIN_FILE})
 
+
+    # Helpful outputs for debugging plugin elf file:
+    add_custom_command(
+        OUTPUT ${PLUGIN_FILE_FULL}.nm
+        DEPENDS ${PLUGIN_FILE_FULL}
+        COMMAND ${CMAKE_NM} -CA ${PLUGIN_FILE_FULL} > ${PLUGIN_FILE_FULL}.nm
+    )
+    add_custom_command(
+        OUTPUT ${PLUGIN_FILE_FULL}.readelf
+        DEPENDS ${PLUGIN_FILE_FULL}
+        COMMAND ${CMAKE_READELF} --demangle=auto -a -W ${PLUGIN_FILE_FULL} > ${PLUGIN_FILE_FULL}.readelf
+    )
+    add_custom_target(debugelf ALL DEPENDS 
+        ${PLUGIN_FILE_FULL}.readelf
+        ${PLUGIN_FILE_FULL}.nm
+    )
+
+    # Dissassembly can be take a long time/space, so don't always run:
+    add_custom_command(
+        OUTPUT ${PLUGIN_FILE_FULL}.diss
+        DEPENDS ${PLUGIN_FILE_FULL}
+        COMMAND ${CMAKE_OBJDUMP} -CDz --source ${PLUGIN_FILE_FULL} > ${PLUGIN_FILE_FULL}.diss
+    )
+    add_custom_target(debugdiss DEPENDS 
+        ${PLUGIN_FILE_FULL}.diss
+    )
+
 	# TODO: ?? target to convert a dir of SVGs to PNGs?
 
 endfunction()
