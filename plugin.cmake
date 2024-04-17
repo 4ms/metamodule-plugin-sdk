@@ -1,6 +1,7 @@
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/arm-none-eabi-gcc.cmake)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_TYPE "RelWithDebInfo")
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/ccache.cmake)
 
 # chip arch
 # all further targets needs to be built and linked with those options
