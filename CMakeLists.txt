@@ -18,6 +18,9 @@ target_sources(metamodule-sdk PRIVATE
 target_link_libraries(metamodule-sdk PUBLIC 
     metamodule-rack-interface
     metamodule-core-interface
-    # metamodule-plugin-libc
+    metamodule-plugin-libc
     cpputil
 )
+
+# FIXME: Why does the linker drop the symbols within?
+# target_link_libraries(metamodule-sdk PUBLIC "$<LINK_LIBRARY:WHOLE_ARCHIVE,metamodule-plugin-libc>")
