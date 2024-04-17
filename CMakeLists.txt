@@ -21,9 +21,3 @@ target_link_libraries(metamodule-sdk PUBLIC
     metamodule-plugin-libc
     cpputil
 )
-target_compile_options(metamodule-sdk PUBLIC
-	-shared
-	-fPIC
-	-nostartfiles
-	-nostdlib
-)
