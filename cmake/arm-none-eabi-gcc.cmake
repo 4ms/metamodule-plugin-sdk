@@ -15,6 +15,9 @@ set(CMAKE_ASM_COMPILER ${TOOLCHAIN_PREFIX}gcc)
 set(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}g++)
 set(CMAKE_STRIP        ${TOOLCHAIN_PREFIX}strip   CACHE INTERNAL "strip tool")
 set(CMAKE_OBJCOPY      ${TOOLCHAIN_PREFIX}objcopy CACHE INTERNAL "objcopy tool")
+set(CMAKE_OBJDUMP      ${TOOLCHAIN_PREFIX}objdump CACHE INTERNAL "objdump tool")
+set(CMAKE_READELF      ${TOOLCHAIN_PREFIX}readelf CACHE INTERNAL "readelf tool")
+set(CMAKE_NM           ${TOOLCHAIN_PREFIX}nm      CACHE INTERNAL "nm tool")
 set(CMAKE_SIZE_UTIL    ${TOOLCHAIN_PREFIX}size    CACHE INTERNAL "size tool")
 find_program(CMAKE_GDB ${TOOLCHAIN_PREFIX}gdb gdb CACHE INTERNAL "gdb client")
 
@@ -33,3 +36,10 @@ set(CMAKE_LINK_LIBRARY_USING_WHOLE_ARCHIVE
 "-Wl,--whole-archive" "<LINK_ITEM>" "-Wl,--no-whole-archive"
 )
 set(CMAKE_LINK_LIBRARY_USING_WHOLE_ARCHIVE_SUPPORTED True)
+
+# TODO: how to have cmake define this automatically?
+set(CMAKE_ASM_COMPILE_OBJECT "<CMAKE_ASM_COMPILER> -DL_aeabi_ldivmod -DL_aeabi_uldivmod -DL_aeabi_lcmp -DL_aeabi_ulcmp -xassembler-with-cpp -o <OBJECT> -c <SOURCE> ")
+
+# set(CMAKE_ASM_COMPILE_OBJECT "<CMAKE_ASM_COMPILER> -DL_aeabi_ldivmod -DL_aeabi_uildivmod -fPIC -shared -fno-exceptions -mcpu=cortex-a7 -nostdlib -nostartfiles -xassembler-with-cpp -c -o <OBJECT> <SOURCE>")
+
+# set(CMAKE_ASM_COMPILE_OBJECT "<CMAKE_ASM_COMPILER> -mcpu=cortex-a7 -o <OBJECT> <SOURCE>")
