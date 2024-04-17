@@ -33,7 +33,10 @@ function(create_plugin)
 
     ###############
 
-    target_link_libraries(${LIB_NAME} PRIVATE metamodule-sdk)
+	# FIXME: why won't the sources compile if we link a STATIC or OBJECT library here, even with WHOLE_ARCHIVE?
+	add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/metamodule-plugin-sdk/metamodule-plugin-libc metamodule-plugin-libc)
+	target_link_libraries(${LIB_NAME} PRIVATE metamodule-sdk metamodule-plugin-libc)
+	target_sources(${LIB_NAME} PRIVATE ${metamodule-plugin-libc-sources})
 
 	set(LFLAGS
         -shared
