@@ -2,6 +2,7 @@ set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/arm-none-eabi-gcc.cmake
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/ccache.cmake)
+set(METAMODULE_PLUGIN_STATIC_LIBC 0)
 
 # TODO: put this file in the sdk repo, somehow sync it with the main firmware repo
 set(FIRMWARE_SYMTAB_PATH ${CMAKE_CURRENT_LIST_DIR}/a7_symbols.json)
@@ -50,6 +51,22 @@ function(create_plugin)
         -nostdlib
     )
 
+    if (METAMODULE_PLUGIN_STATIC_LIBC)
+        set(LINK_LIBS_DIR ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/metamodule-plugin-libc/lib)
+        find_library(LIBCLIB "pluginc" PATHS ${LINK_LIBS_DIR} REQUIRED)
+        find_library(LIBMLIB "pluginm" PATHS ${LINK_LIBS_DIR} REQUIRED)
+        # find_library(LIBGLIB "pluging" PATHS ${LINK_LIBS_DIR} REQUIRED)
+        set(LINK_LIBS
+            -lpluginc
+            -lpluginm
+            # -lpluging
+            -L${LINK_LIBS_DIR}
+        )
+    else()
+        set(LINK_LIBS)
+    endif()
+
+
 	# Link objects into a shared library (CMake won't do it for us)
     add_custom_command(
 		OUTPUT ${PLUGIN_FILE_FULL}
@@ -57,6 +74,7 @@ function(create_plugin)
 		COMMAND ${CMAKE_CXX_COMPILER} ${LFLAGS} -o ${PLUGIN_FILE_FULL}
 				$<TARGET_OBJECTS:${LIB_NAME}> 
                 $<TARGET_OBJECTS:metamodule-plugin-libc>
+                ${LINK_LIBS}
 		COMMAND_EXPAND_LISTS
 		VERBATIM USES_TERMINAL
     )
