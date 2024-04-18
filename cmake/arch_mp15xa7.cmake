@@ -40,7 +40,6 @@ target_compile_options(arch_mp15x_a7 INTERFACE
 	-fno-unwind-tables
 	-Wall
 	-Werror=return-type
-	-Wsign-compare
 	-Wno-psabi
 	-Wno-double-promotion
 	-Wno-attributes
