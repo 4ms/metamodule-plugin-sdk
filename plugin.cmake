@@ -88,8 +88,7 @@ function(create_plugin)
     add_custom_target(plugin ALL DEPENDS ${PLUGIN_FILE})
 
     # Verify symbols will be resolved
-    # TODO: put this file in the sdk repo, somehow sync it with the main firmware repo
-    set(FIRMWARE_SYMTAB_PATH ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/a7_symbols.json)
+    set(FIRMWARE_SYMTAB_PATH ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/api-symbols.txt)
     add_custom_command(
         TARGET plugin
         POST_BUILD
