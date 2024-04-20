@@ -5,10 +5,8 @@ include(${CMAKE_CURRENT_LIST_DIR}/cmake/ccache.cmake)
 
 # Whether to compile with static libc and libm
 set(METAMODULE_PLUGIN_STATIC_LIBC 0)
-# set(METAMODULE_PLUGIN_STATIC_LIBC 1) #not working
 
-
-# chip arch
+# Set the chip architecture
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/arch_mp15xa7.cmake)
 link_libraries(arch_mp15x_a7)
 
@@ -38,10 +36,7 @@ function(create_plugin)
 
     ###############
 
-	target_link_libraries(${LIB_NAME} PRIVATE 
-        metamodule-sdk
-	    metamodule-plugin-libc
-    )
+	target_link_libraries(${LIB_NAME} PRIVATE metamodule-sdk)
 
 	set(LFLAGS
         -shared
@@ -129,5 +124,4 @@ function(create_plugin)
 	# TODO: ?? target to convert a dir of SVGs to PNGs?
 
 endfunction()
-
 
