@@ -38,10 +38,7 @@ function(create_plugin)
 
     ###############
 
-	target_link_libraries(${LIB_NAME} PRIVATE 
-        metamodule-sdk
-	    metamodule-plugin-libc
-    )
+	target_link_libraries(${LIB_NAME} PRIVATE metamodule-sdk)
 
 	set(LFLAGS
         -shared
