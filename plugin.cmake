@@ -11,7 +11,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/cmake/arch_mp15xa7.cmake)
 link_libraries(arch_mp15x_a7)
 
 # Add plugin SDK
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR})
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR} ${CMAKE_CURRENT_BINARY_DIR}/plugin-sdk)
 
 # Function to create a ready to use plugin from a static library
 function(create_plugin)
