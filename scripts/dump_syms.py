@@ -59,7 +59,7 @@ def GetLibcSymbols():
          "__assert_func",
          "_impure_ptr",
          "__aeabi_atexit",
-         # "__cxa_pure_virtual",
+         "__cxa_pure_virtual",
     ]
     return libc_syms
 

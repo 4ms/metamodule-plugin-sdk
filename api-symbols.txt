@@ -286,6 +286,7 @@ __aeabi_l2d
 __assert_func
 __atexit
 __atexit_recursive_mutex
+__cxa_pure_virtual
 _calloc_r
 _empty_func_stub
 _free_r
