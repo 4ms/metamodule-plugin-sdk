@@ -40,7 +40,21 @@ def GetLibcSymbols():
          "__assert_func",
 
          "_impure_ptr",
+         "_impure_data",
          "__cxa_pure_virtual",
+
+         "_exit",
+         "_fini",
+         "_getpid_r",
+         "_close_r",
+         "_fstat_r",
+         "_isatty_r",
+         "_write_r",
+         "_kill_r",
+         "_read_r",
+         "_lseek_r",
+         "_sbrk_r",
+         "_gettimeofday_r",
 
          "__atexit",
          "__aeabi_atexit",
