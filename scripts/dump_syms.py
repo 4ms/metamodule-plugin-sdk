@@ -59,7 +59,7 @@ def GetLibcSymbols():
          "__assert_func",
          "_impure_ptr",
          "__aeabi_atexit",
-         "__cxa_pure_virtual",
+         # "__cxa_pure_virtual",
     ]
     return libc_syms
 
@@ -94,8 +94,9 @@ if __name__ == "__main__":
         else:
             needed_syms.append(s)
 
-    # remove duplicates
+    # remove duplicates and sort
     needed_syms = list(set(needed_syms))
+    needed_syms.sort()
 
     if args.json:
         write_json(args.json, needed_syms)
