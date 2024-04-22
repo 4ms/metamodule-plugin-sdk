@@ -33,7 +33,11 @@ target_sources(MyPlugin PUBLIC
 target_include_directories(MyPlugin PRIVATE ${SOURCEDIR}/src)
 
 # Call this to link and create the plugin file
-create_plugin("MyPlugin")
+create_plugin(
+    SOURCE_LIB      MyPlugin
+    SOURCE_ASSETS   path/to/directory/of/graphics/in/png-format
+    DESTINATION     ${CMAKE_CURRENT_LIST_DIR}/metamodule-plugins/MyPlugin
+)
 EOF
 
 cmake -B build -GNinja

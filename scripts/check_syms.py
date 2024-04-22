@@ -2,7 +2,7 @@
 
 import argparse
 import logging
-import json
+from helpers import read_symbol_list
 from elftools.elf.elffile import ELFFile
 from elftools.elf.sections import SymbolTableSection
 
@@ -22,17 +22,10 @@ def GetPluginRequiredSymbolNames(file):
     return needed_syms
 
 
-def read_json_symbols(infile):
-    table = {}
-    with open(infile, "r") as f:
-        table = json.load(f)
-    return table.keys()
-    
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("Check if all symbols in the plugin would be resolved by the symbols in a given symbol table")
     parser.add_argument("--plugin", required=True, help="plugin file to check (.so file)")
-    parser.add_argument("--api", required=True, help="API-provided symbols (json file)")
+    parser.add_argument("--api", required=True, help="API-provided symbols (json or text file)")
     parser.add_argument("-v", dest="verbose", help="Verbose logging", action="store_true")
     args = parser.parse_args()
 
@@ -42,7 +35,7 @@ if __name__ == "__main__":
         logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 
-    provided_syms = read_json_symbols(args.api)
+    provided_syms = read_symbol_list(args.api)
 
     required_syms = []
     logging.info(f"Checking if symbols in {args.plugin} would be resolved")
