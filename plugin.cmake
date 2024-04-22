@@ -20,15 +20,21 @@ function(create_plugin)
 
     ################
 
-    set(oneValueArgs SOURCE_LIB SOURCE_ASSETS DESTINATION)
+    set(oneValueArgs SOURCE_LIB SOURCE_ASSETS DESTINATION PLUGIN_NAME)
     cmake_parse_arguments(PLUGIN_OPTIONS "" "${oneValueArgs}" "" ${ARGN} )
 
     # TODO: Add more checking and validation for arguments
 
     set(LIB_NAME ${PLUGIN_OPTIONS_SOURCE_LIB})
 
-    set(PLUGIN_FILE_FULL ${LIB_NAME}-debug.so)
-    cmake_path(APPEND PLUGIN_FILE ${PLUGIN_OPTIONS_DESTINATION} ${LIB_NAME}.so)
+    if (DEFINED PLUGIN_OPTIONS_PLUGIN_NAME)
+        set(PLUGIN_NAME ${PLUGIN_OPTIONS_PLUGIN_NAME})
+    else()
+        set(PLUGIN_NAME ${LIB_NAME})
+    endif()
+
+    set(PLUGIN_FILE_FULL ${PLUGIN_NAME}-debug.so)
+    cmake_path(APPEND PLUGIN_FILE ${PLUGIN_OPTIONS_DESTINATION} ${PLUGIN_NAME}.so)
 
     file(MAKE_DIRECTORY ${PLUGIN_OPTIONS_DESTINATION})
 
