@@ -35,31 +35,19 @@ def GetLibcSymbols():
          "_calloc_r",
          "_realloc_r",
          "_free_r",
+
          "abort",
-         "__atexit",
-         "__atexit_recursive_mutex",
-         # FIXME: why is __aeabi_l2d not found in the plugin's libgcc?
-         "__aeabi_l2d",
-
-        # These symbols needed if plugin compiled with static libc:
-         # "_exit",
-         # "_getpid",
-         # "_close",
-         # "_fstat",
-         # "_isatty",
-         # "_write",
-         # "_kill",
-         # "_read",
-         # "_lseek",
-         # "_sbrk",
-         # "_fini",
-
-         # These are always defined by firmware
-         # TODO: how can we call the atexit functions of the plugin on unload?
          "__assert_func",
+
          "_impure_ptr",
-         "__aeabi_atexit",
          "__cxa_pure_virtual",
+
+         "__atexit",
+         "__aeabi_atexit",
+         "__atexit_recursive_mutex",
+
+         # FIXME: why is __aeabi_l2d not defined in the plugin's libgcc?
+         "__aeabi_l2d",
     ]
     return libc_syms
 
