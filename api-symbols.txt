@@ -309,6 +309,7 @@ costi
 do_deep_copy
 do_object_update_recursive
 free
+gettimeofday
 hashtable_clear
 hashtable_close
 hashtable_del
@@ -429,7 +430,6 @@ pffft_transform_internal
 pffft_transform_ordered
 pffft_zconvolve_accumulate
 pffft_zreorder
-pluginInstance
 realloc
 rfftb
 rfftf
