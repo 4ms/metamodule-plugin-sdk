@@ -6,7 +6,7 @@
 	url = https://github.com/4ms/cpputil
 [submodule "metamodule-core-interface"]
 	path = metamodule-core-interface
-	url = https://github.com/4ms/metamodule-core-interface.git
+	url = git@github.com:4ms/metamodule-core-interface.git
 [submodule "metamodule-plugin-libc"]
 	path = metamodule-plugin-libc
 	url = git@github.com:4ms/metamodule-plugin-libc.git
