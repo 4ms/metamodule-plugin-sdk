@@ -21,6 +21,9 @@ def GetAddressesOfSymbols(file, needed_syms):
     for n in needed_syms:
         logging.error(f"** ERROR: Symbol not found in main.elf: {n} **")
 
+    if len(needed_syms) == 0:
+        logging.info("All API symbols found in main.elf")
+
     return syms
 
 if __name__ == "__main__":
