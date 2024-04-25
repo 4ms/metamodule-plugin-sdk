@@ -370,6 +370,8 @@ do_deep_copy
 do_object_update_recursive
 free
 gettimeofday
+glfwGetClipboardString
+glfwSetClipboardString
 hashtable_clear
 hashtable_close
 hashtable_del
