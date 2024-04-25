@@ -46,6 +46,7 @@ def GetLibcSymbols():
          "_exit",
          "_fini",
          "_getpid_r",
+         "_open_r",
          "_close_r",
          "_fstat_r",
          "_isatty_r",
