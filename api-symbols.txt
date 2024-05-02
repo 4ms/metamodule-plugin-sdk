@@ -384,6 +384,7 @@ __assert_func
 __atexit
 __atexit_recursive_mutex
 __cxa_pure_virtual
+__popcountsi2
 _calloc_r
 _close_r
 _empty_func_stub
