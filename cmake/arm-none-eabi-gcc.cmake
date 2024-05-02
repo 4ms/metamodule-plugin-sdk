@@ -19,6 +19,7 @@ set(CMAKE_OBJDUMP      ${TOOLCHAIN_PREFIX}objdump CACHE INTERNAL "objdump tool")
 set(CMAKE_READELF      ${TOOLCHAIN_PREFIX}readelf CACHE INTERNAL "readelf tool")
 set(CMAKE_NM           ${TOOLCHAIN_PREFIX}nm      CACHE INTERNAL "nm tool")
 set(CMAKE_SIZE_UTIL    ${TOOLCHAIN_PREFIX}size    CACHE INTERNAL "size tool")
+set(CMAKE_RANLIB       ${TOOLCHAIN_PREFIX}ranlib  CACHE INTERNAL "ranlib tool")
 find_program(CMAKE_GDB ${TOOLCHAIN_PREFIX}gdb gdb CACHE INTERNAL "gdb client")
 
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
