@@ -379,12 +379,10 @@ _ZTVN4rack7history8CableAddE
 _ZTVN4rack7history9ModuleAddE
 _ZTVN4rack8QuantityE
 __aeabi_atexit
-__aeabi_l2d
 __assert_func
 __atexit
 __atexit_recursive_mutex
 __cxa_pure_virtual
-__popcountsi2
 _calloc_r
 _close_r
 _empty_func_stub
