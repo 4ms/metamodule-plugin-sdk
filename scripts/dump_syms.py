@@ -35,6 +35,7 @@ def GetLibcSymbols():
          "_calloc_r",
          "_realloc_r",
          "_free_r",
+         "memalign",
 
          "abort",
          "__assert_func",
