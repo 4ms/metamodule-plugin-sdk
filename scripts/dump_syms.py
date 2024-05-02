@@ -61,10 +61,6 @@ def GetLibcSymbols():
          "__atexit",
          "__aeabi_atexit",
          "__atexit_recursive_mutex",
-
-         # FIXME: why is __aeabi_l2d not defined in the plugin's libgcc?
-         "__aeabi_l2d",
-         "__popcountsi2",
     ]
     return libc_syms
 
