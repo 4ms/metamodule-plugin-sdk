@@ -53,8 +53,44 @@ cmake --build build
   - arm-none-eabi-gcc toolchain 12.2 or 12.3
   - python 3.6 or later
 
+## Limitations
 
-## Images
+As of now, there are the following limitations:
+
+  - No dynamic drawing using nanovg (NVG draw commands). Calling these
+    functions will still compile and run, but MetaModule does not call
+    Widget::draw() or drawLayer(), so they'll have no effect. This typically
+    means that modules with screens will just have a blank screen.
+
+  - No expander modules. That is, modules cannot communicate with one another.
+    Modules that use an expander will always act as if the expander is not
+    present.
+
+  - No filesystem access. Filesystem calls must be removed/commented out.
+
+  - No use of stringstream, fstream, ofstream, etc. Calls to these functions must be removed.
+
+  - C++ exceptions must be disabled. Calls to throw or try/catch must be removed.
+
+
+The easiest way to work around any of these is to create a branch or fork of the original code and comment out or remove the offending code. 
+Often they are not essential to the module's functionality anyways.
+
+
+We plan to address these:
+
+  - To support screens (dynamic drawing) we plan to implement an adaptor to go
+    from nanovg to our native GUI engine, and call draw() on all visible
+    widgets in the ModuleView (refresh rate will be limited).
+
+  - Create a non-blocking (asynchronious) filesystem API to access files in the
+    plugin dir (assuming the user hasn't ejected the USB drive or SD card).
+
+  - Re-build our custom libstdc++/libsupc++ libraries with exceptions and streams
+    support (HELP WANTED!).
+
+
+## Graphics
 
 VCV Rack uses SVG files for graphical assets, but MetaModule uses PNGs. So, we
 need to convert all SVGs to PNGs. Typically all SVGs are kept in a `res/`
