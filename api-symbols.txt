@@ -330,7 +330,6 @@ _ZN4rack8settings8tooltipsE
 _ZN4rack8settings9windowPosE
 _ZNK16VCVModuleWrapper10get_outputEi
 _ZNK16VCVModuleWrapper18get_led_brightnessEi
-_ZNK4rack3app11ParamWidget16getParamQuantityEv
 _ZTI16VCVModuleWrapper
 _ZTIN4rack3app12ModuleWidgetE
 _ZTIN4rack6engine13ParamQuantityE
@@ -544,7 +543,6 @@ pffft_transform_internal
 pffft_transform_ordered
 pffft_zconvolve_accumulate
 pffft_zreorder
-pluginInstance
 realloc
 rfftb
 rfftf
