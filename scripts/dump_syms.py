@@ -58,6 +58,9 @@ def GetLibcSymbols():
          "_sbrk_r",
          "_gettimeofday_r",
 
+         "expm1l",
+         "log1pl",
+
          "__atexit",
          "__aeabi_atexit",
          "__atexit_recursive_mutex",

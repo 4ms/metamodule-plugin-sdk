@@ -474,6 +474,7 @@ cost
 costi
 do_deep_copy
 do_object_update_recursive
+expm1l
 free
 gettimeofday
 glfwGetClipboardString
@@ -585,6 +586,7 @@ jsonp_strdup
 jsonp_stringn_nocheck_own
 jsonp_strndup
 jsonp_strtod
+log1pl
 malloc
 memalign
 pffft_aligned_free
