@@ -74,6 +74,7 @@ function(create_plugin)
 		DEPENDS ${LIB_NAME}
 		COMMAND ${CMAKE_CXX_COMPILER} ${LFLAGS} -o ${PLUGIN_FILE_FULL}
 				$<TARGET_OBJECTS:${LIB_NAME}>  #FIXME: libraries linked to LIB_NAME target will not be included
+				${EXTRA_LINK_OPTIONS}
                 -L${LIBC_BIN_DIR} 
                 -lmetamodule-plugin-libc #FIXME: silently fails if this lib is not found
                 -lgcc
