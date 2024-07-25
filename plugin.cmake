@@ -34,13 +34,9 @@ function(create_plugin)
     endif()
 
     set(PLUGIN_FILE_FULL ${PLUGIN_NAME}-debug.so)
+    cmake_path(APPEND PLUGIN_FILE_TMP ${CMAKE_CURRENT_BINARY_DIR} ${PLUGIN_NAME}.so)
     cmake_path(APPEND PLUGIN_FILE ${PLUGIN_OPTIONS_DESTINATION} ${PLUGIN_NAME}.so)
 
-    file(MAKE_DIRECTORY ${PLUGIN_OPTIONS_DESTINATION})
-
-    if (PLUGIN_OPTIONS_SOURCE_ASSETS)
-        file(COPY ${PLUGIN_OPTIONS_SOURCE_ASSETS}/ DESTINATION ${PLUGIN_OPTIONS_DESTINATION})
-    endif()
 
     ###############
 
@@ -83,13 +79,13 @@ function(create_plugin)
 
 	# Strip symbols to create a smaller plugin file
     add_custom_command(
-        OUTPUT ${PLUGIN_FILE}
+        OUTPUT ${PLUGIN_FILE_TMP}
         DEPENDS ${PLUGIN_FILE_FULL}
-        COMMAND ${CMAKE_STRIP} -g -v -o ${PLUGIN_FILE} ${PLUGIN_FILE_FULL}
-		COMMAND ${CMAKE_SIZE_UTIL} ${PLUGIN_FILE}
+        COMMAND ${CMAKE_STRIP} -g -v -o ${PLUGIN_FILE_TMP} ${PLUGIN_FILE_FULL}
+		COMMAND ${CMAKE_SIZE_UTIL} ${PLUGIN_FILE_TMP}
         VERBATIM USES_TERMINAL
     )
-    add_custom_target(plugin ALL DEPENDS ${PLUGIN_FILE})
+    add_custom_target(plugin ALL DEPENDS ${PLUGIN_FILE_TMP})
 
     # Verify symbols will be resolved
     set(FIRMWARE_SYMTAB_PATH ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/api-symbols.txt)
@@ -97,11 +93,22 @@ function(create_plugin)
         TARGET plugin
         POST_BUILD
         COMMAND scripts/check_syms.py 
-            --plugin ${PLUGIN_FILE}
+            --plugin ${PLUGIN_FILE_TMP}
             --api ${FIRMWARE_SYMTAB_PATH}
             # -v
         WORKING_DIRECTORY ${CMAKE_CURRENT_FUNCTION_LIST_DIR}
         VERBATIM USES_TERMINAL
+	)
+
+	add_custom_command(
+		TARGET plugin
+		POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E echo "Creating plugin dir"
+        COMMAND ${CMAKE_COMMAND} -E rm -r ${PLUGIN_OPTIONS_DESTINATION}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${PLUGIN_OPTIONS_DESTINATION}
+        COMMAND ${CMAKE_COMMAND} -E copy ${PLUGIN_FILE_TMP} ${PLUGIN_FILE}
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${PLUGIN_OPTIONS_SOURCE_ASSETS} ${PLUGIN_OPTIONS_DESTINATION}
+        VERBATIM
     )
 
     # Helpful outputs for debugging plugin elf file:
