@@ -64,12 +64,21 @@ function(create_plugin)
     get_target_property(LIBC_BIN_DIR metamodule-plugin-libc BINARY_DIR)
     find_library(LIBC_BIN_DIR "metamodule-plugin-libc" PATHS ${LIBC_BIN_DIR} REQUIRED)
 
+	# Get objects of linked libraries, except those we know about
+	get_target_property(DEP_LIBS ${LIB_NAME} LINK_LIBRARIES)
+	list(REMOVE_ITEM DEP_LIBS "arch_mp15x_a7")
+	list(REMOVE_ITEM DEP_LIBS "metamodule-sdk")
+	foreach(LIB IN LISTS DEP_LIBS)
+		list(APPEND TARGET_LINK_LIB_OBJS $<TARGET_OBJECTS:${LIB}>)
+	endforeach()
+
 	# Link objects into a shared library (CMake won't do it for us)
     add_custom_command(
 		OUTPUT ${PLUGIN_FILE_FULL}
 		DEPENDS ${LIB_NAME}
 		COMMAND ${CMAKE_CXX_COMPILER} ${LFLAGS} -o ${PLUGIN_FILE_FULL}
-				$<TARGET_OBJECTS:${LIB_NAME}>  #FIXME: libraries linked to LIB_NAME target will not be included
+				$<TARGET_OBJECTS:${LIB_NAME}> 
+				${TARGET_LINK_LIB_OBJS}
                 -L${LIBC_BIN_DIR} 
                 -lmetamodule-plugin-libc #FIXME: silently fails if this lib is not found
                 -lgcc
@@ -104,7 +113,7 @@ function(create_plugin)
 		TARGET plugin
 		POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E echo "Creating plugin dir"
-        COMMAND ${CMAKE_COMMAND} -E rm -r ${PLUGIN_OPTIONS_DESTINATION}
+        COMMAND ${CMAKE_COMMAND} -E rm -rf ${PLUGIN_OPTIONS_DESTINATION}
         COMMAND ${CMAKE_COMMAND} -E make_directory ${PLUGIN_OPTIONS_DESTINATION}
         COMMAND ${CMAKE_COMMAND} -E copy ${PLUGIN_FILE_TMP} ${PLUGIN_FILE}
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${PLUGIN_OPTIONS_SOURCE_ASSETS} ${PLUGIN_OPTIONS_DESTINATION}
