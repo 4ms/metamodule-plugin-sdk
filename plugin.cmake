@@ -53,6 +53,10 @@ function(create_plugin)
 
 	target_link_libraries(${LIB_NAME} PRIVATE metamodule-sdk)
 
+    # TODO: auto-generate from git tag
+    set(VERSION_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/version.cc)
+    target_sources(${LIB_NAME} PRIVATE ${VERSION_FILE})
+
 	set(LFLAGS
         -shared
         -Wl,-Map,plugin.map,--cref
