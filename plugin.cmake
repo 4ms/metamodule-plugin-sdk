@@ -20,7 +20,7 @@ function(create_plugin)
 
     ################
 
-    set(oneValueArgs SOURCE_LIB SOURCE_ASSETS DESTINATION PLUGIN_NAME)
+    set(oneValueArgs SOURCE_LIB SOURCE_ASSETS DESTINATION PLUGIN_NAME PLUGIN_JSON)
     cmake_parse_arguments(PLUGIN_OPTIONS "" "${oneValueArgs}" "" ${ARGN} )
 
     # TODO: Add more checking and validation for arguments
@@ -37,6 +37,17 @@ function(create_plugin)
     cmake_path(APPEND PLUGIN_FILE_TMP ${CMAKE_CURRENT_BINARY_DIR} ${PLUGIN_NAME}.so)
     cmake_path(APPEND PLUGIN_FILE ${PLUGIN_OPTIONS_DESTINATION} ${PLUGIN_NAME}.so)
 
+    if (DEFINED PLUGIN_OPTIONS_PLUGIN_JSON)
+        set(PLUGIN_JSON_SOURCE ${PLUGIN_OPTIONS_PLUGIN_JSON})
+        if (EXISTS ${PLUGIN_JSON_SOURCE})
+            cmake_path(APPEND PLUGIN_JSON_DEST ${PLUGIN_OPTIONS_DESTINATION} plugin.json)
+        else()
+            message(FATAL_ERROR "plugin.json file at ${PLUGIN_JSON} not found.")
+        endif()
+    else()
+        # TODO: search for it?
+        message(FATAL_ERROR "You must provide the path to the `plugin.json` file with the PLUGIN_JSON argument of create_plugin()")
+    endif()
 
     ###############
 
@@ -116,6 +127,7 @@ function(create_plugin)
         COMMAND ${CMAKE_COMMAND} -E rm -rf ${PLUGIN_OPTIONS_DESTINATION}
         COMMAND ${CMAKE_COMMAND} -E make_directory ${PLUGIN_OPTIONS_DESTINATION}
         COMMAND ${CMAKE_COMMAND} -E copy ${PLUGIN_FILE_TMP} ${PLUGIN_FILE}
+        COMMAND ${CMAKE_COMMAND} -E copy ${PLUGIN_JSON_SOURCE} ${PLUGIN_JSON_DEST}
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${PLUGIN_OPTIONS_SOURCE_ASSETS} ${PLUGIN_OPTIONS_DESTINATION}
         VERBATIM
     )
