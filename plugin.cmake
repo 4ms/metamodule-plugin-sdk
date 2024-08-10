@@ -1,6 +1,8 @@
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/arm-none-eabi-gcc.cmake)
 project(MetaModulePluginSDK LANGUAGES C CXX ASM)
 
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/version.cmake)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/ccache.cmake)
@@ -33,14 +35,20 @@ function(create_plugin)
         set(PLUGIN_NAME ${LIB_NAME})
     endif()
 
+	# Path to final plugin tar file
+	cmake_path(NORMAL_PATH PLUGIN_OPTIONS_DESTINATION OUTPUT_VARIABLE PLUGIN_DEST_DIR)
+	cmake_path(APPEND PLUGIN_DEST_FILE ${PLUGIN_DEST_DIR} ${PLUGIN_NAME}.mmplugin)
+
+	cmake_path(APPEND PLUGIN_DEST_TMP_DIR ${CMAKE_CURRENT_BINARY_DIR} ${PLUGIN_NAME})
+
     set(PLUGIN_FILE_FULL ${PLUGIN_NAME}-debug.so)
     cmake_path(APPEND PLUGIN_FILE_TMP ${CMAKE_CURRENT_BINARY_DIR} ${PLUGIN_NAME}.so)
-    cmake_path(APPEND PLUGIN_FILE ${PLUGIN_OPTIONS_DESTINATION} ${PLUGIN_NAME}.so)
+    cmake_path(APPEND PLUGIN_FILE ${PLUGIN_DEST_TMP_DIR} ${PLUGIN_NAME}.so)
 
     if (DEFINED PLUGIN_OPTIONS_PLUGIN_JSON)
         set(PLUGIN_JSON_SOURCE ${PLUGIN_OPTIONS_PLUGIN_JSON})
         if (EXISTS ${PLUGIN_JSON_SOURCE})
-            cmake_path(APPEND PLUGIN_JSON_DEST ${PLUGIN_OPTIONS_DESTINATION} plugin.json)
+            cmake_path(APPEND PLUGIN_JSON_DEST ${PLUGIN_DEST_TMP_DIR} plugin.json)
         else()
             message(FATAL_ERROR "plugin.json file at ${PLUGIN_JSON} not found.")
         endif()
@@ -53,7 +61,7 @@ function(create_plugin)
 
 	target_link_libraries(${LIB_NAME} PRIVATE metamodule-sdk)
 
-    # TODO: auto-generate from git tag
+	# TODO: configure version file with SDK_MAJOR_VERSION etc
     set(VERSION_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/version.cc)
     target_sources(${LIB_NAME} PRIVATE ${VERSION_FILE})
 
@@ -127,12 +135,15 @@ function(create_plugin)
 	add_custom_command(
 		TARGET plugin
 		POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E echo "Creating plugin dir"
-        COMMAND ${CMAKE_COMMAND} -E rm -rf ${PLUGIN_OPTIONS_DESTINATION}
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${PLUGIN_OPTIONS_DESTINATION}
+        COMMAND ${CMAKE_COMMAND} -E echo "Creating plugin at ${PLUGIN_DEST_FILE}"
+        COMMAND ${CMAKE_COMMAND} -E rm -rf ${PLUGIN_DEST_TMP_DIR}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${PLUGIN_DEST_TMP_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy ${PLUGIN_FILE_TMP} ${PLUGIN_FILE}
         COMMAND ${CMAKE_COMMAND} -E copy ${PLUGIN_JSON_SOURCE} ${PLUGIN_JSON_DEST}
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${PLUGIN_OPTIONS_SOURCE_ASSETS} ${PLUGIN_OPTIONS_DESTINATION}
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${PLUGIN_OPTIONS_SOURCE_ASSETS} ${PLUGIN_DEST_TMP_DIR}
+        COMMAND ${CMAKE_COMMAND} -E touch ${PLUGIN_DEST_TMP_DIR}/SDK-${SDK_MAJOR_VERSION}.${SDK_MINOR_VERSION}
+        COMMAND ${CMAKE_COMMAND} -E rm -R ${PLUGIN_DEST_TMP_DIR}/.DS_Store
+        COMMAND ${CMAKE_COMMAND} -E tar cf ${PLUGIN_DEST_FILE} ${PLUGIN_DEST_TMP_DIR}
         VERBATIM
     )
 
