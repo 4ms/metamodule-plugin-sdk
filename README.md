@@ -60,7 +60,9 @@ As of now, there are the following limitations:
   - No dynamic drawing using nanovg (NVG draw commands). Calling these
     functions will still compile and run, but MetaModule does not call
     Widget::draw() or drawLayer(), so they'll have no effect. This typically
-    means that modules with screens will just have a blank screen.
+    means that modules with screens will just have a blank screen. There is support
+    for dynamically updating text-only screens, but it requires adding
+    a function to the rack::Module class.
 
   - No expander modules. That is, modules cannot communicate with one another.
     Modules that use an expander will always act as if the expander is not
