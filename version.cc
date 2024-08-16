@@ -4,8 +4,8 @@ namespace MetaModule {
 
 __attribute__((__visibility__("default"))) Version sdk_version() {
   return Version{
-      .major = 0,
-      .minor = 15,
+      .major = 1,
+      .minor = 0,
       .revision = 0,
   };
 }
