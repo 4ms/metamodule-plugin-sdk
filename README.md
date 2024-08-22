@@ -21,29 +21,51 @@ project(MyPlugin VERSION 0.1 DESCRIPTION "My Plugin for MetaModule" LANGUAGES C 
 add_library(MyPlugin STATIC)
 
 # Add sources from the Rack source repo
-set(SOURCEDIR ../../rack-plugins/MyPlugin)
+set(SOURCE_DIR ../../rack-plugins/MyPlugin)
 
 target_sources(MyPlugin PRIVATE
-    ${SOURCEDIR}/src/plugin.cpp #contains init(rack::Plugin*)
-    ${SOURCEDIR}/src/MyModule1.cpp
-    ${SOURCEDIR}/src/MyModule2.cpp
+    ${SOURCE_DIR}/src/plugin.cpp #contains init(rack::Plugin*)
+    ${SOURCE_DIR}/src/MyModule1.cpp
+    ${SOURCE_DIR}/src/MyModule2.cpp
 )
 
 # Add includes and compile options for source repo
-target_include_directories(MyPlugin PRIVATE ${SOURCEDIR}/src)
+target_include_directories(MyPlugin PRIVATE ${SOURCE_DIR}/src)
 
 # Call this to link and create the plugin file
 create_plugin(
-    SOURCE_LIB      MyPlugin
-    SOURCE_ASSETS   path/to/directory/of/graphics/in/png-format
-    DESTINATION     ${CMAKE_CURRENT_LIST_DIR}/metamodule-plugins/MyPlugin
+    SOURCE_LIB      MyPlugin                                          # The cmake target name (defined in add_target)
+    PLUGIN_NAME     MyPlugin                                          # This must match the brand "slug" used in VCV Rack
+    PLUGIN_JSON     ${SOURCE_DIR}/plugin.json                         # Path to the plugin.json file used by VCV Rack
+    SOURCE_ASSETS   ${CMAKE_CURRENT_LIST_DIR}/assets                  # Path to the assets/ dir containing the PNGs
+    DESTINATION     ${CMAKE_CURRENT_LIST_DIR}/../metamodule-plugins   # Path to where you want the plugin file output
 )
+EOF
+
+cat << EOF > plugin-mm.json
+{
+	"MetaModulePluginMaintainer": "My Name",
+	"MetaModulePluginMaintainerEmail": "",
+	"MetaModulePluginMaintainerUrl": "",
+	"MetaModuleDescription": "",
+    "MetaModuleIncludedModules": [ "Module1", "Module2" ]
+}
 EOF
 
 cmake -B build -G Ninja
 cmake --build build
 
 ```
+
+Plugins require a `plugin.json` file in the same format as the VCV Rack
+`plugin.json`. Some additional MetaModule-specific information must be supplied
+in the `plugin-mm.json` file. This information is used when cataloging the
+plugin. The fields in this file refer to the MetaModule plugin, which may be
+different than the maintainer of the main repo (e.g. different maintainers,
+different list of modules).
+
+Currently this metadata is only used to display and catalog plugins on the website, 
+but future firmware will parse the json files, so make sure the information is accurate.
 
 
 ## Requirements
@@ -68,25 +90,28 @@ As of now, there are the following limitations:
     Modules that use an expander will always act as if the expander is not
     present.
 
-  - No filesystem access. Filesystem calls must be removed/commented out.
+  - No filesystem access. Filesystem calls must be removed/#ifdef/commented out.
 
   - No use of stringstream, fstream, ofstream, etc. Calls to these functions must be removed.
 
   - C++ exceptions must be disabled. Calls to throw or try/catch must be removed.
 
 
-The easiest way to work around any of these is to create a branch or fork of the original code and comment out or remove the offending code. 
-Often they are not essential to the module's functionality anyways.
+The easiest way to work around any of these is to create a branch or fork of
+the original code and comment or #ifdef out the offending code. 
 
 
 We plan to address these:
 
-  - To support screens (dynamic drawing) we plan to implement an adaptor to go
-    from nanovg to our native GUI engine, and call draw() on all visible
-    widgets in the ModuleView (refresh rate will be limited).
+  - We already have limited support for text-only screens. We will document this soon!
+
+  - To support graphical screens (dynamic drawing) we plan to implement an
+    adaptor to go from nanovg to our native GUI engine, and call draw() on all
+    visible widgets in the ModuleView (refresh rate will be limited).
 
   - Create a non-blocking (asynchronious) filesystem API to access files in the
-    plugin dir (assuming the user hasn't ejected the USB drive or SD card).
+    plugin dir (assuming the user hasn't ejected the USB drive or SD card). There is 
+    a proof-of-concept branch for this working.
 
   - Re-build our custom libstdc++/libsupc++ libraries with exceptions and streams
     support (HELP WANTED!).
