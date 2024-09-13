@@ -11,7 +11,6 @@ set(ARCH_MP15x_A7_FLAGS
 	-mno-unaligned-access
 	-mtune=cortex-a7
 	-mvectorize-with-neon-quad
-	-funsafe-math-optimizations
 )
 
 target_compile_options(arch_mp15x_a7 INTERFACE
