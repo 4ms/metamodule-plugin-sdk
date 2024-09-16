@@ -8,7 +8,7 @@ set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/ccache.cmake)
 
 # Whether to compile with static libc and libm
-set(METAMODULE_PLUGIN_STATIC_LIBC 1)
+set(METAMODULE_PLUGIN_STATIC_LIBC 0)
 
 # Set the chip architecture
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/arch_mp15xa7.cmake)
@@ -84,31 +84,18 @@ function(create_plugin)
         ${ARCH_MP15x_A7_FLAGS}
     )
 
-    get_target_property(LIBC_BIN_DIR metamodule-plugin-libc BINARY_DIR)
-    find_library(LIBC_BIN_DIR "metamodule-plugin-libc" PATHS ${LIBC_BIN_DIR} REQUIRED)
-
     if (METAMODULE_PLUGIN_STATIC_LIBC)
-        set(LINK_LIBS_DIR ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/metamodule-plugin-libc/arm-none-eabi-pic-noexcept-1)
+        set(LINK_LIBS_DIR ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/metamodule-plugin-libc/lib)
         find_library(LIBCLIB "pluginc" PATHS ${LINK_LIBS_DIR} REQUIRED)
         find_library(LIBMLIB "pluginm" PATHS ${LINK_LIBS_DIR} REQUIRED)
-        find_library(LIBGLIB "pluging" PATHS ${LINK_LIBS_DIR} REQUIRED)
-        find_library(LIBGCCLIB "plugingcc" PATHS ${LINK_LIBS_DIR} REQUIRED)
-        find_library(LIBSTDCXXLIB "pluginstdc++" PATHS ${LINK_LIBS_DIR} REQUIRED)
-        find_library(LIBNOSYSLIB "pluginnosys" PATHS ${LINK_LIBS_DIR} REQUIRED)
         set(LINK_STATIC_LIBC
-            -L${LINK_LIBS_DIR}
-            -lplugingcc
-            -lpluginm
-            -lpluging
             -lpluginc
-            -lpluginnosys
-            -lpluginstdc++
-        )
-    else()
-        set(LINK_STATIC_LIBC
-            -lgcc
+            -lpluginm
         )
     endif()
+
+    get_target_property(LIBC_BIN_DIR metamodule-plugin-libc BINARY_DIR)
+    find_library(LIBC_BIN_DIR "metamodule-plugin-libc" PATHS ${LIBC_BIN_DIR} REQUIRED)
 
 	# Get objects of linked libraries, except those we know about
 	get_target_property(DEP_LIBS ${LIB_NAME} LINK_LIBRARIES)
@@ -123,13 +110,11 @@ function(create_plugin)
 		OUTPUT ${PLUGIN_FILE_FULL}
 		DEPENDS ${LIB_NAME}
 		COMMAND ${CMAKE_CXX_COMPILER} ${LFLAGS} -o ${PLUGIN_FILE_FULL}
-            -L${LIBC_BIN_DIR}
-            -Wl,--start-group
-                ${LINK_STATIC_LIBC}
 				$<TARGET_OBJECTS:${LIB_NAME}> 
 				${TARGET_LINK_LIB_OBJS}
-                 -lmetamodule-plugin-libc # This provides __dso_handle only
-            -Wl,--end-group
+                -L${LIBC_BIN_DIR} 
+                -lmetamodule-plugin-libc #FIXME: silently fails if this lib is not found
+                -lgcc
 		COMMAND_EXPAND_LISTS
 		VERBATIM USES_TERMINAL
     )
