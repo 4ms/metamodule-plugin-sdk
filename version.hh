@@ -9,8 +9,8 @@ struct Version {
 	uint8_t minor;
 	uint8_t revision;
 
-	bool is_compatible(Version other) {
-		return major == other.major && minor == other.minor;
+	bool can_host_version(Version other) {
+		return major == other.major && minor >= other.minor;
 	}
 };
 
