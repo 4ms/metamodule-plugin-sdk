@@ -73,6 +73,8 @@ function(create_plugin)
     set(VERSION_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/version.cc)
     target_sources(${LIB_NAME} PRIVATE ${VERSION_FILE})
 
+    target_compile_definitions(${LIB_NAME} PRIVATE METAMODULE)
+
 	set(LFLAGS
         -shared
         -Wl,-Map,plugin.map,--cref
