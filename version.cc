@@ -4,7 +4,7 @@ namespace MetaModule
 {
 
 __attribute__((__visibility__("default"))) Version sdk_version() {
-	return Version{1, 0, 0};
+	return Version{1, 3, 0};
 }
 
 } // namespace MetaModule
