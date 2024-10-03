@@ -64,6 +64,8 @@ def GetLibcSymbols():
          "__atexit",
          "__aeabi_atexit",
          "__atexit_recursive_mutex",
+
+         "_ZTIN10__cxxabiv115__forced_unwindE"
     ]
     return libc_syms
 
