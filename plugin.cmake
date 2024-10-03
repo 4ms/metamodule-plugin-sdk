@@ -88,7 +88,7 @@ function(create_plugin)
     find_library(LIBC_BIN_DIR "metamodule-plugin-libc" PATHS ${LIBC_BIN_DIR} REQUIRED)
 
     if (METAMODULE_PLUGIN_STATIC_LIBC)
-        set(LINK_LIBS_DIR ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/metamodule-plugin-libc/arm-none-eabihf-1)
+        set(LINK_LIBS_DIR ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/metamodule-plugin-libc/arm-none-eabi-pic-except-2)
         find_library(LIBCLIB "pluginc" PATHS ${LINK_LIBS_DIR} REQUIRED)
         find_library(LIBMLIB "pluginm" PATHS ${LINK_LIBS_DIR} REQUIRED)
         find_library(LIBGLIB "pluging" PATHS ${LINK_LIBS_DIR} REQUIRED)
