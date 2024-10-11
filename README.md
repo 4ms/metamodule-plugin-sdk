@@ -1,18 +1,26 @@
 # MetaModule Plugin SDK
 
-Used for building an existing Rack plugin as a MetaModule plugin.
+Used for building an existing Rack plugin as a MetaModule plugin, or for
+creating a native plugin (that's not based on an existing Rack plugin)
 
 For example projects using this SDK, see [metamodule-plugin-examples](https://github.com/4ms/metamodule-plugin-examples)
 
 ## Basic Usage
 
+Install this repo and create a new project folder:
+
 ```bash
 git clone https://github.com/4ms/metamodule-plugin-sdk.git --recursive
 mkdir MyPlugin
 cd MyPlugin
+```
 
-cat << EOF > CMakeLists.txt
+Create a CMakeLists.txt file in the project folder. The example below references an existing directory
+at `../../rack-plugins/MyPlugin` that contains `src/plugin.cpp` and
+`src/MyModule1.cpp` and `src/MyModule2.cpp`.
 
+`MyPlugin/CMakeLists.txt`
+```cmake
 cmake_minimum_required(VERSION 3.19)
 include(../metamodule-plugin-sdk/plugin.cmake)
 
@@ -24,7 +32,7 @@ add_library(MyPlugin STATIC)
 set(SOURCE_DIR ../../rack-plugins/MyPlugin)
 
 target_sources(MyPlugin PRIVATE
-    ${SOURCE_DIR}/src/plugin.cpp #contains init(rack::Plugin*)
+    ${SOURCE_DIR}/src/plugin.cpp                    # Note: this file contains init(rack::Plugin*)
     ${SOURCE_DIR}/src/MyModule1.cpp
     ${SOURCE_DIR}/src/MyModule2.cpp
 )
@@ -40,33 +48,57 @@ create_plugin(
     SOURCE_ASSETS   ${CMAKE_CURRENT_LIST_DIR}/assets                  # Path to the assets/ dir containing the PNGs
     DESTINATION     ${CMAKE_CURRENT_LIST_DIR}/../metamodule-plugins   # Path to where you want the plugin file output
 )
-EOF
+```
 
-cat << EOF > plugin-mm.json
+Create a `plugin-mm.json` file.
+This contains MetaModule-specific information used when cataloging the plugin.
+The fields in this file refer to the MetaModule plugin, which may be different
+than the maintainer of the main repo (e.g. different maintainers, different
+list of modules).
+
+Currently this metadata is only used to display and catalog plugins on the website, 
+but future firmware will parse the json files, so make sure the information is accurate.
+
+If you have no intention of listing this on the MetaModule website, you can
+just use a blank file for now.
+
+`MyPlugin/plugin-mm.json`:
+```json
 {
 	"MetaModulePluginMaintainer": "My Name",
 	"MetaModulePluginMaintainerEmail": "",
 	"MetaModulePluginMaintainerUrl": "",
 	"MetaModuleDescription": "",
-    "MetaModuleIncludedModules": [ "Module1", "Module2" ]
+	"MetaModuleIncludedModules": [
+	{
+		"slug": "Module1",
+		"name": "Module Number One"
+	},
+	{
+		"slug": "Module2",
+		"name": "Module Number Two"
+	}
 }
-EOF
-
-cmake -B build -G Ninja
-cmake --build build
-
 ```
 
-Plugins require a `plugin.json` file in the same format as the VCV Rack
-`plugin.json`. Some additional MetaModule-specific information must be supplied
-in the `plugin-mm.json` file. This information is used when cataloging the
-plugin. The fields in this file refer to the MetaModule plugin, which may be
-different than the maintainer of the main repo (e.g. different maintainers,
-different list of modules).
+Add any graphical assets your project uses. See [Graphics Guide](docs/graphics.md)
+If you are just trying to get it compiling and don't have PNGs yet, then just
+create the directory and move on.
 
-Currently this metadata is only used to display and catalog plugins on the website, 
-but future firmware will parse the json files, so make sure the information is accurate.
+```bash
+mkdir assets
+cp location/of/png/files/*.png assets/
+```
 
+Now build your project.
+
+```bash
+cmake -B build -G Ninja
+cmake --build build
+```
+
+Plugins loaded with the VCV Rack adaptor require a `plugin.json` file in the
+same format as the VCV Rack `plugin.json
 
 ## Requirements
 
@@ -82,9 +114,8 @@ As of now, there are the following limitations:
   - No dynamic drawing using nanovg (NVG draw commands). Calling these
     functions will still compile and run, but MetaModule does not call
     Widget::draw() or drawLayer(), so they'll have no effect. This typically
-    means that modules with screens will just have a blank screen. There is support
-    for dynamically updating text-only screens, but it requires adding
-    a function to the rack::Module class.
+    means that modules with screens will just have a blank screen. In order
+    to use a text-only screen, follow [the Text Display guide](docs/text-displays.md)
 
   - No expander modules. That is, modules cannot communicate with one another.
     Modules that use an expander will always act as if the expander is not
@@ -103,8 +134,6 @@ the original code and comment or #ifdef out the offending code.
 
 We plan to address these:
 
-  - We already have limited support for text-only screens. We will document this soon!
-
   - To support graphical screens (dynamic drawing) we plan to implement an
     adaptor to go from nanovg to our native GUI engine, and call draw() on all
     visible widgets in the ModuleView (refresh rate will be limited).
@@ -117,55 +146,3 @@ We plan to address these:
     support (HELP WANTED!).
 
 
-## Graphics
-
-VCV Rack uses SVG files for graphical assets, but MetaModule uses PNGs. So, we
-need to convert all SVGs to PNGs. Typically all SVGs are kept in a `res/`
-directory for VCV Rack plugins. For MetaModule plugins, the `res/` dir is
-omitted, but otherwise the directory structure and file base names are kept the
-same. Before building your plugin, convert all the SVGs to PNGs and put them
-into the `assets/` dir in your plugin folder. This `assets/` dir is refered to
-by CMakeLists in the call to `create_plugin()`, so if you want to use a
-different directory, just change it there. The Cmake script will simply copy
-the contents of the `assets/` dir to the plugin dir.
-
-There is a helper script that can convert a directory of SVGs to PNGs:
-`scripts/SvgToPng.py`. Running `scripts/SvgToPng.py -h` will display the help
-with available options. The script requires that you have inkscape installed
-and the `inkscape` executable on your PATH. Version 1.2.2 has been tested to
-work.
-
-You can use it to convert directories, one at a time (it does not recursively
-scan sub-dirs):
-
-```bash
-cd MyPlugin
-
-mkdir assets 
-mkdir assets/panels 
-mkdir assets/components
-
-# Convert res/panels/*.svg ==>> assets/panels/*.png: 
-../scripts/SvgToPng.py --input ../path/to/rack_plugins/MyPlugin/res/panels/ --output assets/panels
-
-# Convert res/components/*.svg ==>> assets/components/*.png:
-../scripts/SvgToPng.py --input ../path/to/rack_plugins/MyPlugin/res/components/ --output assets/components
-```
-
-The script is not sophisticated: it will try to figure out the SVG's DPI but
-may get it wrong. If you need to, use the `--height=240` option when
-converting faceplates to force them to be 240px. You can also specify this option
-for component artwork if the script is making them the wrong size by default.
-
-If you want to disable transparency, then add the `--white` option.
-
-Sometimes, you may wish to not use the script at all and just generate your own
-PNG files that are better suited for the low-resolution screen of the MetaModule.
-This will produce the best results, but of course is time-consuming.
-
-Certain special effects like shadows, subtle gradients, thin lines will not look
-good on the MetaModule screen, so keep that in mind as you convert your artwork.
-
-The screen is 240px x 320px, about 144 ppi. We use 16-bit color (RGB565).
-Modules are displayed 240px high when viewed full-screen and 180px high when zoomed-out.
-We may add future options to zoom out to 120px when zoomed-out.
