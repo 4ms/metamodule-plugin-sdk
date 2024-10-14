@@ -96,15 +96,29 @@ display->Color = RGB565{1.f, 0.5f, 0.2f}; //pretty much the same as above
 display->Color = RGB565::Orange;
 ```
 
-### Custom fonts
+## Fonts
 
-You can specify a custom font by passing in the path to the font like this:
+Fonts are specified by a string. This can be the name of the font if it's a built-in font,
+or a path to a font binary file in the LVGL .bin format. 
+
+The list of built-in fonts is in the SDK in the `fonts.hh` file. You can use either the font variable name or the string itself.
+For example, the following two lines are equivalent:
+
 ```c++
-    display->font = "PluginName/font_name.bin";
+display->font = MetaModule::Font::Segment7_14;
+// Same as:
+display->font = "Segment7Standard_14";
+```
+
+You can use your own fonts by creating a `.bin` font file and then passing in
+the path to the font like this: 
+
+```c++
+display->font = "PluginName/font_name.bin";
 ```
 
 To generate `font_name.bin`, load a .ttf or .woff font file into the LVGL font conversion tool.
-There is an online version of this at (https://lvgl.io/tools/fontconverter)[https://lvgl.io/tools/fontconverter].
+There is an online version of this at [https://lvgl.io/tools/fontconverter](https://lvgl.io/tools/fontconverter).
 
 For the settings:
 - Name: by convention use FontName followed by an underscore and then the size: `FontName_14`
@@ -112,7 +126,7 @@ For the settings:
 - Bpp: 4 bit-per-pixel
 - Fallback: leave blank
 - Output format: Binary
-- Uncheck Font compression, Horizontal subpixel, and Try to use glyph color info
+- Uncheck "Font compression", "Horizontal subpixel", and "Try to use glyph color info"
 - Range: by default use `0x20-0x7f`, which is the normal ASCII chars. You are welcome to use any values you want here if you are displaying other characters/emojis/icons/etc
 - Symbols: this is another way to input the characters to include
 
@@ -126,7 +140,7 @@ MyPlugin/
       |___ ...
 ```
 
-To access this font (my_font), you would set font like this (remember, the `assets` dir is removed when creating a plugin`)
+To access this font (my_font), you would set font like this (remember, the `assets` dir is removed when creating a plugin)
 
 ```c++
     display->font = "MyPlugin/my_font.bin";
