@@ -1,14 +1,31 @@
 # Graphics
 
-VCV Rack uses SVG files for graphical assets, but MetaModule uses PNGs. So, we
-need to convert all SVGs to PNGs. Typically all SVGs are kept in a `res/`
-directory for VCV Rack plugins. For MetaModule plugins, the `res/` dir is
-omitted, but otherwise the directory structure and file base names are kept the
-same. Before building your plugin, convert all the SVGs to PNGs and put them
-into the `assets/` dir in your plugin folder. This `assets/` dir is refered to
-by CMakeLists in the call to `create_plugin()`, so if you want to use a
-different directory, just change it there. The Cmake script will simply copy
-the contents of the `assets/` dir to the plugin dir.
+MetaModule uses PNG files for all graphics.
+Module faceplates should be 240 pixels high (128.5mm or 5.059" = 240px, so effective DPI is 47.44).
+
+The screen is 240px x 320px, about 144 ppi. We use 16-bit color (RGB565).
+Modules are displayed 240px high when viewed full-screen and 180px high when zoomed-out.
+We may add future options to zoom out to 120px when zoomed-out.
+
+All graphics for a plugin live in the `assets/` dir in the plugin base directory.
+
+When a plugin is built, the contents of the assets directory is copied into the 
+plugin directory. Notice that the assets directory itself is not copied, 
+just the contents. So if you put a file in `MyPlugin/assets/mypic.png`, then your plugin
+will reference as `MyPlugin/mypic.png`.
+
+Certain special effects like shadows, subtle gradients, thin lines will not look
+good on the MetaModule screen, so keep that in mind as you create artwork.
+
+
+### Converting a VCV Rack plugin
+
+If you are converting a VCV Rack plugin, you will need to convert the SVG files
+to PNGs. Typically all SVGs are kept in a `res/` directory for VCV Rack
+plugins. For MetaModule plugins, the `res/` dir is omitted, but otherwise the
+directory structure and file base names are kept the same. Before building your
+plugin, convert all the SVGs to PNGs and put them into the `assets/` dir in
+your plugin folder. 
 
 There is a helper script that can convert a directory of SVGs to PNGs:
 `scripts/SvgToPng.py`. Running `scripts/SvgToPng.py -h` will display the help
@@ -48,11 +65,4 @@ If you want to disable transparency, then add the `--white` option.
 Sometimes, you may wish to not use the script at all and just generate your own
 PNG files that are better suited for the low-resolution screen of the MetaModule.
 This will produce the best results, but of course is time-consuming.
-
-Certain special effects like shadows, subtle gradients, thin lines will not look
-good on the MetaModule screen, so keep that in mind as you convert your artwork.
-
-The screen is 240px x 320px, about 144 ppi. We use 16-bit color (RGB565).
-Modules are displayed 240px high when viewed full-screen and 180px high when zoomed-out.
-We may add future options to zoom out to 120px when zoomed-out.
 
