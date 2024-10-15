@@ -3,9 +3,19 @@
 Plugin API v1.3 supports screens on modules that display text only.
 
 Plugins have control over the font and color.
-To create a display using the VCV Rack interface, create a `MetaModule::VCVTextDisplay` object
-(or a class that dervives from this). See OrangeLine and CountModula projects in the
-[metamodule-plugin-examples repo](https://github.com/4ms/metamodule-plugin-examples).
+
+## Using the VCV Rack adaptor
+To create a display using the VCV Rack adatpor interface, create a
+`MetaModule::VCVTextDisplay` object (or a class that dervives from this). 
+
+Set the object's box and pos to place it on the module faceplate.
+Then set the font and color fields.
+
+You also must give each display a unique ID (similar to how each Param or Input or Output
+needs a unique ID in VCV Rack). This ID must also be different than any Light's unique ID.
+
+For full examples, see OrangeLine and CountModula projects in the [metamodule-plugin-examples
+repo](https://github.com/4ms/metamodule-plugin-examples).
 
 A brief example:
 ```c++
@@ -19,6 +29,7 @@ enum LightIds {
 // Add this:
 enum DisplayIds {
     MY_TEXT_DISPLAY = NUM_LIGHTS, // DisplayIds must not overlap with LightIds
+    MY_OTHER_TEXT_DISPLAY,
     MY_NUMERIC_DISPLAY
 };
 
@@ -45,61 +56,136 @@ struct MyModuleWidget : rack::ModuleWidget {
 
         // This probably already exists in the VCV Rack version:
         addChild(display);
-    }
+}
 };
 ```
 
-To have the text drawn, you need to provide an overridden function in your Module class like this:
+## Native plugin example
+
+Create an element derived from `DynamicTextDisplay` and populate its fields.
+
+Here is one way, following the style of `NativeExample/simple_gain_elements.cc` in the
+[metamodule-plugin-examples repo](https://github.com/4ms/metamodule-plugin-examples).
+
 ```c++
-struct MyModule : rack::Module {
+DynamicTextDisplay display;
+// Specify the area of the display (text outside this will be clipped)
+display.x_mm = 10.f;
+display.y_mm = 20.f;
+display.width_mm = 7.f;
+display.height_mm = 20.f;
+display.coords = Coords::TopLeft; // this means x_mm, y_mm is the top-left coordinate
+// Specify the font and color:
+display.font = "Default_12";
+display.color = RGB565::Orange;
+elements[i] = display;
+indices[i] = {.light_idx = MY_TEXT_DISPLAY};
+
+// Repeat this for MY_OTHER_TEXT_DISPLAY and MY_NUMERIC_DISPLAY
+```
+
+Or to follow the style of 4ms modules: 
+
+```c++
+struct MyModuleInfo : ModuleInfoBase {
+    static constexpr std::string_view slug{"MyModule"};
+    using enum Coords;
     //...
 
-	size_t get_display_text(int led_id, std::span<char> text) override {
-        // The GUI engine calls this function, giving it an LED Id that refers
-        // to the display that we want the text for.
-        // The function should populate the text parameter with characters to display,
-        // and return the number of bytes written.
+    static constexpr std::array<Element, 14> Elements{{
+		//...knobs, jacks, etc...
+        //
+        DynamicTextDisplay{{{{{20.f, 10.f, TopLeft, "Status Screen", "", 45, 17}}}, "Loading...", Font::DefaultMedium, Colors565::Orange}},
+        DynamicTextDisplay{{{{{20.f, 60.f, TopLeft, "Chord Screen", "", 25, 10}}}, "", Font::DefaultSmall, Colors565::Green}},
+        DynamicTextDisplay{{{{{10.f, 90.f, TopLeft, "Number screen", "", 10, 7}}}, "", Font::DefaultTiny, Colors565::White}},
+}};
 
-        // Here's one way to write chars to a display:
-		if (led_id == MY_TEXT_DISPLAY) {
+    enum class Elem {
+        // other element names
+        // 
+        MY_TEXT_DISPLAY,
+        MY_OTHER_TEXT_DISPLAY,
+        MY_NUMERIC_DISPLAY
+    };
+
+```
+
+## Drawing the Text
+
+To have the text drawn, you need to provide an override for `get_display_text()` in your module class.
+The GUI engine calls this function when it wants to draw a text display on your module.
+It will NOT be called concurrently with the audio loop, so you don't have to worry about concurrency.
+It's OK to allocate small buffers in this function, so you don't have to be strict about avoiding allocations.
+
+Parameters: 
+- `int display_id` is the unique ID of the display being requested.
+- `std::span<char> text` is an output parameter: your function should put the characters to draw here.
+   The `text.length()` function tells you the maximum number of characters you are allowed to write to
+   the text buffer.
+
+Return the number of bytes actually written to `text`. If you don't want to write anything, return 0.
+
+For example:
+
+```c++
+struct MyModule : rack::Module { // for native plugins, "rack::Module" would be "CoreProcessor"
+
+    //...
+
+	size_t get_display_text(int display_id, std::span<char> text) override {
+
+        // You can fill `text` in any way you want. Here's one way:
+		if (display_id == MY_TEXT_DISPLAY) {
             // This is the text we want to display:
 			std::string someText = myModuleGetSomeText();
+            someText += "\n";
+            someText += "Bank: " + std::to_string(bankNumber);
 
-            // Make sure we don't overrun the buffer:
+            // Make sure we don't overrun the `text` buffer:
 			size_t chars_to_copy = std::min(someText.size(), text.length());
 
             // Copy chars from `someText` to `text`
             std::copy(someText.data(), someText.data() + chars_to_copy, text.begin());
 
+            return chars_to_copy;
 		}
+
+        // Here's another way:
+        else if (display_id == MY_OTHER_TEXT_DISPLAY) {
+			int chars_written = snprintf(text.data(), text.size(), "Chord: %s", getCurrentChord().c_str());
+			return (chars_written < 0) ? 0 : chars_written;
+        }
 
         // Here's a way to write numbers to a display:
         else if (led_id == MY_NUMERIC_DISPLAY) {
 			int chars_written = snprintf(text.data(), text.size(), "%03d", someValue);
-			return chars_written < 0 ? 0: chars_written;
+			return (chars_written < 0) ? 0 : chars_written;
         }
 
-        // Returning 0 tells the engine not to update anything
+        // Returning 0 tells the GUI engine to blank out the display
 		else 
             return 0;
 	}
 };
 ```
 
-Notice that you specify a font with a string.
-A list of built-in fonts is in `metamodule-plugin-sdk/fonts.hh`.
+## Colors 
 
 You can specify an exact color in a few ways:
 ```c++
-display->Color = RGB565{(uint8_t)0xFF, 0x80, 0x40};
+display->Color = RGB565(0xFF8040);
+display->Color = RGB565{(uint8_t)0xFF, 0x80, 0x40}; //same as above
 display->Color = RGB565{1.f, 0.5f, 0.2f}; //pretty much the same as above
 display->Color = RGB565::Orange;
 ```
 
+The list of pre-defined colors (like `RGB565::Orange`) is in `cpputil/util/colors_rgb565.hh`.
+
 ## Fonts
 
-Fonts are specified by a string. This can be the name of the font if it's a built-in font,
-or a path to a font binary file in the LVGL .bin format. 
+
+Fonts are specified by name, with a string. This can be the name of the font if it's a built-in font,
+or a path to a font binary file in the LVGL .bin format.
 
 The list of built-in fonts is in the SDK in the `fonts.hh` file. You can use either the font variable name or the string itself.
 For example, the following two lines are equivalent:
@@ -110,18 +196,20 @@ display->font = MetaModule::Font::Segment7_14;
 display->font = "Segment7Standard_14";
 ```
 
-You can use your own fonts by creating a `.bin` font file and then passing in
+The convention for naming a font is `FontName_SZ` where `SZ` is the font size.
+
+You can use your own fonts by creating a `.bin` font file (see below) and then passing in
 the path to the font like this: 
 
 ```c++
-display->font = "PluginName/font_name.bin";
+display->font = "PluginName/FontName_12.bin";
 ```
 
 To generate `font_name.bin`, load a .ttf or .woff font file into the LVGL font conversion tool.
 There is an online version of this at [https://lvgl.io/tools/fontconverter](https://lvgl.io/tools/fontconverter).
 
 For the settings:
-- Name: by convention use FontName followed by an underscore and then the size: `FontName_14`
+- Name: by convention use FontName followed by an underscore and then the size: `FontName_12`
 - Size: set the height in pixels (10 is about the smallest legible font size. 48 is about 25mm high on the virtual panel)
 - Bpp: 4 bit-per-pixel
 - Fallback: leave blank
@@ -134,15 +222,15 @@ Click submit, and save the resulting .bin file in your assets/ dir:
 ```
 MyPlugin/
  |___ assets/
-      |___ my_font.bin
+      |___ MyFont_12.bin
       |___ rad_panel.png
       |___ large_knob.png
       |___ ...
 ```
 
-To access this font (my_font), you would set font like this (remember, the `assets` dir is removed when creating a plugin)
+To access this font (MyFont_12), you would set font like this (remember, the `assets` dir is removed when creating a plugin)
 
 ```c++
-    display->font = "MyPlugin/my_font.bin";
+    display->font = "MyPlugin/MyFont_12.bin";
 ```
 
