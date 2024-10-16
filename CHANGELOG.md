@@ -1,5 +1,12 @@
 # Change Log for SDK API
 
+### API v1.4.1
+
+- Fixed inline implmentation of `rack::dsp::SampleRateConverter`. Now matches Rack SDK.
+  This goes along with firmware v1.4.2 which implements a resampler with the same
+  interface as speex (which is what `rack::dsp::SampleRateConverter` uses)
+
+
 ### API v1.4
 
 - Add virtual function override `rack::engine::Module::set_samplerate(float)`.
