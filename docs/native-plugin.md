@@ -131,25 +131,20 @@ register_module(
 ## ModuleInfo
 
 The ModuleInfo defines all other aspects of a module besides what's in CoreProcessor.
-Roughly speaking, CoreProcessor defines the audio/DSP aspects, and ModuleInfo
-defines the UI aspects.
+Roughly speaking, the CoreProcessor class defines the audio/DSP aspects, and the ModuleInfo
+class defines the UI aspects.
 
-There are several ways to create the ModuleInfo, depending on your preferences.
-In the end, what needs to happen is the register_module() function needs to be given
-a `ModuleInfo` class, which is uses to create a `ModuleInfoView` object.
-Or, it can be passed the `ModuleInfoView` object directly. 
-The ModuleInfoVie object points to a span of Elements and other things.
+There are several ways to create the ModuleInfo, depending on your preference.
+In the end, both techniques do the same two things:
+ - Create a list of elements (and other things) that will persist for the lifetime of the plugin.
+ - Pass a "view" of these elements to the register_module() function.
 
-Since the `ModuleInfoView` is a view (i.e. it points to other data), the data
-needs to live somewhere for the duration of the plugin. Typically you would
-create static or global ModuleInfo data, or allocate this data on the heap at startup,
-and then pass a view of that data to register_module().
+### Technique 1: Creating ModuleInfoView via ModuleInfo class
 
-How do we create a ModuleInfoView? We'll show two ways to go about it
+This technique is to create a class that's derived from `ModuleInfoBase`.
+You can see this base class [here](https://github.com/4ms/metamodule-core-interface/blob/main/CoreModules/elements/element_info.hh)
 
-### Creating ModuleInfoView via ModuleInfo class
-`ModuleInfoView` has a helper function which creates this view from a class
-derived from `ModuleInfoBase`
+Then we pass this class to `register_module` as a template parameter.
 
 For example:
 
@@ -164,41 +159,50 @@ struct MyModuleInfo : ModuleInfoBase {
 		JackInput{{{{8.8f, 95.0f, Center, "Clk In"}, "MyBrand/jack.png"}}},
 		JackOutput{{{{8.8f, 103.2f, Center, "Clk Out"}, "MyBrand/jack.png"}}},
 	}};
-
-    enum class Elem {
-        DivideKnob,
-        CvIn,
-        ClkIn,
-        ClkOut,
-    };
 };
 
-// later:
 void init() {
     register_module<MyModuleClass, MyModuleInfo>("MyBrand", "MyModule", "MyBrand/module-fp.png");
 }
 ```
 
 
-The types such as `Knob`, `JackInput`, etc are listed in the `Elements` array
-are all defined in
-`metamodule-core-interface/CoreModules/elements/base_element.hh`. The type
-`Elements` is a std::variant, defined in
-[elements.hh](metamodule-core-interface/CoreModules/elements/elements.hh). The types you
-use in the elements array must be one of the types in the `Elements` variant, or a custom 
-type that's derived from one of them.
+The types in the `Elements` array such as `Knob`, `JackInput`, etc are all defined in
+[metamodule-core-interface/CoreModules/elements/base_element.hh](https://github.com/4ms/metamodule-core-interface/blob/main/CoreModules/elements/base_element.hh)
+Notice that the `Elements` array contains `Element` objects. The `Element` type is a `std::variant` of
+all the different types of controls, jacks, buttons, etc a module can have (`Knob`, `JackInput`, `JackOutput`, etc).
+You can see all the alternative types in `Element` [here](https://github.com/4ms/metamodule-core-interface/blob/main/CoreModules/elements/elements.hh)
+
+//TODO: more info on Element types, making custom types.//
 
 4ms modules use this technique, by defining custom types derived from the Element types.
 This reduces all the braces needed and also repeating things like the image name.
 See the [info files in the CoreModules repo](https://github.com/4ms/metamodule-core-modules/tree/main/4ms/info) for examples.
 
-The `enum class Elem` is not strictly necessary, but it's useful for being able to access
-elements by name from within the Module class. The CoreHelper class and the
-SmartCoreProcessor classes use these to make it easy to access elements by name.
-(TODO: examples)
 
+### Technique 2: Creating ModuleInfoView directly
 
-Alternatively, you could just build up a static array of elements like is done in the NativeExample plugin:
+Instead of the above method, another way is to create your ModuleInfoView at runtime.
+
+ModuleInfoView is defined as follows:
+
+```c++
+struct ModuleInfoView {
+	std::string_view description{""};
+	uint32_t width_hp = 0;
+	std::span<const Element> elements;
+	std::span<const ElementCount::Indices> indices;
+    ///other stuff, we're ignoring for this example
+};
+
+```
+
+Notice this contains a std::span to some Elements, and a std::span to some Indices. You have
+to create arrays or vectors manually and then point the fields of the ModuleInfoView to
+these arrays or vectors. The arrays or vectors you make need to have a lifetime that 
+is the entire duration of the plugin (that is, static or global data).
+
+Here's an example from the SimpleGain module of the NativeExample project:
 
 ```c++
 void init_simple_gain() {
@@ -225,6 +229,7 @@ void init_simple_gain() {
   //... etc for all elements
   //...
 
+  // Now we create the ModuleInfoView using the Element and Indices arrays
   MetaModule::ModuleInfoView info{
       .description = "A simple gain module",
       .width_hp = 10,
@@ -240,39 +245,5 @@ void init_simple_gain() {
 
 
 This technique just creates two arrays: indices and elements, and then points a ModuleInfoView 
-object to them. ModuleInfoView is defined as follows:
-
-```c++
-struct ModuleInfoView {
-	std::string_view description{""};
-	uint32_t width_hp = 0;
-	std::span<const Element> elements;
-	std::span<const ElementCount::Indices> indices;
-	std::span<const ModuleInfoBase::BypassRoute> bypass_routes;
-};
-
-```
-Since only a view is passed to the MetaModule core interface, the actual data
-must live statically for the entire duration of the plugin. There are various ways to
-store data statically:
-- VCV plugins use global `Model` variables.
-- The NativeExample project uses `static` variables in the module init function.
-- The Airwindows project uses a global vector which allocates on the heap.
-
-Putting it all together, the NativeExample plugin demonstrates how it works
-with a very simple module that provies gain to an audio signal (with an LED to show the gain).
-
-The method used in `simple_gain_elements.cc` to generate all the elements
-(jacks, knob, etc), is just for this toy example. For large sets of modules you
-would probably want to generate the X,Y positions and various values either at
-runtime (using a grid perhaps), or with scripts. For the 4ms modules, we use a
-python script to parse SVGs and generate a c++ header file with a constexpr
-array of elements. 
-
-One "gotcha" is that if the strings are not backed by static storage (that is,
-they are dynamically generated on the stack or heap), then you will need to
-provide the strings in some sort of static container. The reason is that
-Element type and module registry only contain string_views.
-See the Airwindows `module_creator.cc` for an example.
-
+object to them. 
 
