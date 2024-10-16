@@ -15,7 +15,7 @@ function that's called by `process()`. This includes:
 - Do not create, destroy, or re-size a `std::string`. Writing characters to an already allocated
 string is OK, as long as it does not change length.
 
-- Do not 'push_back` or `emplace_back` or otherwise change the length of a
+- Do not `push_back` or `emplace_back` or otherwise change the length of a
   std::vector (or any std container such as list, deque, etc... You can
   read/write data in a vector, but don't change the capacity of the vector. If
   you do need a dynamically-sized vector in the audio thread, one useful
