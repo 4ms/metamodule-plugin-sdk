@@ -20,7 +20,7 @@ For example projects using this SDK, see [metamodule-plugin-examples](https://gi
 
 ## Basic Example for Converting a Rack Plugin
 
-1. Install this repo and create a new project folder:
+1. Install this repo and create a new project folder (not in the same dir as this repo):
 
 ```bash
 git clone https://github.com/4ms/metamodule-plugin-sdk --recursive

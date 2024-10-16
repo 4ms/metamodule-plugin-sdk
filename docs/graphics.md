@@ -18,14 +18,28 @@ Certain special effects like shadows, subtle gradients, thin lines will not look
 good on the MetaModule screen, so keep that in mind as you create artwork.
 
 
-### Converting a VCV Rack plugin
+## Converting SVGs from a VCV Rack plugin
 
 If you are converting a VCV Rack plugin, you will need to convert the SVG files
 to PNGs. Typically all SVGs are kept in a `res/` directory for VCV Rack
-plugins. For MetaModule plugins, the `res/` dir is omitted, but otherwise the
-directory structure and file base names are kept the same. Before building your
-plugin, convert all the SVGs to PNGs and put them into the `assets/` dir in
-your plugin folder. 
+plugins. 
+In a MetaModule plugin, the `res/` dir is replaced by an `assets/` dir. 
+The directory structure inside this dir, and file base names should be kept the same.
+Before building your plugin, convert all the SVGs to PNGs and put them into the
+`assets/` dir in your plugin folder. 
+
+If your source code references an SVG in the `res/` dir, the MetaModule Rack adaptor
+will detect this and fix the file name so it refers to a PNG file in the right place.
+So, if you have this:
+
+```c++
+panel = APP->window->loadSvg(asset::plugin(pluginInstance, "res/faceplates/MyModulePanel.svg"));
+```
+
+...then the MetaModule will automatically convert that to load a file called
+`faceplates/MyModulePanel.png` from your plugin's internal directory.
+
+### Conversion helper tool
 
 There is a helper script that can convert a directory of SVGs to PNGs:
 `scripts/SvgToPng.py`. Running `scripts/SvgToPng.py -h` will display the help
