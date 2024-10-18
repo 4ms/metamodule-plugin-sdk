@@ -625,6 +625,11 @@ sinqf
 sinqi
 sint
 sinti
+speex_resampler_destroy
+speex_resampler_init
+speex_resampler_process_float
+speex_resampler_set_input_stride
+speex_resampler_set_output_stride
 strbuffer_append_byte
 strbuffer_append_bytes
 strbuffer_clear
