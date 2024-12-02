@@ -1,5 +1,21 @@
 # Change Log for SDK API
 
+### API v1.5.0
+
+- Changed rack::midi::Message to not dynamically allocate, and to use an 8-bit
+  frame counter.
+
+- Changed rack::dsp::SchmittTrigger:
+    - reset() sets state to 0, not to NAN.
+    - Default low and high thresholds set to 0.4f and 0.6f. Previous defaults
+      were 0 and 1. This gives using knobs to control buttons a much nicer UX.
+
+- Added helper function for registering a module (in metamodule-core-interface)
+
+- Implemented in firmware v1.5.x: Plugins can access files in their plugin dir
+  via standard syscalls (fopen, fread, fclose). No change was made to the plugin
+  SDK to support this, the functionality of the implementation was changed only.
+
 ### API v1.4.1
 
 - Fixed inline implmentation of `rack::dsp::SampleRateConverter`. Now matches Rack SDK.
