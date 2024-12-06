@@ -1,5 +1,11 @@
 # Change Log for SDK API
 
+### API v1.6.0 (in progress)
+
+- `presets/` folder is copied into .mmplugin file by the plugin.cmake script
+   - To support this, `rack::Module::paramsTo/FromJson` are implemented in
+     firmware, and their symbols are added to the API.
+
 ### API v1.5.0
 
 - Changed rack::midi::Message to not dynamically allocate, and to use an 8-bit
