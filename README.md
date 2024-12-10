@@ -149,7 +149,7 @@ components/
 
 ## Limitations
 
-As of v1.4, plugins have the following limitation:
+As of v1.5, plugins have the following limitation:
 
   - No use of stringstream, fstream, ofstream, etc. Calls to these functions must be removed.
 
@@ -163,35 +163,38 @@ easy to search and remove these workarounds.
 To allow for these, we need to re-build our custom libstdc++/libsupc++
 libraries with -fPIC as well as exceptions and streams support (HELP WANTED!).
 
-
 If you are porting from a VCV Rack plugin, there are also the following limitations:
 
   - No dynamic drawing using nanovg (NVG draw commands). Calling these
     functions will still compile and run, but MetaModule does not call
     Widget::draw() or drawLayer(), so they'll have no effect. This typically
-    means that modules with non-text screens will just have a blank screen. In order
-    to use a text-only screen, follow [the Text Display guide](docs/text-displays.md)
+    means that modules with non-text screens will just have a blank screen. 
+      - In order to use a text-only screen, follow [the Text Display guide](docs/text-displays.md)
+      - Graphical drawing via nanovg is partially supported on the v2.0-dev
+        firmware branch (no concave filled polygons or text, yet).
 
   - No expander modules. That is, modules cannot communicate with one another.
     Modules that use an expander will always act as if the expander is not
     present.
 
-  - No filesystem access. Filesystem calls must be removed/#ifdef/commented out.
 
   - The module's `rack::ModuleWidget` is constructed once when the plugin is
     loaded, and then destructed and never again constructed. Therefore
     `rack::Widget::step()` or `draw()` is never called on the ModuleWidget
-    or any children widgets.
+    or any children widgets. This will change with the support of graphical elements in v2.0.
 
 We plan to address these:
 
   - To support graphical screens (dynamic drawing) we plan to implement an
     adaptor to go from nanovg to our native GUI engine, and call draw() on all
-    visible widgets in the ModuleView (refresh rate will be limited).
+    visible widgets in the ModuleView (refresh rate will be limited). Statuc: Partially
+    supported in v2.0-dev firmware.
 
   - Create a non-blocking (asynchronious) filesystem API to access files in the
-    plugin dir (assuming the user hasn't ejected the USB drive or SD card). There is 
-    a proof-of-concept branch for this working.
+    plugin dir (assuming the user hasn't ejected the USB drive or SD card).
+    Status: async tasks are implemented in v2.0-dev branch. FatFS and POSIX
+    APIs for filesystem access to USB or SD Cards is also implemented, but still
+    under development.
 
 
 
