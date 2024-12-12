@@ -1,6 +1,6 @@
 # Change Log for SDK API
 
-### API v1.6.0 (in progress)
+### API v1.6.0 
 
 - `presets/` folder is copied into .mmplugin file by the plugin.cmake script
    - To support this, `rack::Module::paramsTo/FromJson` are implemented in
