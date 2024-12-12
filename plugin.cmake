@@ -27,6 +27,8 @@ function(create_plugin)
 
     # TODO: Add more checking and validation for arguments
 
+    string(REPLACE "plugin.json" "presets/" PLUGIN_OPTIONS_PRESET_DIR ${PLUGIN_OPTIONS_PLUGIN_JSON})
+
     set(LIB_NAME ${PLUGIN_OPTIONS_SOURCE_LIB})
 
     if (DEFINED PLUGIN_OPTIONS_PLUGIN_NAME)
@@ -153,6 +155,8 @@ function(create_plugin)
         COMMAND ${CMAKE_COMMAND} -E copy ${PLUGIN_MM_JSON_SOURCE} ${PLUGIN_MM_JSON_DEST}
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${PLUGIN_OPTIONS_SOURCE_ASSETS} ${PLUGIN_DEST_TMP_DIR}
         COMMAND ${CMAKE_COMMAND} -E touch ${PLUGIN_DEST_TMP_DIR}/SDK-${SDK_MAJOR_VERSION}.${SDK_MINOR_VERSION}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${PLUGIN_OPTIONS_PRESET_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${PLUGIN_OPTIONS_PRESET_DIR} ${PLUGIN_DEST_TMP_DIR}/presets
         COMMAND ${CMAKE_COMMAND} -E rm -rf ${PLUGIN_DEST_TMP_DIR}/.DS_Store
         COMMAND ${CMAKE_COMMAND} -E make_directory ${PLUGIN_DEST_DIR}
         COMMAND ${CMAKE_COMMAND} -E tar cf ${PLUGIN_DEST_FILE} ${PLUGIN_DEST_TMP_DIR}
