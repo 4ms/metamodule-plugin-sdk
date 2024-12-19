@@ -14,14 +14,14 @@ Create an `AsyncThread` object in your module class. Provide a callable object (
 
 ```c++
 
-	AsyncThread async{[this]() {
+    AsyncThread async{[this]() {
         // do something in the background
         do_something(this->params);
-	}};
+    }};
 
-	MyModule() {
-		async.start(id);
-	}
+    MyModule() {
+        async.start(id);
+    }
 
 ```
 
@@ -30,16 +30,16 @@ The lambda will be called at irregular intervals (depending on audio load), so i
 
 ```c++
 
-	long long last_tm = 0;
+    long long last_tm = 0;
 
-	AsyncThread async{[this]() {
-		auto now = std::chrono::steady_clock::now().time_since_epoch().count() / 1'000'000LL;
+    AsyncThread async{[this]() {
+        auto now = std::chrono::steady_clock::now().time_since_epoch().count() / 1'000'000LL;
 
-		if (now - last_tm > 1000) {
-			last_tm = now;
-			printf("Out 1 is at %f\n", output1);
-		}
-	}};
+        if (now - last_tm > 1000) {
+            last_tm = now;
+            printf("Out 1 is at %f\n", output1);
+        }
+    }};
 
 ```
 
@@ -64,13 +64,13 @@ For example:
     std::atomic<bool> need_more_data{false};
     std::atomic<bool> data_ready{false};
 
-	AsyncThread async{[this]() {
+    AsyncThread async{[this]() {
         if (need_more_data) {
             need_more_data = false;
             read_file(buffer); // slow operation
             data_ready = true;
         }
-	}};
+    }};
 
     void process() {
         //...

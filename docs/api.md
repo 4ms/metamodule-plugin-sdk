@@ -5,21 +5,21 @@ All modules must derive from this class.
 ```c++
 class CoreProcessor {
 public:
-	virtual void update() = 0;
-	virtual void set_samplerate(float sr) = 0;
-	virtual void set_param(int param_id, float val) = 0;
-	virtual void set_input(int input_id, float val) = 0;
-	virtual float get_output(int output_id) const = 0;
-	virtual float get_led_brightness(int led_id) { return 0; }
-	virtual size_t get_display_text(int display_id, std::span<char> text) { return 0; }
-	virtual void mark_all_inputs_unpatched() {}
-	virtual void mark_input_unpatched(int input_id) {}
-	virtual void mark_input_patched(int input_id) {}
-	virtual void mark_all_outputs_unpatched() {}
-	virtual void mark_output_unpatched(int output_id) {}
-	virtual void mark_output_patched(int output_id) {}
-	virtual void load_state(std::string_view state_data) {}
-	virtual std::string save_state() { return ""; }
+    virtual void update() = 0;
+    virtual void set_samplerate(float sr) = 0;
+    virtual void set_param(int param_id, float val) = 0;
+    virtual void set_input(int input_id, float val) = 0;
+    virtual float get_output(int output_id) const = 0;
+    virtual float get_led_brightness(int led_id) { return 0; }
+    virtual size_t get_display_text(int display_id, std::span<char> text) { return 0; }
+    virtual void mark_all_inputs_unpatched() {}
+    virtual void mark_input_unpatched(int input_id) {}
+    virtual void mark_input_patched(int input_id) {}
+    virtual void mark_all_outputs_unpatched() {}
+    virtual void mark_output_unpatched(int output_id) {}
+    virtual void mark_output_patched(int output_id) {}
+    virtual void load_state(std::string_view state_data) {}
+    virtual std::string save_state() { return ""; }
 };
 ```
 
@@ -62,18 +62,18 @@ this.
 namespace MetaModule {
 
 struct ModuleInfoBase {
-	static constexpr std::string_view slug{""};
-	static constexpr std::string_view description{""};
-	static constexpr uint32_t width_hp = 0;
-	static constexpr std::array<Element, 0> Elements{};
-	static constexpr std::string_view svg_filename{""};
-	static constexpr std::string_view png_filename{""};
+    static constexpr std::string_view slug{""};
+    static constexpr std::string_view description{""};
+    static constexpr uint32_t width_hp = 0;
+    static constexpr std::array<Element, 0> Elements{};
+    static constexpr std::string_view svg_filename{""};
+    static constexpr std::string_view png_filename{""};
 
-	struct BypassRoute {
-		uint16_t input;
-		uint16_t output;
-	};
-	static constexpr std::array<BypassRoute, 0> bypass_routes{};
+    struct BypassRoute {
+        uint16_t input;
+        uint16_t output;
+    };
+    static constexpr std::array<BypassRoute, 0> bypass_routes{};
 };
 
 
@@ -98,49 +98,49 @@ Each entry is of the type `Element` which is a std::variant type of various base
 
 ```c++
 using Element = std::variant<NullElement,
-							 ImageElement,
-							 ParamElement,
+                             ImageElement,
+                             ParamElement,
 
-							 Knob,
-							 Slider,
-							 SliderLight,
+                             Knob,
+                             Slider,
+                             SliderLight,
 
-							 FlipSwitch,
-							 SlideSwitch,
+                             FlipSwitch,
+                             SlideSwitch,
 
-							 MomentaryButton,
-							 MomentaryButtonLight,
-							 MomentaryButtonRGB,
+                             MomentaryButton,
+                             MomentaryButtonLight,
+                             MomentaryButtonRGB,
 
-							 LatchingButton,
+                             LatchingButton,
 
-							 Encoder,
-							 EncoderRGB,
+                             Encoder,
+                             EncoderRGB,
 
-							 JackInput,
-							 JackOutput,
+                             JackInput,
+                             JackOutput,
 
-							 MonoLight,
-							 DualLight,
-							 RgbLight,
+                             MonoLight,
+                             DualLight,
+                             RgbLight,
 
-							 TextDisplay,
-							 DynamicTextDisplay,
+                             TextDisplay,
+                             DynamicTextDisplay,
 
-							 AltParamContinuous,
-							 AltParamChoice,
-							 AltParamChoiceLabeled>;
+                             AltParamContinuous,
+                             AltParamChoice,
+                             AltParamChoiceLabeled>;
 ```
 
 You may use these types (Knob, Slider, RgbLight, etc) or create your own types that derive from one of these. Each type has different fields which describe it. For example, `Knob` has fields for the angles that it should be drawn as the user turns the knob:
 
 ```c++
 struct Knob : Pot {
-	// How much to rotate the image when param val == 0
-	// negative is CCW, positive is CW
-	float min_angle = -135.f;
-	// How much to rotate the image when param val == 1
-	float max_angle = 135.f;
+    // How much to rotate the image when param val == 0
+    // negative is CCW, positive is CW
+    float min_angle = -135.f;
+    // How much to rotate the image when param val == 1
+    float max_angle = 135.f;
 };
 ```
 
@@ -148,15 +148,15 @@ struct Knob : Pot {
 
 ```c++
 struct Pot : ParamElement {
-	State_t default_value = 0.5f;
-	State_t min_value = 0.f;
-	State_t max_value = 1.f;
-	float display_base = 0.f;
-	float display_mult = 1.f;
-	float display_offset = 0.f;
-	std::string_view units = "";
-	bool integral = false;
-	uint8_t display_precision = 0;
+    State_t default_value = 0.5f;
+    State_t min_value = 0.f;
+    State_t max_value = 1.f;
+    float display_base = 0.f;
+    float display_mult = 1.f;
+    float display_offset = 0.f;
+    std::string_view units = "";
+    bool integral = false;
+    uint8_t display_precision = 0;
 };
 
 ```
@@ -165,7 +165,7 @@ struct Pot : ParamElement {
 
 ```c++
 struct ImageElement : BaseElement {
-	std::string_view image = "";
+    std::string_view image = "";
 };
 ```
 
@@ -175,15 +175,15 @@ Finally, we get to the base class `BaseElement`:
 
 ```c++
 struct BaseElement {
-	float x_mm = 0;
-	float y_mm = 0;
-	Coords coords = Coords::Center;
+    float x_mm = 0;
+    float y_mm = 0;
+    Coords coords = Coords::Center;
 
-	std::string_view short_name;
-	std::string_view long_name;
+    std::string_view short_name;
+    std::string_view long_name;
 
-	float width_mm = 0;
-	float height_mm = 0;
+    float width_mm = 0;
+    float height_mm = 0;
 };
 ```
 
