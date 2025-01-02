@@ -76,11 +76,16 @@ function(create_plugin)
     target_sources(${LIB_NAME} PRIVATE ${VERSION_FILE})
 
     target_compile_definitions(${LIB_NAME} PRIVATE METAMODULE)
+    target_compile_options(${LIB_NAME} PRIVATE 
+        -fvisibility=hidden
+        -fvisibility-inlines-hidden
+    )
 
 	set(LFLAGS
         -shared
         -Wl,-Map,plugin.map,--cref
         -Wl,--gc-sections
+        -Wl,--require-defined=init
         -nostartfiles 
         -nostdlib
         ${ARCH_MP15x_A7_FLAGS}
