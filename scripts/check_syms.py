@@ -2,6 +2,7 @@
 
 import argparse
 import logging
+import subprocess
 from helpers import read_symbol_list
 from elftools.elf.elffile import ELFFile
 from elftools.elf.sections import SymbolTableSection
@@ -20,6 +21,12 @@ def GetPluginRequiredSymbolNames(file):
                 logging.debug(f"{i}: bind:{l} type:{t} {n}")
                 needed_syms.append(n)
     return needed_syms
+
+def demangle(name):
+   try:
+       return subprocess.check_output(['c++filt', name], stderr=subprocess.DEVNULL).decode().strip()
+   except subprocess.CalledProcessError:
+       return name
 
 
 if __name__ == "__main__":
@@ -49,6 +56,9 @@ if __name__ == "__main__":
     for sym in required_syms:
         if sym not in provided_syms:
             missing_syms.append(sym)
+            demangled = demangle(sym)
+            if sym != demangled:
+                sym = demangled + " aka " + sym 
             logging.error(f"Symbol in plugin not found in api: {sym}")
 
     if len(missing_syms) == 0:
