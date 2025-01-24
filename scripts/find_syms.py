@@ -18,11 +18,16 @@ def GetAddressesOfSymbols(file, needed_syms):
                 logging.debug(f"{hex(s['st_value'])}\t{s.name}")
                 needed_syms.remove(s.name)
 
-    for n in needed_syms:
-        logging.error(f"** ERROR: Symbol not found in main.elf: {n} **")
+    if len(needed_syms) > 0:
+        logging.error("****************************************************************")
+        for n in needed_syms:
+            logging.error(f"** ERROR: Symbol not found in main.elf: {n} **")
+        logging.error("****************************************************************")
 
     if len(needed_syms) == 0:
-        logging.info("All API symbols found in main.elf")
+        logging.info("_____________________________________")
+        logging.info("| All API symbols found in main.elf |")
+        logging.info("_____________________________________")
 
     return syms
 
