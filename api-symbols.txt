@@ -1,3 +1,4 @@
+_Z11keep_direntv
 _Z12keep_symbolsv
 _Z17keep_light_widgetv
 _Z20keep_register_modulev
@@ -1051,6 +1052,19 @@ nvgTransformTranslate
 nvgTranslate
 nvgUpdateImage
 opendir
+osdialog_color_picker
+osdialog_file
+osdialog_filter_patterns_free
+osdialog_filters_free
+osdialog_filters_parse
+osdialog_message
+osdialog_prompt
+osdialog_restore_cb
+osdialog_save_cb
+osdialog_set_restore_callback
+osdialog_set_save_callback
+osdialog_strdup
+osdialog_strndup
 pffft_aligned_free
 pffft_aligned_malloc
 pffft_cplx_finalize
