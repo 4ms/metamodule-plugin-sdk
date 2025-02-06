@@ -50,6 +50,7 @@ def GetLibcSymbols():
          "_open_r",
          "_close_r",
          "_fstat_r",
+         "stat",
          "_isatty_r",
          "_write_r",
          "_kill_r",
