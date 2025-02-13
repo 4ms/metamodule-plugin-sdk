@@ -1,5 +1,52 @@
 # Change Log for SDK API
 
+### API v2.0 (in progress)
+
+#### v2.0-dev-12.0
+
+- Heavily modified rack classes to match the API of Rack-SDK. While this adds
+  no new features or change in functionality, it makes an API break from v2.0-dev-11
+  because the class layouts for many classes have changed (vtables, member layout, etc).
+  The reason this was done was to allow future functionality without breaking the API 
+  (that is, without having to bump up the major version number and force all plugins
+  to make a new release)
+
+#### v2.0-dev-11.1
+- Added libsamplerate
+- Added async file dialog box browser functions
+- Added more support for rack::Menu* classes
+- Added dirent functions (opendir, closedir, readdir)
+
+#### v2.0-dev-11.0
+
+#### v2.0-dev-10.0
+
+#### v2.0-dev-9.0
+
+
+
+### API v1.6.0 
+
+- `presets/` folder is copied into .mmplugin file by the plugin.cmake script
+   - To support this, `rack::Module::paramsTo/FromJson` are implemented in
+     firmware, and their symbols are added to the API.
+
+### API v1.5.0
+
+- Changed rack::midi::Message to not dynamically allocate, and to use an 8-bit
+  frame counter.
+
+- Changed rack::dsp::SchmittTrigger:
+    - reset() sets state to 0, not to NAN.
+    - Default low and high thresholds set to 0.4f and 0.6f. Previous defaults
+      were 0 and 1. This gives using knobs to control buttons a much nicer UX.
+
+- Added helper function for registering a module (in metamodule-core-interface)
+
+- Implemented in firmware v1.5.x: Plugins can access files in their plugin dir
+  via standard syscalls (fopen, fread, fclose). No change was made to the plugin
+  SDK to support this, the functionality of the implementation was changed only.
+
 ### API v1.4.1
 
 - Fixed inline implmentation of `rack::dsp::SampleRateConverter`. Now matches Rack SDK.
