@@ -20,9 +20,8 @@
 #### v2.0-dev-11.0
 
 #### v2.0-dev-10.0
-
-#### v2.0-dev-9.0
-
+- Added async task support
+- Added support for drawing with ttf fonts with nanovg
 
 
 ### API v1.6.0 
