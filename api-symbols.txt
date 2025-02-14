@@ -37,6 +37,8 @@ _ZN4rack2ui11MenuOverlay4drawERKNS_6widget6Widget8DrawArgsE
 _ZN4rack2ui11MenuOverlay4stepEv
 _ZN4rack2ui11MenuOverlay8onActionERKNS_6widget6Widget11ActionEventE
 _ZN4rack2ui11MenuOverlay8onButtonERKNS_6widget6Widget11ButtonEventE
+_ZN4rack2ui11MenuOverlayC1Ev
+_ZN4rack2ui11MenuOverlayC2Ev
 _ZN4rack2ui11ProgressBar4drawERKNS_6widget6Widget8DrawArgsE
 _ZN4rack2ui11ProgressBarC1Ev
 _ZN4rack2ui11ProgressBarC2Ev
@@ -614,7 +616,6 @@ _ZN4rack6engine6Engine11prepareSaveEv
 _ZN4rack6engine6Engine11removeCableEPNS0_5CableE
 _ZN4rack6engine6Engine11resetModuleEPNS0_6ModuleE
 _ZN4rack6engine6Engine12bypassModuleEPNS0_6ModuleEb
-_ZN4rack6engine6Engine12clear_NoLockEv
 _ZN4rack6engine6Engine12getBlockTimeEv
 _ZN4rack6engine6Engine12getModuleIdsEPxj
 _ZN4rack6engine6Engine12getModuleIdsEv
@@ -1243,7 +1244,6 @@ _fini
 _free_r
 _fstat_r
 _getpid_r
-_gettimeofday
 _gettimeofday_r
 _impure_data
 _impure_ptr
@@ -1326,7 +1326,6 @@ do_object_update_recursive
 expm1l
 fdopendir
 free
-gettimeofday
 glfwGetClipboardString
 glfwSetClipboardString
 hashtable_clear
