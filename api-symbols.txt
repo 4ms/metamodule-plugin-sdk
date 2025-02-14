@@ -3,7 +3,7 @@ _Z12keep_symbolsv
 _Z14async_open_dirSt17basic_string_viewIcSt11char_traitsIcEES2_OSt8functionIFvPcEE
 _Z15async_open_fileSt17basic_string_viewIcSt11char_traitsIcEES2_S2_OSt8functionIFvPcEE
 _Z15async_save_fileSt17basic_string_viewIcSt11char_traitsIcEES2_S2_OSt8functionIFvPcEE
-_Z17keep_light_widgetv
+_Z17keep_rack_widgetsv
 _Z19async_osdialog_file20osdialog_file_actionPKcS1_P16osdialog_filtersOSt8functionIFvPcEE
 _Z20keep_register_modulev
 _Z24async_dialog_filebrowserbPKcS0_S0_St8functionIFvPcEE
@@ -1244,6 +1244,7 @@ _fini
 _free_r
 _fstat_r
 _getpid_r
+_gettimeofday
 _gettimeofday_r
 _impure_data
 _impure_ptr
@@ -1326,6 +1327,7 @@ do_object_update_recursive
 expm1l
 fdopendir
 free
+gettimeofday
 glfwGetClipboardString
 glfwSetClipboardString
 hashtable_clear
