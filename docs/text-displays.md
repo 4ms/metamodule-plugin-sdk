@@ -8,7 +8,7 @@ Text Displays have text only. Graphics Displays can have text and/or graphics
 
 If you are porting a VCV Rack module to MetaModule, then Graphic Displays often work automatically.
 
-For more information about Graphics Displays, see the docs page: [Graphical Screens/Displays](docs/graphic-displays.md)
+For more information about Graphics Displays, see the docs page: [Graphical Screens/Displays](graphic-displays.md)
 
 
 ## When to use Text Displays vs. Graphics Displays?
@@ -26,7 +26,7 @@ then you're limited to using Text Displays only. Also, there is no native plugin
 API for graphics displays (yet -- I would be happy to prioritize this if
 someone wants to use it!).
 
-For more information about Graphics Displays, see the docs page: [Graphical Screens/Displays](docs/graphic-displays.md)
+For more information about Graphics Displays, see the docs page: [Graphical Screens/Displays](graphic-displays.md)
 
 The remainder of this document refers to Text Displays only.
 

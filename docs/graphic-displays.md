@@ -9,7 +9,7 @@ Text Displays have text only. Graphics Displays can have text and/or graphics
 This guide is about Graphics Displays.
 
 For more information about Text Displays, or for a brief comparison of the two,
-see the docs page: [Text Screens/Displays](docs/text-displays.md)
+see the docs page: [Text Screens/Displays](text-displays.md)
 
 ## Compatibility
 
@@ -65,7 +65,7 @@ To draw text (this uses a system font provided by the rack component library):
 
 ### Deep explanation of how it works
 
-When you make calls to `addChild` in the ModuleWidget's constructor, the MetaModule will notice any widget that's not derived from a `ParamWidget`, `SvgWidget`, `ModuleLightWidget`, `PortWidget`, and a few others (`LightSlider`, `VCVLightBezel`, ...) and of course `VCVTextDisplay` (see [Text Screens/Displays](docs/text-displays.md). 
+When you make calls to `addChild` in the ModuleWidget's constructor, the MetaModule will notice any widget that's not derived from a `ParamWidget`, `SvgWidget`, `ModuleLightWidget`, `PortWidget`, and a few others (`LightSlider`, `VCVLightBezel`, ...) and of course `VCVTextDisplay` (see [Text Screens/Displays](text-displays.md). 
 These widgets are all marked as "dynamic". 
 
 When the module is displayed in the ModuleView (single module page), then all the widgets marked as dynamic will be updated. 
