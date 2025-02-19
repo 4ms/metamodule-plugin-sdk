@@ -23,29 +23,29 @@ want to do this!)
 
 Often, if you are porting a module from VCV Rack to MetaModule, you do not need to do anything to use Graphics Displays: they will "just work".
 
-Calls to `nvg*()` functions in a widget's draw() or drawLayer() function can be used normally.
+Calls to `nvg*()` functions in a widget's draw() or drawLayer() function can be in the same way they're used in VCV Rack modules.
 
 For example, to draw a line:
 
 ```c++
     // Draw line
-    nvgStrokeColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x10));
+    nvgStrokeColor(args.vg, nvgRGBA(0xff, 0x00, 0x00, 0xff));
     nvgBeginPath(args.vg);
     nvgMoveTo(args.vg, 0, 0);
-    nvgLineTo(args.vg, 0, 40);
+    nvgLineTo(args.vg, 10, 40);
     nvgStroke(args.vg);
 ```
 
 To draw a filled polygon:
 
 ```c++
-    nvgFillColor(args.vg, nvgRGBA(0xff, 0xff, 0xff, 0x60));
+    nvgFillColor(args.vg, nvgRGBA(0xb8, 0x80, 0x18, 0xff));
     nvgBeginPath(args.vg);
-    nvgMoveTo(args.vg, p.x - 2, p.y - 4);
-    nvgLineTo(args.vg, p.x - 9, p.y - 4);
-    nvgLineTo(args.vg, p.x - 13, p.y);
-    nvgLineTo(args.vg, p.x - 9, p.y + 4);
-    nvgLineTo(args.vg, p.x - 2, p.y + 4);
+    nvgMoveTo(args.vg, 2,  - 4);
+    nvgLineTo(args.vg, 9,  - 4);
+    nvgLineTo(args.vg, 13,   0);
+    nvgLineTo(args.vg, 9,  + 4);
+    nvgLineTo(args.vg, 2,  + 4);
     nvgClosePath(args.vg);
     nvgFill(args.vg);
 ```
@@ -58,14 +58,14 @@ To draw text (this uses a system font provided by the rack component library):
         nvgFontSize(args.vg, 9);
         nvgFontFaceId(args.vg, font->handle);
         nvgFillColor(args.vg, nvgRGBA(0x1e, 0x28, 0x2b, 0xff));
-        nvgText(args.vg, p.x - 8, p.y + 3, "T", NULL);
+        nvgText(args.vg, 0, 0, "Hello World", NULL);
     }
 
 ```
 
 ### Deep explanation of how it works
 
-When you make calls to `addChild` in the ModuleWidget's constructor, the MetaModule will notice any widget that's not derived from a `ParamWidget`, `SvgWidget`, `ModuleLightWidget`, `PortWidget`, and a few others (`LightSlider`, `VCVLightBezel`, ...) and of course `VCVTextDisplay` (see [Text Screens/Displays](text-displays.md). 
+When you make calls to `addChild` in the ModuleWidget's constructor, the MetaModule will notice any widget that's not derived from a `ParamWidget`, `SvgWidget`, `ModuleLightWidget`, `PortWidget`, and a few others (`LightSlider`, `VCVLightBezel`, `VCVTextDisplay`). 
 These widgets are all marked as "dynamic". 
 
 When the module is displayed in the ModuleView (single module page), then all the widgets marked as dynamic will be updated. 
@@ -92,18 +92,19 @@ Calls to nvg* functions end up rendering to a framebuffer, which is then passed 
   solvable problem but requires us to use a different polygon rendering
   library.
 
-- SVGs cannot be drawn. Keep in mind nanosvg != nanovg. There is no support for
+- SVGs and textures cannot be drawn. Keep in mind nanosvg != nanovg. There is no support for
   nanosvg or for drawing textures.
 
 - There are some differences in how mulit-line text is wrapped. Some nanovg
   functions used for helping do this manually are not implemented
   (nvgTextBoxBounds(), nvgTextMetrics(), ...).
 
+
 ## Using fonts
 
 TTF fonts are supported. The .ttf file must be present either in your plugin's assets or in the rack component library's assets.
 
-These fonts already provided by the rack component library:
+The following fonts are already provided by the rack component library, and can be accessed using `std::shared_ptr<Font> font = APP->window->loadFont(asset::system("res/fonts/NAMEOFFONT.ttf"));`
 
  - DSEG7ClassicMini-Bold.ttf
  - DSEG7ClassicMini-BoldItalic.ttf
@@ -116,4 +117,6 @@ These fonts already provided by the rack component library:
  - ShareTechMono-Regular.ttf
 
 
-If you use a custom font, you will need to add the .ttf file to the assets/ dir.
+If you use a custom font, you will need to add the .ttf file to your plugin's assets/ dir.
+Then, you can access it using `std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin("NAMEOFFONT.ttf"));`
+
