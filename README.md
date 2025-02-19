@@ -8,13 +8,14 @@ For example projects using this SDK, see [metamodule-plugin-examples](https://gi
 
 ## Requirements
 
-  - cmake v3.24 or later
+  - cmake v3.22 or later
   - ninja (not required if you configure cmake to use a different generator) 
   - arm-none-eabi-gcc toolchain 12.2 or 12.3
   - python 3.6 or later
 
 ## SDK Topics:
  - [Text Screens/Displays](docs/text-displays.md)
+ - [Graphical Screens/Displays](docs/graphic-displays.md)
  - [Async Thread API](docs/async-threads.md)
  - [Native Plugins](docs/native-plugin.md)
  - [Plugin file format](docs/plugin-file-format.md)
@@ -38,7 +39,10 @@ The example below references an existing directory at
 
 `MyPlugin/CMakeLists.txt`
 ```cmake
-cmake_minimum_required(VERSION 3.24)
+cmake_minimum_required(VERSION 3.22)
+
+# Set the path to the Plugin SDK.
+# In a real plugin, you want to use a cmake variable instead of hard-setting the path, see below...
 include(../metamodule-plugin-sdk/plugin.cmake)
 
 project(MyPlugin VERSION 0.1 DESCRIPTION "My Plugin for MetaModule" LANGUAGES C CXX ASM)
@@ -51,8 +55,7 @@ set(SOURCE_DIR ../../rack-plugins/MyPlugin)
 target_sources(MyPlugin PRIVATE
     ${SOURCE_DIR}/src/plugin.cpp 
     ${SOURCE_DIR}/src/MyModule1.cpp
-    ${SOURCE_DIR}/src/MyModule2.cpp
-)
+    ${SOURCE_DIR}/src/MyModule2.cpp)
 
 # Add includes and compile options for source repo
 target_include_directories(MyPlugin PRIVATE ${SOURCE_DIR}/src)
@@ -67,17 +70,17 @@ create_plugin(
 )
 ```
 
-Notice that you must give the path to the `plugin.json` file that the Rack-SDK requires you to have.
-This is used to get the brand name and slug.
+Notice that you must give the path to the `plugin.json` file that the Rack-SDK requires.
+This file is read by the MetaModule in order to get the brand name and slug.
 
 3. Create a `plugin-mm.json` file. Read more about this file [here](docs/plugin-mm-json.md).
 You can just use a blank file to get started.
 
 ```bash
 touch plugin-mm.json
+```
 
-
-4. Add any graphical assets your project uses. See [Graphics Guide](docs/graphics.md).
+4. Add any graphical assets (svgs must be converted to png) and fonts (ttf) your project uses. See [Graphics Guide](docs/graphics.md).
 
 If you are just trying to get it compiling and don't have PNGs yet, then you can just
 create an empty directory.
@@ -90,16 +93,77 @@ cp location/of/png/files/*.png assets/
 5. Now build your project:
 
 ```bash
-cmake -B build -G Ninja
+cmake --fresh -B build -G Ninja
 cmake --build build
 ```
 
 You must have the `arm-none-eabi-gcc` toolchain v12 on your PATH. Or, you can
 specify the path to it with the Cmake variable `TOOLCHAIN_BASE_DIR`:
 
-```base
-cmake -B build -G Ninja -DTOOLCHAIN_BASE_DIR=/path/to/arm-gnu-toolchain-12.3-arm-none-eabi/bin
+```bash
+cmake --fresh -B build -G Ninja -DTOOLCHAIN_BASE_DIR=/path/to/arm-gnu-toolchain-12.3-arm-none-eabi/bin
 ```
+
+## Path to the SDK
+
+In the example CMakeLists.txt file above, the path the SDK was hard-set. While this will work, it's not a good idea. 
+If you ever want to run your plugin in the simulator, it will fail since the simulator needs to specify it's own "simulator SDK"
+in place of the normal SDK.
+
+So, the best practice is to copy/paste some boilerplate into your CMakeLists file.
+Replace the `include(../metamodule-plugin-sdk/plugin.cmake)` line in the example code with this:
+
+```cmake
+
+if(NOT "${METAMODULE_SDK_DIR}" STREQUAL "")
+	message("METAMODULE_SDK_DIR set by CMake variable ${METAMODULE_SDK_DIR}")
+elseif (DEFINED ENV{METAMODULE_SDK_DIR})
+    set(METAMODULE_SDK_DIR "$ENV{METAMODULE_SDK_DIR}")
+	message("METAMODULE_SDK_DIR set by environment variable ${METAMODULE_SDK_DIR}")
+else()
+    set(METAMODULE_SDK_DIR "${CMAKE_CURRENT_LIST_DIR}/../metamodule-plugin-sdk")
+	message("METAMODULE_SDK_DIR set to default: ${METAMODULE_SDK_DIR}")
+endif()
+
+include(${METAMODULE_SDK_DIR}/plugin.cmake)
+
+```
+
+What this does is two-fold:
+
+1) Lets you specify a path to the SDK either using a cmake variable, or using
+an environment variable. If you specify neither, it will default to the SDK
+being in the parent dir, just like the first example code.
+
+2) Outputs a message telling you where the SDK its using is found, and what
+made it use that path. This is useful for debugging build issues.
+
+To specify the path, you can do it a different ways.
+
+Using an exported environment variable:
+
+```bash
+# Put this in your .bashrc or .zshrc:
+export METAMODULE_SDK_DIR=/path/to/metamodule-plugin-sdk
+
+# Configure normally and it will find the SDK
+cmake --fresh -B build -G Ninja
+
+# Build normally
+cmake --build build
+```
+
+Using a cmake variable:
+
+```bash
+# Specify the path once when you first configure the project
+cmake --fresh -B build -G Ninja -DMETAMODULE_SDK_DIR=/path/to/metamodule-plugin-sdk
+
+# Build normally:
+cmake --build build
+```
+
+You also can doing neither of the above and just make sure the SDK is in the parent dir.
 
 
 ## Limitations
@@ -108,9 +172,13 @@ In short:
 
 - No stringstream, fstream, ofstream, iostream, etc.
 - No C++ exceptions (no try/catch, no throw)
-- Filesystem access via fopen/fread/etc is read-only, and limited to files loaded from the .mmplgugin file. (coming in v2.x)
-- No dynamic drawing of widgets (coming in v2.x)
 - No expander modules
+- Limited support for dynamic drawing of widgets:
+  - Support for TTF fonts
+  - nanovg calls are mostly supported (typically used for drawing screens like TransparentWidgets)
+      - Can draw filled or outlined polygons, but concave polygons will be drawn as outlined.
+  - No support for nanosvg -- cannot load or render SVGs.
+  - Param, Jack, and Light widgets are drawn with the MetaModule engine, not with nanovg. Children of these widgets are ignored.
 
 See [limitations](docs/limitations.md) for more discussion.
 
