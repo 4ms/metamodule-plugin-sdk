@@ -73,7 +73,8 @@ def GetLibcSymbols():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser("Dump symbols that plugins might need")
-    parser.add_argument("--objdir", required=True, action="append", help="Object dir with .obj files with the symbols we want to make available to plugins (i.e. VCV_module_wrapper.cc.obj)")
+    parser.add_argument("--objdir", required=True, action="append", help="Directory with .obj files with the symbols we want to make available to plugins")
+    parser.add_argument("--objfile", required=False, action="append", help="Object file (.obj or .o) with the symbols we want to make available to plugins")
     parser.add_argument("--text-out", dest="text", help="file to output names of symbols")
     parser.add_argument("--json-out", dest="json", help="file to output names of symbols as json")
     parser.add_argument("-v", dest="verbose", help="Verbose logging", action="store_true")
@@ -85,6 +86,12 @@ if __name__ == "__main__":
         logging.basicConfig(level=logging.INFO, format='%(message)s')
 
     needed_syms = []
+
+    for obj_file in args.objfile:
+        logging.debug("------")
+        logging.debug(f"Looking for symbols in {obj_file}")
+        with open(obj_file, "rb") as f:
+            needed_syms += GetRequiredSymbolNames(f)
 
     for obj_dir in args.objdir:
         obj_files = Path(obj_dir).glob("**/*.obj")
