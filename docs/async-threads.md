@@ -10,11 +10,14 @@ The API is defined in `CoreModules/async_thread.hh`
 
 ### Usage
 
-Create an `AsyncThread` object in your module class. Provide a callable object (e.g. a lambda) in the constructor. When you want the thread to start running call `start(id)` where id is the CoreProcessor::id (which is defined and set automatically when the patch is loaded). Alternatively, you can provide the lambda and id in `start()`.
+Create an `AsyncThread` object in your module class. Provide `this` and a
+callable object (e.g. a lambda) in the constructor. When you want the thread to
+start running call `start()`. Alternatively, you can provide the lambda in
+`start()`.
 
 ```c++
 
-    AsyncThread async{[this]() {
+    AsyncThread async{this, [this]() {
         // do something in the background
         do_something(this->params);
     }};
@@ -43,6 +46,32 @@ The lambda will be called at irregular intervals (depending on audio load), so i
 
 ```
 
+If you want it to stop running, call `stop()`. This will not halt execution of the thread, it merely prevents it from starting again.
+
+You can also run a thread once by calling `run_once()` instead of `start()`:
+
+```c++
+    std::atomic<bool> file_loaded{false};
+
+    AsyncThread file_loader_async{this, [this]() {
+        bool success = load_big_file(&filedata);
+        if (success)
+            file_loaded = true;
+    }};
+
+    void process() {
+        if (user_pressed_load_button)
+            file_loader_async.run_once();
+
+        if (file_loaded)
+            do_something(filedata);
+    }
+
+```
+
+Threads are stopped when the audio is paused (muted), and resumed when the
+patch is played. Like calling `stop()`, they will not have their execution
+halted, instead they simply will not get run again until unpaused.
 
 ### Concurrency
 
@@ -50,9 +79,10 @@ The engine has a simple scheduler that runs all AsyncThreads periodically at
 a lower priority than the audio thread. This means the audio thread cannot be 
 interrupted by the AsyncThread, and the AsyncThread will often be interrupted by
 the audio thread. 
-At most two AsyncThreads may be running at once. If multiple copies of a module
-are present in a patch, then multiple copies of an AsyncThread might be running
-at the same time, on different cores.
+
+At most two AsyncThreads may be running at once (one on each core). If multiple
+copies of a module are present in a patch, then multiple copies of an
+AsyncThread might be running at the same time, on different cores.
 
 Keep this in mind when sharing data between threads.
 
