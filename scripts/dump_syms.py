@@ -87,11 +87,12 @@ if __name__ == "__main__":
 
     needed_syms = []
 
-    for obj_file in args.objfile:
-        logging.debug("------")
-        logging.debug(f"Looking for symbols in {obj_file}")
-        with open(obj_file, "rb") as f:
-            needed_syms += GetRequiredSymbolNames(f)
+    if args.objfile:
+        for obj_file in args.objfile:
+            logging.debug("------")
+            logging.debug(f"Looking for symbols in {obj_file}")
+            with open(obj_file, "rb") as f:
+                needed_syms += GetRequiredSymbolNames(f)
 
     for obj_dir in args.objdir:
         obj_files = Path(obj_dir).glob("**/*.obj")
