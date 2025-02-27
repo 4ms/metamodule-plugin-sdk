@@ -202,7 +202,7 @@ on:
           - main
           - v2.0-dev
       do_release:
-        description: 'Create Release (must also tag!)'
+        description: 'Create Release (must also select Tag above!")'
         required: true
         default: false
         type: boolean
@@ -246,10 +246,10 @@ jobs:
         run: |
           mkdir -p metamodule-plugins
           git clone -b ${{ inputs.SDK_branch }} https://github.com/4ms/metamodule-plugin-sdk --recursive 
-          cmake -B build -G Ninja -DMETAMODULE_SDK_DIR=metamodule-plugin-sdk -DINSTALL_DIR=metamodule-plugins
+          cmake -B build -G Ninja -DMETAMODULE_SDK_DIR=metamodule-plugin-sdk
           cmake --build build
-          cd metamodule-plugins
-          for f in *.mmplugin; do mv $f ${{ env.CI_REF_NAME }}.mmplugin; done;
+          # Optional: add version tag to the plugin file name:
+          # cd metamodule-plugins && for f in *.mmplugin; do mv $f ${f%.mmplugin}-${{ env.CI_REF_NAME }}.mmplugin; done;
 
       - name: Release
         if: startsWith(github.ref, 'refs/tags/') && ${{ inputs.do_release }}
@@ -258,21 +258,27 @@ jobs:
           name: "Release: ${{ env.CI_REF_NAME }}"
           files: |
             metamodule-plugins/*.mmplugin
+
 ```
 
 To make a release, you need to push a tag that meets all the requirements listed in the above sections. For example:
 
 ```
-git tag -a MyPlugin-v0.1-dev-12 -m "First release for v2.0 firmware, yay!"
-git push origin MyPlugin-v0.1-dev-12
+git tag -a v1.0.0 -m "First release, yay!"
+git push origin v1.0.0
 ```
 
 Then you can go to the Actions tab on the github site for your repo and click
 on the "Build and release plugin" action. On the right, you can then select
-"Run workflow". From this menu, you will need to pick the tag you just pushed.
+"Run workflow". 
 
-Then pick the SDK version you want to build with. Check the "Create release"
-checkbox (unless you just want to test building).
+From this menu, you will need to pick the tag you just pushed. This is important:
+you cannot pick a branch, you have to pick a Tag. Github does not allow releases
+from branches, only from Tags. If you don't see the tag you just pushed, make
+sure you really pushed it and refresh your browser.
+
+Then pick the SDK version you want to build with (main or v2.0-dev). Check the
+"Create release" checkbox (unless you just want to test building).
 
 After it's done building, you will see the release on the Releases tab.
 
