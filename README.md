@@ -17,6 +17,7 @@ For example projects using this SDK, see [metamodule-plugin-examples](https://gi
  - [Text Screens/Displays](docs/text-displays.md)
  - [Native Plugins](docs/native-plugin.md)
  - [Tips](docs/tips.md)
+ - [Releasing a plugin](docs/release.md)
 
 ## Basic Example for Converting a Rack Plugin
 
