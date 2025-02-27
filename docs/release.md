@@ -13,8 +13,9 @@ comply with the license of any code that you used.
 
 The official MetaModule plugin page is at [https://metamodule.info/plugins](https://metamodule.info/plugins)
 
-We want all plugins that are available on this page, so we encourage you to
-list your plugin here if you want others to use it.
+We want this page to list all plugins that are available for the MetaModule
+platform, so we encourage you to list your plugin here if you want others to
+use it.
 
 Whether your code is open source or closed source does not effect how the
 plugin is listed on the MetaModule plugin page. But whether the plugin is free
@@ -25,7 +26,7 @@ Plugins that can be freely downloaded must meet these requirements:
 - The .mmplugin file is hosted on a github repo Releases page (we use this to
   scan for updates and manage versions)
 
-- The Releases are tagged and the tag contains a proper sem-ver version string,
+- The Releases are tagged and the tag contains a proper version string,
   e.g. "MyPlugin-v1.2.3" (see below)
 
 If you do not wish to host on github, email us and we can discuss alternatives.
@@ -34,7 +35,7 @@ Plugins that are pay-to-download must send us at least the following:
 
 - A link to the plugin product info or checkout page
 
-- The plugin-mm.json file (which lists the names of the included modules)
+- The compiled .mmplugin file (or at least the plugin-mm.json and SDK version).
 
 Regardless of free or pay status, all plugins must meet these requirements:
 
