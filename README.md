@@ -21,6 +21,7 @@ For example projects using this SDK, see [metamodule-plugin-examples](https://gi
  - [Plugin file format](docs/plugin-file-format.md)
  - [API reference](docs/api.md)
  - [Tips](docs/tips.md)
+ - [Releasing a plugin](docs/release.md)
 
 ## Basic Example for Converting a Rack Plugin
 
