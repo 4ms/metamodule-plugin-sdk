@@ -31,28 +31,34 @@ Plugins that can be freely downloaded must meet these requirements:
 
 If you do not wish to host on github, email us and we can discuss alternatives.
 
-Plugins that are pay-to-download must send us at least the following:
+Free plugin maintainers just need to send us the URL to their github repo that
+contains the releases. Email us at 4ms@4mscompany.com or send a message on the
+MetaModule forum.
+
+Plugins that are pay-to-download need to host their own downloads and manage
+payment and downloads. In this case, the maintainers must send us at least the
+following:
 
 - A link to the plugin product info or checkout page
 
-- The compiled .mmplugin file (or at least the plugin-mm.json and SDK version).
+- The compiled .mmplugin file (or at least the plugin-mm.json and SDK version)
 
 Regardless of free or pay status, all plugins must meet these requirements:
 
-- The plugin-mm.json file is properly populated with the names of the modules
-  included (see below)
+- The plugin-mm.json file is properly populated with the maintainer's name and
+  the names of the modules included (see below)
 
-- The .mmplugin file name contains the SDK version or contains no version.
-  Example: If it's compiled with SDK v1.6, then `Myplugin-v1.6.2.mmplugin` or
-  `Myplugin.mmplugin` or OK, but not `Myplugin-v3.4.mmplugin` or
-  `Myplugin-v1.5.mmplugin`.
+- The .mmplugin file name contains either the SDK version or it contains no
+  version. Example: If it's compiled with SDK v1.6, then
+  `Myplugin-v1.6.2.mmplugin` or `Myplugin.mmplugin` or OK, but not
+  `Myplugin-v3.4.mmplugin` or `Myplugin-v1.5.mmplugin`.
 
 - For plugins that run on the current development firmware (currently
-  v2.0-dev), include correct dev version string in the release version (see
-  below)
+  v2.0-dev-12), include correct dev version string in the release version (as
+  of writing, this is `dev-12`, but see below)
 
 
-## Release tag Version string
+## Release Tag Version 
 
 Release tags must contain a valid version as defined in [Semantic Versioning v2.0.0](https://semver.org).
 
@@ -60,9 +66,9 @@ The version is used so that our scripts only show the latest plugin versions
 for each firmware version on our site.
 
 The release tag version does not need to match the SDK version or MetaModule
-firmware versions -- you can use whatever versioning you wish (Keep in mind
-this only applies to the version in the release tag -- you still must follow
-the rule above regarding putting a version in the .mmplugin file name).
+firmware versions -- you can use whatever versioning you wish. Keep in mind
+that you still must follow the rule above regarding putting a version in the
+.mmplugin file name.
 
 The scripts we use to display plugins on our website (and to generate the
 plugin zip files for download) will scan the releases for the latest version
@@ -72,14 +78,15 @@ that will run on the current dev firmware release.
 If the version major number is 0 (e.g. `v0.7`), or if the string `dev` appears
 after the version (e.g. `v1.6.2-beta-dev) then the plugin will only be
 considered for the dev plugin releases. That is, releases with v0.x or that
-contain `dev` will not appear on the main plugin page. See below for more details.
+contain `dev` will not appear on the main plugin page. See Dev Firmware section
+below for more details.
 
 If you have multiple plugins (that is, multiple brands hosted in the same
 repo), then the script will make a separate pass for each plugin brand (so each
 brand has its own "latest official firmware version" and "latest dev firmware version").
 
 It's OK if a plugin is only available for the official firmware or if it's only 
-available for the dev firmware.
+available for the dev firmware, or if it's available for both.
 
 
 ## Dev Firmware Plugins
@@ -98,7 +105,8 @@ the major version of the dev firmware. Notice there is no `v` before the `X`.
 Currently, this means plugins meant to run on the dev firmware must contain
 `-dev-12` after the version.
 
-For example, all of these will get put into the dev plugin zip file if dev-12 is the latest version
+For example, all of these will get put into the dev plugin zip file if dev-12
+is the latest version
 - `v0.8-dev-12`  
 - `v0.8-dev-12.0`  
 - `v0.8-dev-12.1.2`  
@@ -167,4 +175,115 @@ The file must be valid json and not contain syntax errors (json is very picky).
 Consider running it in an online json checker to verify it.
 
 
+## Publishing with a Github Workflow
+
+This is the easiest way to make a release if you do it regularly, though it
+needs to be set up in order to work.
+
+Use this file as a template and save it as a .yml file in your
+.github/workflows/ dir (create that dir if it doesn't exist), for example
+`.github/workflows/build-metamodule-plugin.yml`. Then commit and push this file
+to github. Go to your repo's github page and make sure you see
+the "Build and release plugin" action in the Actions tab. If not, check your
+settings to see if Actions or workflows is enabled.
+
+
+```yml
+name: Build and release plugin
+
+on:
+  workflow_dispatch:
+    inputs:
+      SDK_branch:
+        description: 'MetaModule SDK branch'
+        required: true
+        type: choice
+        options:
+          - main
+          - v2.0-dev
+      do_release:
+        description: 'Create Release (must also tag!)'
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  build-lin:
+    if: ${{ github.event_name == 'push' }}
+    strategy:
+        matrix:
+          gcc: ['12.3.Rel1']  # can add other versions if needed
+    name: "Build firmware on linux"
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Install Arm GNU Toolchain (arm-none-eabi-gcc)
+        uses: carlosperate/arm-none-eabi-gcc-action@v1
+        with:
+          release: ${{ matrix.gcc }}
+
+      - name: Install cmake
+        uses: jwlawson/actions-setup-cmake@v1.13
+        with:
+          cmake-version: '3.26.x'
+
+      - name: Git setup
+        run: git config --global --add safe.directory '*'
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: Install linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install ninja-build
+
+      - name: Set Release Version
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: FranzDiebold/github-env-vars-action@v2
+
+      - name: Build
+        run: |
+          mkdir -p metamodule-plugins
+          git clone -b ${{ inputs.SDK_branch }} https://github.com/4ms/metamodule-plugin-sdk --recursive 
+          cmake -B build -G Ninja -DMETAMODULE_SDK_DIR=metamodule-plugin-sdk -DINSTALL_DIR=metamodule-plugins
+          cmake --build build
+          cd metamodule-plugins
+          for f in *.mmplugin; do mv $f ${{ env.CI_REF_NAME }}.mmplugin; done;
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/') && ${{ inputs.do_release }}
+        uses: softprops/action-gh-release@v1
+        with:
+          name: "Release: ${{ env.CI_REF_NAME }}"
+          files: |
+            metamodule-plugins/*.mmplugin
+```
+
+To make a release, you need to push a tag that meets all the requirements listed in the above sections. For example:
+
+```
+git tag -a MyPlugin-v0.1-dev-12 -m "First release for v2.0 firmware, yay!"
+git push origin MyPlugin-v0.1-dev-12
+```
+
+Then you can go to the Actions tab on the github site for your repo and click
+on the "Build and release plugin" action. On the right, you can then select
+"Run workflow". From this menu, you will need to pick the tag you just pushed.
+
+Then pick the SDK version you want to build with. Check the "Create release"
+checkbox (unless you just want to test building).
+
+After it's done building, you will see the release on the Releases tab.
+
+If you need different options for the SDK version, you can modify this script
+to pick a different branch or tag. Or, a more flexible approach is to include
+the SDK as a submodule (maybe your repo already does this?), in which case
+there's no need for the SDK branch selection, so you'll want to remove that
+from the workflow script.
+
+Another improvement is to have the workflow automatically run when you push a
+tag. Github has extensive docs on workflows, and there are tons of examples
+online.
 
