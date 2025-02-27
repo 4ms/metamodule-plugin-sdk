@@ -189,7 +189,7 @@ settings to see if Actions or workflows is enabled.
 
 
 ```yml
-name: Build and release plugin
+name: Build and release MetaModule plugin
 
 on:
   workflow_dispatch:
@@ -209,7 +209,6 @@ on:
 
 jobs:
   build-lin:
-    if: ${{ github.event_name == 'push' }}
     strategy:
         matrix:
           gcc: ['12.3.Rel1']  # can add other versions if needed
