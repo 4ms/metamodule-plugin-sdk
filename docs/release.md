@@ -1,4 +1,4 @@
-# Releaseing a MetaModule Plugin
+# Releasing a MetaModule Plugin
 
 Now that you have a working plugin, it's time to share it with the world!
 
@@ -47,7 +47,7 @@ Regardless of free or pay status, all plugins must meet these requirements:
   `Myplugin.mmplugin` or OK, but not `Myplugin-v3.4.mmplugin` or
   `Myplugin-v1.5.mmplugin`.
 
-- For plugins that run on the current development firwmare (currently
+- For plugins that run on the current development firmware (currently
   v2.0-dev), include correct dev version string in the release version (see
   below)
 
@@ -60,7 +60,7 @@ The version is used so that our scripts only show the latest plugin versions
 for each firmware version on our site.
 
 The release tag version does not need to match the SDK version or MetaModule
-firwmare versions -- you can use whatever versioning you wish (Keep in mind
+firmware versions -- you can use whatever versioning you wish (Keep in mind
 this only applies to the version in the release tag -- you still must follow
 the rule above regarding putting a version in the .mmplugin file name).
 
@@ -78,7 +78,7 @@ If you have multiple plugins (that is, multiple brands hosted in the same
 repo), then the script will make a separate pass for each plugin brand (so each
 brand has its own "latest official firmware version" and "latest dev firmware version").
 
-It's OK if a plugin is only available for the official firwmare or if it's only 
+It's OK if a plugin is only available for the official firmware or if it's only 
 available for the dev firmware.
 
 
@@ -86,7 +86,7 @@ available for the dev firmware.
 
 Before a major firmware version is officially released, we will make frequent
 development releases of the `dev` firmware version. This firmware is unstable
-and can be thought of as an alpha or beta firwmare version. At the time of this
+and can be thought of as an alpha or beta firmware version. At the time of this
 being written, v1.6.9 is the official firmware and v2.0-dev-12 is the dev
 version.
 
@@ -95,7 +95,7 @@ plugins that run on the latest dev firmware (e.g. `v2.0-dev-12`). In order to
 release your plugin in that zip file, you need to follow all the same rules
 above, except also add the string `-dev-X` to the plugin version, where X is
 the major version of the dev firmware. Notice there is no `v` before the `X`.
-Currently, this means plugins meant to run on the dev firwmare must contain
+Currently, this means plugins meant to run on the dev firmware must contain
 `-dev-12` after the version.
 
 For example, all of these will get put into the dev plugin zip file if dev-12 is the latest version
@@ -110,9 +110,9 @@ For example, all of these will get put into the dev plugin zip file if dev-12 is
 
 The key is that all of these contain `dev-12` so therefore will be packaged in
 the dev plugins zip file (assuming that dev-12 is the current latest dev
-firwmare version).
+firmware version).
 
-None of these will be considered for the dev plugin zip file for firmare dev-12:
+None of these will be considered for the dev plugin zip file for firmware dev-12:
 - `v2.0-dev-11` -- The latest firmware is dev-12, not dev-11
 - `v2.0-dev-v12 -- Cannot contain a `v` before the 12
 
@@ -157,7 +157,7 @@ maintainer.
 
 The "MetaModuleIncludedModules" list contains the list of modules that are
 included in your plugin. The "slug" field should match the VCV Rack slug name
-found in the plugin.json file (asumming the plugin comes from VCV Rack). The
+found in the plugin.json file (assuming the plugin comes from VCV Rack). The
 "name" field can be any text you want to display on our site for the plugin
 name. So in the above example, our site will list your plugin containing two
 modules: "Module Number One" and "Module Number Two"
