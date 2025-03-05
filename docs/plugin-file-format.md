@@ -27,3 +27,57 @@ All files inside the assets/ dir will be copied into the .mmplugin file.
 
 When the plugin is loaded, all files will be copied into MetaModule RAM. RAM is
 limited in size, so please be mindful of including files that are not used.
+
+### Plugin name
+
+The name of the directory contained in the .mmplugin file is important. If you
+are porting from VCV Rack, then the directory name must match the plugin slug.
+If you are writing a native plugin, then the directory name is used in your
+plugin as part of the path when specifying paths to images.
+
+When creating a plugin with the `plugin.cmake` script in the SDK, the directory name
+is set by the PLUGIN_NAME argument to the `create_plugin()` call (typically at
+the bottom of your CMakeLists.txt file).
+
+It's worth going over the mechanism for how this directory name is important, since it 
+can help debugging issues with resources not being found:
+
+When a plugin is loaded, the .mmplugin file is un-tarred. The directory and all
+its contents are copied in the root directory of the RAM disk. If this
+directory already exists (which shouldn't happen), then the contents will get
+merged with the existing contents.
+
+When modules in the plugin want to access resources (such as their faceplate
+PNG files), they need to use this directory name. For VCV-ported modules,
+typically they will call `asset::plugin()` to create the path to the resource.
+The metamodule-rack-interface adaptor uses this function to create a path to the
+in the RAM disk that starts with the same name as the slug name. Therefore, the
+slug must match the directory name, or else VCV Rack ported plugins won't be
+able to find their resources.
+
+For example, if the plugin brand slug is `Foomodules`, then calling:
+
+```c++
+setPanel(APP->window->loadSvg(asset::plugin(pluginInstance, "res/panels/ABC.svg")));
+```
+
+will get translated to:
+
+```c++
+setPanel(APP->window->loadSvg("Foomodules/panels/ABC.png")));
+```
+
+Therefore, the .mmplugin file must be unpacked to a directory named
+`Foomodules` or else the path `Foomodules/panels/ABC.png` will not be valid.
+
+The directory name will be set automatically when you create your plugin using
+the SDK. The PLUGIN_NAME argument in the `create_plugin()` call is what sets
+this. So if you have problems with resources not being found, then double-check
+your PLUGIN_NAME (and hence the directory name when un-tarred) matches the
+plugin slug name. The plugin slug name can be found in the `plugin.json` file
+or possibly (but rarely) overridden in the `plugin-mm.json` file)
+
+See the source for `asset::plugin()` in 
+[vcv_plugin/export/asset.cc](https://github.com/4ms/metamodule/blob/main/firmware/vcv_plugin/export/src/asset.cc)
+
+
