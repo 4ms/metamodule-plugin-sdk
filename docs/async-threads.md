@@ -5,48 +5,52 @@ real-time requirements (for example, allocating memory or reading files, or
 performing complex analysis such as large FFTs) then it can be run in an
 AsyncThread.
 
-The API is defined in `CoreModules/async_thread.hh`
+The API is defined in [`CoreModules/async_thread.hh`](https://github.com/4ms/metamodule-core-interface/blob/v2.0-dev/CoreModules/async_thread.hh)
 
 
 ### Usage
 
-Create an `AsyncThread` object in your module class. Provide `this` and a
-callable object (e.g. a lambda) in the constructor. When you want the thread to
-start running call `start()`. Alternatively, you can provide the lambda in
-`start()`.
+Create an `AsyncThread` object in your module class. Provide `this` (which is the pointer
+to your module) and a callable object (e.g. a lambda) in the constructor. When
+you want the thread to start running call `start()`.
 
 ```c++
 
-    AsyncThread async{this, [this]() {
+    AsyncThread async{this, []() {
         // do something in the background
-        do_something(this->params);
+        do_something();
     }};
 
     MyModule() {
-        async.start(id);
+        async.start();
     }
 
 ```
 
+Alternatively, you can provide the lambda in `start()` (you still have to pass
+`this` to the constructor to AsyncThread)
 
-The lambda will be called at irregular intervals (depending on audio load), so if you want it to run more or less at a steady period, do something like this:
+The thread will be called at irregular intervals (depending on audio load) and
+run until completion. If you want it to run at a slow, but more-or-less steady
+period, do something like this:
 
 ```c++
 
     long long last_tm = 0;
 
     AsyncThread async{[this]() {
-        auto now = std::chrono::steady_clock::now().time_since_epoch().count() / 1'000'000LL;
+        auto now_ms = std::chrono::steady_clock::now().time_since_epoch().count() / 1'000'000LL;
 
-        if (now - last_tm > 1000) {
-            last_tm = now;
+        if (now_ms - last_tm > 1000) {
+            last_tm = now_ms;
             printf("Out 1 is at %f\n", output1);
         }
     }};
 
 ```
 
-If you want it to stop running, call `stop()`. This will not halt execution of the thread, it merely prevents it from starting again.
+If you want it to stop running, call `stop()`. This will not halt current
+execution of the thread (if any), it merely prevents it from starting again.
 
 You can also run a thread once by calling `run_once()` instead of `start()`:
 
@@ -73,6 +77,7 @@ Threads are stopped when the audio is paused (muted), and resumed when the
 patch is played. Like calling `stop()`, they will not have their execution
 halted, instead they simply will not get run again until unpaused.
 
+
 ### Concurrency
 
 The engine has a simple scheduler that runs all AsyncThreads periodically at 
@@ -83,8 +88,6 @@ the audio thread.
 At most two AsyncThreads may be running at once (one on each core). If multiple
 copies of a module are present in a patch, then multiple copies of an
 AsyncThread might be running at the same time, on different cores.
-
-Keep this in mind when sharing data between threads.
 
 Using `std::atomic` is recommended to pass control of data structures between threads.
 

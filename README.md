@@ -174,12 +174,8 @@ In short:
 - No stringstream, fstream, ofstream, iostream, etc.
 - No C++ exceptions (no try/catch, no throw)
 - No expander modules
-- Limited support for dynamic drawing of widgets:
-  - Support for TTF fonts
-  - nanovg calls are mostly supported (typically used for drawing screens like TransparentWidgets)
-      - Can draw filled or outlined polygons, but concave polygons will be drawn as outlined.
-  - No support for nanosvg -- cannot load or render SVGs.
-  - Param, Jack, and Light widgets are drawn with the MetaModule engine, not with nanovg. Children of these widgets are ignored.
+- No support for loading or rendering SVGs (via nanoSvg)
+- Param, Jack, and Light widgets are drawn with the MetaModule engine, not with nanovg. Children of these widgets are ignored.
 
 See [limitations](docs/limitations.md) for more discussion.
 
