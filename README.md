@@ -18,6 +18,8 @@ For example projects using this SDK, see [metamodule-plugin-examples](https://gi
  - [Native Plugins](docs/native-plugin.md)
  - [Tips](docs/tips.md)
  - [Releasing a plugin](docs/release.md)
+ - [plugin-mm.json file format](docs/plugin-mm-json.md).
+ -[Graphics Guide](docs/graphics.md).
 
 ## Basic Example for Converting a Rack Plugin
 
@@ -68,33 +70,16 @@ Notice that you must give the path to the `plugin.json` file that the Rack-SDK r
 This is used to get the brand name and slug.
 
 3. Create a `plugin-mm.json` file.
-This contains MetaModule-specific information used when cataloging the plugin.
-The fields in this file refer to the MetaModule plugin, which may be different
-than the maintainer of the main repo (e.g. different maintainers, different
-list of modules).
+This contains MetaModule-specific information about the plugin and the modules it provides.
 
-Currently this metadata is only used to display and catalog plugins on the website, 
-but future firmware will parse the json files, so make sure the information is accurate.
+Read more about this file [here](docs/plugin-mm-json.md).
 
-If you have no intention of listing this on the MetaModule website, you can
-just use a blank file for now.
+An minimal example could be this:
 
 `MyPlugin/plugin-mm.json`:
 ```json
 {
-	"MetaModulePluginMaintainer": "My Name",
-	"MetaModulePluginMaintainerEmail": "",
-	"MetaModulePluginMaintainerUrl": "",
-	"MetaModuleDescription": "",
-	"MetaModuleIncludedModules": [
-	{
-		"slug": "Module1",
-		"name": "Module Number One"
-	},
-	{
-		"slug": "Module2",
-		"name": "Module Number Two"
-	}
+	"MetaModuleBrandName": "Plugin Display Name",
 }
 
 ```
@@ -178,24 +163,25 @@ If you are porting from a VCV Rack plugin, there are also the following limitati
     Modules that use an expander will always act as if the expander is not
     present.
 
-
   - The module's `rack::ModuleWidget` is constructed once when the plugin is
     loaded, and then destructed and never again constructed. Therefore
     `rack::Widget::step()` or `draw()` is never called on the ModuleWidget
     or any children widgets. This will change with the support of graphical elements in v2.0.
 
-We plan to address these:
+The next major firmware release (v2.0) will address some of these issues:
 
-  - To support graphical screens (dynamic drawing) we plan to implement an
-    adaptor to go from nanovg to our native GUI engine, and call draw() on all
-    visible widgets in the ModuleView (refresh rate will be limited). Statuc: Partially
-    supported in v2.0-dev firmware.
+  - v2.0-dev firmware supports graphical screens (dynamic drawing)
+    `step()` and `draw()` and `drawLayer()` are called for widgets that otherwise
+    aren't drawn by the MetaModule GUI engine.
 
-  - Create a non-blocking (asynchronious) filesystem API to access files in the
-    plugin dir (assuming the user hasn't ejected the USB drive or SD card).
-    Status: async tasks are implemented in v2.0-dev branch. FatFS and POSIX
-    APIs for filesystem access to USB or SD Cards is also implemented, but still
-    under development.
+  - `ModuleWidget::step()` is called for all ModuleWidgets. If there is a
+    custom `draw()` or `drawLayer()` then a full-module-sized canvas will be
+    created and these will be called to draw onto it.
 
+  - v2.0-dev supports non-blocking (asynchronious) tasks, which you can use to
+    make filesystem calls. It also supports POSIX and FatFS filesystem API to
+    access files in the plugin .mmplugin file, or anywhere on the SD Card or
+    USB drive. There is a file picker and file save dialog box so users can
+    locate files or specify a path to save into.
 
 
