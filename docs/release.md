@@ -31,9 +31,9 @@ Plugins that can be freely downloaded must meet these requirements:
 
 If you do not wish to host on github, email us and we can discuss alternatives.
 
-Free plugin maintainers just need to send us the URL to their github repo that
-contains the releases. Email us at 4ms@4mscompany.com or send a message on the
-MetaModule forum.
+Maintainers of free-to-download plugins just need to send us the URL to their
+github repo that contains the releases. Email us at 4ms@4mscompany.com or send
+a message on the MetaModule forum.
 
 Plugins that are pay-to-download need to host their own downloads and manage
 payment and downloads. In this case, the maintainers must send us at least the
@@ -58,9 +58,11 @@ Regardless of free or pay status, all plugins must meet these requirements:
   of writing, this is `dev-12`, but see below)
 
 
-## Release Tag Version 
+## Release Tags
 
-Release tags must contain a valid version as defined in [Semantic Versioning v2.0.0](https://semver.org).
+The git tag for releases must contain a valid version as defined in [Semantic
+Versioning v2.0.0](https://semver.org). The valid version must start with a "v" 
+and can be anywhere in the tag. 
 
 The version is used so that our scripts only show the latest plugin versions
 for each firmware version on our site.
@@ -76,9 +78,9 @@ that will run on the official firmware, and also for the latest plugin version
 that will run on the current dev firmware release.
 
 If the version major number is 0 (e.g. `v0.7`), or if the string `dev` appears
-after the version (e.g. `v1.6.2-beta-dev) then the plugin will only be
+after the version (e.g. `v1.6.2-beta-dev`) then the plugin will only be
 considered for the dev plugin releases. That is, releases with v0.x or that
-contain `dev` will not appear on the main plugin page. See Dev Firmware section
+contain `-dev` will not appear on the main plugin page. See Dev Firmware Tags section
 below for more details.
 
 If you have multiple plugins (that is, multiple brands hosted in the same
@@ -89,21 +91,21 @@ It's OK if a plugin is only available for the official firmware or if it's only
 available for the dev firmware, or if it's available for both.
 
 
-## Dev Firmware Plugins
+## Dev Firmware Tags
 
 Before a major firmware version is officially released, we will make frequent
 development releases of the `dev` firmware version. This firmware is unstable
 and can be thought of as an alpha or beta firmware version. At the time of this
-being written, v1.6.9 is the official firmware and v2.0-dev-12 is the dev
+being written, v1.6.9 is the official firmware and v2.0.0-dev-12 is the dev
 version.
 
 On the MetaModule downloads page, there is a zip file with all the known
-plugins that run on the latest dev firmware (e.g. `v2.0-dev-12`). In order to
+plugins that run on the latest dev firmware (e.g. `v2.0.0-dev-12`). In order to
 release your plugin in that zip file, you need to follow all the same rules
 above, except also add the string `-dev-X` to the plugin version, where X is
 the major version of the dev firmware. Notice there is no `v` before the `X`.
 Currently, this means plugins meant to run on the dev firmware must contain
-`-dev-12` after the version.
+`-dev-12` after the version (that is, after the `vX.X`.
 
 For example, all of these will get put into the dev plugin zip file if dev-12
 is the latest version
@@ -111,18 +113,22 @@ is the latest version
 - `v0.8-dev-12.0`  
 - `v0.8-dev-12.1.2`  
 - `v2.0-dev-12`  
+- `v2.0.0-dev-12`  
 - `v2.0-dev-12.0`  
-- `v9.99-dev-12`
+- `v9.9-dev-12`
+- `v9.9.9-dev-12`
 - `v0.1-dev-12.9.99-beta`
-- `MyPluginMetaModule-v2.0-dev-12.1.1-beta-alpha-1`
+- `ExtraWords-v2.0-dev-12.1.1-beta-alpha-1`
 
-The key is that all of these contain `dev-12` so therefore will be packaged in
+The key is that all of these contain `vX.X-dev-12` so therefore will be packaged in
 the dev plugins zip file (assuming that dev-12 is the current latest dev
 firmware version).
 
 None of these will be considered for the dev plugin zip file for firmware dev-12:
 - `v2.0-dev-11` -- The latest firmware is dev-12, not dev-11
-- `v2.0-dev-v12 -- Cannot contain a `v` before the 12
+- `v2.0-dev-v12` -- Cannot contain a `v` before the 12
+- `v2.0-dev-v12` -- Cannot contain a `v` before the 12
+- `PluginName-dev-12` -- Must contain a valid version starting with `v`
 
 
 ## Plugin-mm.json file
@@ -175,10 +181,23 @@ The file must be valid json and not contain syntax errors (json is very picky).
 Consider running it in an online json checker to verify it.
 
 
+## Publishing by manually creating Github releases
+
+This is a simple way to publish a release, but it takes some steps to do each time
+you make a release. See the next section if you want to set up an automatic release system.
+
+In a Github repo, go to the Releases tab and click the button to draft a new release.
+
+You need to create a new tag: click Choose a tag and then type a tag name in the box. Click "Create new tag (..your tag..) on publish"
+The tag name must meet the requirements above. For example, "v1.4" or "v0.2-dev-12" or "v1.2.3-beta-rc1" are all valid tags.
+
+
+
+
 ## Publishing with a Github Workflow
 
-This is the easiest way to make a release if you do it regularly, though it
-needs to be set up in order to work.
+This is optional, and takes some time to set up, but it pays off by making 
+it easy to generate releases.
 
 Use this file as a template and save it as a .yml file in your
 .github/workflows/ dir (create that dir if it doesn't exist), for example
