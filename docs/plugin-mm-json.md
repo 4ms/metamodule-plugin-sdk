@@ -36,14 +36,15 @@ Here is an example:
 }
 ```
 
-Fields (all are optional -- order does not matter):
+All fields all are optional, but some are required for being visible on the
+plugins website. Order does not matter:
 
 - `MetaModuleBrandName`: This is the display name for your plugin. When adding
   a new module to a patch, modules are sorted by brand names. This field sets
   how the brand name will be shown. If not present, then the field `name` from 
   the `plugin.json` file will be used (if that file is present), otherwise the 
   plugin file name stem will be used (e.g. `CoolModular-v1.2.mmplugin` =>
-  `CoolModular`)
+  `CoolModular`). Required for website listing.
 
 - `MetaModuleBrandSlug`: This is the brand slug that uniquely identifies your
   plugin brand. The brand slug is used when opening a patch file to determine
@@ -52,7 +53,8 @@ Fields (all are optional -- order does not matter):
   Rack ports this must be the same as the VCV Rack slug. Putting a value here
   will override the `slug` value found in the `plugin.json` file, and if that's
   not found then the brand slug will default to the file name stem (as
-  described above). For VCV Rack ports, this is usually not populated
+  described above). For VCV Rack ports, this is usually not populated. Required for 
+  native plugins.
 
 - `MetaModuleBrandAliases`: This is a list of slugs that should be considered
   as the same plugin when opening a patch file. In the example json file above,
@@ -68,6 +70,7 @@ Fields (all are optional -- order does not matter):
 - `MetaModulePluginMaintainerEmail`
 - `MetaModulePluginMaintainerUrl`
 - `MetaModuleDescription`: These four fields are used for the plugin website at https://metamodule.info
+   At least one method of contact is required for website listing.
 
 - `MetaModuleIncludedModules`: This is a list of modules, each entry containing
   "slug" and "name". These two fields are currently just used to create a link
@@ -75,8 +78,6 @@ Fields (all are optional -- order does not matter):
   for more things, include filtering by tags, so make sure it's accurate. If
   this is a ported plugin, the list of modules might be different than what's
   included in the original plugin, so remove any modules that aren't present in
-  the MetaModule version.
-
-
+  the MetaModule version. Required for website listing.
 
 
