@@ -17,9 +17,10 @@ def GetRequiredSymbolNames(file):
             n = mmsyms.get_symbol(i).name
             l = mmsyms.get_symbol(i)['st_info']['bind']
             t = mmsyms.get_symbol(i)['st_info']['type']
+            v = mmsyms.get_symbol(i)['st_other']['visibility']
             ndx = mmsyms.get_symbol(i)['st_shndx']
-            if n != "" and l == "STB_GLOBAL" and t != "STT_NOTYPE" and ndx != 'SHN_UNDEF':
-                logging.debug(f"{i}: {n}")
+            if n != "" and l == "STB_GLOBAL" and t != "STT_NOTYPE" and ndx != 'SHN_UNDEF' and v == 'STV_DEFAULT':
+                logging.debug(f"{i}: {n} {v}")
                 needed_syms.append(n)
     return needed_syms
 
@@ -59,8 +60,6 @@ def GetLibcSymbols():
          "_lseek_r",
          "_sbrk_r",
          "_gettimeofday_r",
-         "gettimeofday",
-         "_gettimeofday",
 
          "expm1l",
          "log1pl",
@@ -68,6 +67,8 @@ def GetLibcSymbols():
          "__atexit",
          "__aeabi_atexit",
          "__atexit_recursive_mutex",
+
+         "_Z9get_ticksv",
     ]
     return libc_syms
 
