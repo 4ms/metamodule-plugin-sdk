@@ -1269,6 +1269,7 @@ _open_r
 _read_r
 _realloc_r
 _sbrk_r
+_times_r
 _write_r
 abort
 alphasort
