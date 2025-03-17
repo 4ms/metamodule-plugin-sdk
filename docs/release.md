@@ -18,7 +18,7 @@ platform, so we encourage you to list your plugin here if you want others to
 use it.
 
 Whether your code is open source or closed source does not effect how the
-plugin is listed on the MetaModule plugin page. But is does matter whether the
+plugin is listed on the MetaModule plugin page. But it does matter whether the
 plugin is free to download, or if you require payment.
 
 Plugins that can be freely downloaded must meet these requirements:
@@ -29,8 +29,7 @@ Plugins that can be freely downloaded must meet these requirements:
 - The GitHub release is NOT marked as "pre-release" (that is, we will ignore
   pre-releases)
 
-If you do not wish to host on GitHub, email us and we can discuss alternatives
-such as GitLab, hosting on our site, or static hosting.
+If you do not wish to host on GitHub, email us and we can discuss alternatives such as GitLab, hosting on our site, or static hosting.
 
 Maintainers of free-to-download plugins just need to send us the URL to their
 GitHub repo that contains the releases. Email us at 4ms@4mscompany.com or send
@@ -54,7 +53,12 @@ Regardless of free or pay status, all plugins must meet these requirements:
 
 ## .mmplugin file name
 
-The .mmplugin file must be written like this:
+The .mmplugin file name is important! It's used in three place:
+- The script that scans releases for putting them on the plugin page on our website
+- The MetaModule firmware plugin loader
+- Users who want to keep all their plugins organized
+
+The file name must be in this format:
 
 ```
 [BrandSlug]-v[plugin-version]-[sdk-version].mmplugin
@@ -69,13 +73,16 @@ The .mmplugin file must be written like this:
   can have suffixes separated by dashes like `X.Y.Z-beta-2.1`. Just don't use 
   the reserved words `-fw` or `-dev` (see next item). For legacy reasons, this
   field is technically optional but we will ask you to add it if missing.
+  Notice that there is a `v` before the first number.
 
 - `sdk-version`. This is the SDK version used to build your plugin, which also
   tells users the minimum firmware version needed to load the plugin. It must
   be in the form `fw-X.Y` for officially released firmware, or `dev-Z` for
   pre-release development or beta versions. For legacy support reasons, if this
-  field is missing, then it will be assumed to be compatible with the latest
-  official firmware.
+  field is missing, the website and plugin loader will both attempt to scan
+  this file for more version information, so it may work to omit the version.
+  However, without an SDK version in the file name, users will be confused, so
+  we require this for all releases.
 
 - optional text after the `sdk-version`, but before the `.mmplugin` is OK.
 
@@ -83,7 +90,6 @@ Example: If it's compiled with SDK v1.6, then these are all OK:
   - `Myplugin-v0.99-fw-1.6.mmplugin` 
   - `Myplugin-v1.2.3-fw-1.6.9.mmplugin`
   - `Myplugin-v1.2.3-fw-1.6-hotfix.mmplugin`
-  - `Myplugin-v1.2.mmplugin` (technically will work, but do not do this)
 
 Example: If it's compiled with SDK v2.0-dev-12, then these are all OK:
   - `Myplugin-v0.9-dev-12.mmplugin` 
@@ -103,14 +109,15 @@ At minimum, to be listed on the website, it must contain these fields:
 	"MetaModulePluginMaintainerEmail": "myname@example.com",
 	"MetaModuleDescription": "A brief note describing the plugin (if it's a port of another work, mention that here)",
 	"MetaModuleIncludedModules": [
-	{
-		"slug": "Module1",
-		"name": "Module Number One"
-	},
-	{
-		"slug": "Module2",
-		"name": "Module Number Two"
-	}
+        {
+            "slug": "Module1",
+            "name": "Module Number One"
+        },
+        {
+            "slug": "Module2",
+            "name": "Module Number Two"
+        }
+    ]
 }
 ```
 
@@ -129,8 +136,19 @@ you make a release. See the next section if you want to set up an automatic rele
 In a Github repo, go to the Releases tab and click the button to draft a new release.
 
 You need to create a new tag: click Choose a tag and then type a tag name in the box. Click "Create new tag (..your tag..) on publish"
-The tag name must meet the requirements above. For example, "v1.4" or "v0.2-dev-12" or "v1.2.3-beta-rc1" are all valid tags.
+Any tag would work, but a good practice is to use the version for your tag. For instance, "v0.8" if your plugin is currently v0.8.
+You also can put the sdk version in the tag if you intend to make a separate tag for each SDK version (e.g. "v0.8-fw-1.6" and "v0.8-dev-12.2")
 
+Next, type in a title and description for your release.
+
+Then, upload your .mmplugin file(s) to the release with the "Attach binaries here" box.
+
+The .mmplugin files must be named properly, see the section above.
+
+Make sure "Set this as pre-release" is not checked, or else we won't be able to add it to our site.
+If for some reason you want to hide a release from our website, checking this box will do that.
+
+Click "Publish Release" and send us a message to scan for your new release!
 
 
 ## Publishing with a Github Workflow
@@ -253,6 +271,8 @@ Then pick the SDK version you want to build with (main or v2.0-dev). Check the
 
 After it's done building, you will see the release on the Releases tab (assuming 
 you chose a tag -- not a branch -- and you clicked "Create Release").
+
+Now, send us a message to scan for your release.
 
 If you need different options for the SDK version, you can modify this script
 to pick a different branch or tag. Or, a more flexible approach is to include
