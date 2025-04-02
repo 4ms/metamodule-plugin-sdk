@@ -185,7 +185,7 @@ on:
 jobs:
   build-lin:
     env:
-      FW_VERSION: ${{ inputs.SDK_branch == 'v2.0-dev' && '-dev-12' || '' }}
+      FW_VERSION: ${{ inputs.SDK_branch == 'v2.0-dev' && '-dev-13' || '' }}
     strategy:
         matrix:
           gcc: ['12.3.Rel1']  # can add other versions if needed
