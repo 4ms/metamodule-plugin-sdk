@@ -17,9 +17,21 @@ We want this page to list all plugins that are available for the MetaModule
 platform, so we encourage you to list your plugin here if you want others to
 use it.
 
+### Requirements
+
+All plugins listed on our site must meet these requirements:
+
+- The .mmplugin file name is properly written (see below)
+
+- The plugin-mm.json file is properly populated with the maintainer's name and
+  the names of the modules included (see below)
+
+
 Whether your code is open source or closed source does not effect how the
 plugin is listed on the MetaModule plugin page. But it does matter whether the
 plugin is free to download, or if you require payment.
+
+### Free-to-download plugins:
 
 Plugins that can be freely downloaded must meet these requirements:
 
@@ -29,11 +41,14 @@ Plugins that can be freely downloaded must meet these requirements:
 - The GitHub release is NOT marked as "pre-release" (that is, we will ignore
   pre-releases)
 
-If you do not wish to host on GitHub, email us and we can discuss alternatives such as GitLab, hosting on our site, or static hosting.
+If you do not wish to host on GitHub, email us and we can discuss alternatives
+such as GitLab, hosting on our site, or static hosting.
 
 Maintainers of free-to-download plugins just need to send us the URL to their
 GitHub repo that contains the releases. Email us at 4ms@4mscompany.com or send
 a message on the MetaModule forum.
+
+### Pay-to-download plugins
 
 Plugins that are pay-to-download need to host their own downloads (or have them 
 on a third-party site) and manage payment and downloads. In this case, the
@@ -43,19 +58,12 @@ maintainers must send us at least the following:
 
 - The compiled .mmplugin file (or at least the plugin-mm.json and SDK version)
 
-Regardless of free or pay status, all plugins must meet these requirements:
-
-- The .mmplugin file name is properly written (see next section)
-
-- The plugin-mm.json file is properly populated with the maintainer's name and
-  the names of the modules included (see below)
-
 
 ## .mmplugin file name
 
 The .mmplugin file name is important! It's used in three place:
 - The script that scans releases for putting them on the plugin page on our website
-- The MetaModule firmware plugin loader
+- The MetaModule firmware plugin loader (Settings > Plugin tab, and the auto-loader)
 - Users who want to keep all their plugins organized
 
 The file name must be in this format:
@@ -184,11 +192,9 @@ on:
 
 jobs:
   build-lin:
-    env:
-      FW_VERSION: ${{ inputs.SDK_branch == 'v2.0-dev' && '-dev-13' || '' }}
     strategy:
         matrix:
-          gcc: ['12.3.Rel1']  # can add other versions if needed
+          gcc: ['12.3.Rel1']
     name: "Build firmware on linux"
     runs-on: ubuntu-24.04
     steps:
@@ -226,7 +232,7 @@ jobs:
           cmake -B build -G Ninja -DMETAMODULE_SDK_DIR=metamodule-plugin-sdk
           cmake --build build
           # Add version tag and required firmware version to the plugin file name:
-          cd metamodule-plugins && for f in *.mmplugin; do mv $f ${f%.mmplugin}-${{ env.CI_REF_NAME }}${{ env.FW_VERSION }}.mmplugin; done;
+          cd metamodule-plugins && for f in *.mmplugin; do mv $f ${f%.mmplugin}-${{ env.CI_REF_NAME }}.mmplugin; done;
 
       - name: Release
         if: startsWith(github.ref, 'refs/tags/') && ${{ inputs.do_release }}
@@ -250,9 +256,22 @@ down to "Workflow permissions" and enable "Read and write permissions"
 To make a release, you need to push a version tag the above sections. For example:
 
 ```
-git tag -a v1.0.0 -m "First release, yay!"
-git push origin v1.0.0
+git tag -a v1.0 -m "First release, yay!"
+git push origin v1.0
 ```
+
+The version in the tag you create will get appended to the name of the plugin file.
+In the above, the plugin will be named `Plugin-v1.0.mmplugin`. So make sure your tag
+follows the rules for naming plugins.
+
+If you want release for the firmware dev-13, for example, then do this:
+
+```
+git tag -a v1.0-dev-13 -m "First release for firmware dev-13, yay!"
+git push origin v1.0-dev-13
+```
+
+This will make a plugin file named `Plugin-v1.0.0-dev-13.mmplugin`
 
 Then you can go to the Actions tab on the github site for your repo and click
 on the "Build and release plugin" action. On the right, you can then select
@@ -272,7 +291,7 @@ Then pick the SDK version you want to build with (main or v2.0-dev). Check the
 After it's done building, you will see the release on the Releases tab (assuming 
 you chose a tag -- not a branch -- and you clicked "Create Release").
 
-Now, send us a message to scan for your release.
+Now, send us a message to add your release.
 
 If you need different options for the SDK version, you can modify this script
 to pick a different branch or tag. Or, a more flexible approach is to include
@@ -281,7 +300,9 @@ there's no need for the SDK branch selection, so you'll want to remove that
 from the workflow script.
 
 Another improvement is to have the workflow automatically run when you push a
-tag. You can also can run the workflow from the command line using the `gh` program (that's [how we build our releases](https://github.com/4ms/metamodule-plugin-examples/blob/main/release.sh)).
+tag. You can also can run the workflow from the command line using the `gh`
+program (that's [how we build our
+releases](https://github.com/4ms/metamodule-plugin-examples/blob/main/release.sh)).
 
 Github has extensive docs on workflows, and there are tons of examples
 online.
