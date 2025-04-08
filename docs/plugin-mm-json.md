@@ -26,7 +26,8 @@ Here is an example:
   [
     {
       "slug": "Module1",
-      "name": "Module Number One"
+      "name": "Module Number One",
+      "displayName": "Alias for Module1"
     },
     {
       "slug": "Module2",
@@ -72,12 +73,15 @@ plugins website. Order does not matter:
 - `MetaModuleDescription`: These four fields are used for the plugin website at https://metamodule.info
    At least one method of contact is required for website listing.
 
-- `MetaModuleIncludedModules`: This is a list of modules, each entry containing
-  "slug" and "name". These two fields are currently just used to create a link
-  to the VCV Rack Library page for this module. Future firmware will use this
-  for more things, include filtering by tags, so make sure it's accurate. If
-  this is a ported plugin, the list of modules might be different than what's
+- `MetaModuleIncludedModules`: This is a list of the modules in the MetaModule
+  plugin (as opposed to the modules in the VCV plugin). 
+  Each entry should contain "slug" and "name". Optionally, each entry can have
+  the "displayName" field.
+  If this is a ported plugin, the list of modules might be different than what's
   included in the original plugin, so remove any modules that aren't present in
   the MetaModule version. Required for website listing.
+      - `slug`: This must match the slug used by patch files (i.e. must match the slug in the VCV plugin.json file)
+      - `name`: This is a short name of the module to be displayed on the website.
+      - `displayName`: This is a short name to be displayed on the MetaModule hardware.
 
 
