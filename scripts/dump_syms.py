@@ -59,6 +59,8 @@ def GetLibcSymbols():
          "_read_r",
          "_lseek_r",
          "_sbrk_r",
+         "gettimeofday",
+         "_gettimeofday",
          "_gettimeofday_r",
 
          "expm1l",
