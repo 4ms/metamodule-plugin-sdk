@@ -3,11 +3,33 @@
 Now that you have a working plugin, it's time to share it with the world!
 
 
-### Licensing
+### Licensing and Permission
 
-According to the license, you are free to release your plugin under any license
-you wish, including commercial licensing. Your choice of license needs to
-comply with the license of any code that you used.
+The SDK license permits any kind of license for your plugin. If you are the
+original author of the source code, then you are free to release your plugin
+under any license you wish, including commercial licensing. However, if you are
+not the sole author of the source code, then you need to carefully check what
+the licesning requirements are of the code you used.
+
+For example, if you used code that was licensed with a GPL license, then it's
+likely you will need to release your plugin under the same GPL license. Other
+types of licenses might make requirements about "derivative works", which your
+plugin may be considered if you ported. It's your responsibility to carefully
+and completely check your work is in compliance. This is a legal matter and
+should be taken seriously.
+
+#### Permission
+
+In addition to adhering to legal requirements of licensing, if your plugin
+is largely based on another work (i.e. you ported a VCV Rack plugin, or a
+VST plugin to MetaModule), then you should contact the original author and ask
+for permission to port their work to the MetaModule. Not only is this polite,
+but you also may find out someone else is working on a port, or that the author
+wishes to help, or perhaps the author would not be happy to see their
+work running on another platform. In any case, while it's not a strict legal
+requirement, it's in the interest of everyone involved to be in communication 
+with the original author before porting.
+
 
 ## Listing on the official MetaModule plugins page
 
@@ -26,6 +48,9 @@ All plugins listed on our site must meet these requirements:
 - The plugin-mm.json file is properly populated with the maintainer's name and
   the names of the modules included (see below)
 
+- For ports from VCV Rack or other platforms: You are the original author of
+  the code, or the original author of the work has given you permission to port
+  their work to the MetaModule.
 
 Whether your code is open source or closed source does not effect how the
 plugin is listed on the MetaModule plugin page. But it does matter whether the

@@ -97,25 +97,34 @@ told to update that section of the screen.
 
 - Widgets must draw themselves within their `box`. The box size for a widget
   will determine how many pixels are allocated. Any drawing outside this box
-  will be clipped. VCV Rack has different behavoir (that is, it allows a widget
-  to draw outside of its box), so this is important to check if you do not see
-  your widget being drawn properly.
+  will be clipped. VCV Rack allows a widget to draw outside of its box, so this
+  is important to check if you do not see your widget being drawn properly.
+    - Exception: Text is allowed to be drawn outside the widget box. This
+      is a necessity for handling centered text, where the widget box in Rack
+      has a top-left coordinate of the center of the text.
+
+- Opacity for text is ignored. All text is drawn with 100% opacity. Having the
+  background content partially visible behind text does not render well on a
+  small 16-bit color screen. If your module uses opacity to set a particular color
+  by blending it with the background color, just set that color directly at 
+  full opacity.
 
 - Only layer 1 is drawn. The draw() function is called first, and then
   drawLayer() function is called with a layer parameter of 1.
 
 - The framerate is variable and slow. Your module should not depend on a high
   framerate. The current v2.0-dev branch attempts to hit 20 FPS for a single
-  module, but this drops quickly as multiple modules are shown on screen.
+  screen on a single module, but this drops quickly as multiple modules are
+  shown on screen. 
 
 - SVGs and textures cannot be drawn. Keep in mind nanosvg != nanovg. There is
-  no support for nanosvg or for drawing textures.
+  no support for nanosvg or for drawing textures yet.
 
 - There are some differences in how multi-line text is wrapped. Some nanovg
   functions used for helping do this manually are not implemented
   (nvgTextBoxBounds(), nvgTextMetrics(), ...). In general, if you need
-  multi-line
-  text, it's recommended to use a VCVTextDisplay (that is, a dynamic text display).
+  multi-line text, it's recommended to either manually insert newlines,
+  or use a VCVTextDisplay (that is, a dynamic text display).
 
 
 ## Using fonts
@@ -141,4 +150,15 @@ APP->window->loadFont(asset::system("res/fonts/NAMEOFFONT.ttf"));`
 If you use a custom font, you will need to add the .ttf file to your plugin's
 assets/ dir. Then, you can access it using `std::shared_ptr<Font> font =
 APP->window->loadFont(asset::plugin("NAMEOFFONT.ttf"));`
+
+Always check your font handle is valid before attempting to use the font. While
+not likely, a disk or programming error could cause a font not to load, and
+it's better to fail gracefully rather than crash:
+
+```c++
+std::shared_ptr<Font> font = APP->window->loadFont(asset::plugin("NAMEOFFONT.ttf"));
+if (font && font->handle >= 0) {
+    // safe to use the font here
+}
+```
 
