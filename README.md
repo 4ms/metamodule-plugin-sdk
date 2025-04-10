@@ -18,8 +18,8 @@ For example projects using this SDK, see [metamodule-plugin-examples](https://gi
  - [Native Plugins](docs/native-plugin.md)
  - [Tips](docs/tips.md)
  - [Releasing a plugin](docs/release.md)
- - [plugin-mm.json file format](docs/plugin-mm-json.md).
- -[Graphics Guide](docs/graphics.md).
+ - [plugin-mm.json file format](docs/plugin-mm-json.md)
+ - [Graphics Guide](docs/graphics.md)
 
 ## Basic Example for Converting a Rack Plugin
 
