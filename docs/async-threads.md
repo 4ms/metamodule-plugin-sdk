@@ -7,6 +7,19 @@ AsyncThread.
 
 The API is defined in [`CoreModules/async_thread.hh`](https://github.com/4ms/metamodule-core-interface/blob/v2.0-dev/CoreModules/async_thread.hh)
 
+## Background and Best Practices
+
+Async Threads run in the background of the **audio** thread. That is, the audio
+will continue playing without interrupts while the async thread is run intermittently
+when it can without disturbing the audio processing.
+
+Async Threads do **not** run in the background of the GUI thread. They are more or less
+concurrent to the GUI thread (the scheduling is complicated since there are two Async Thread
+runners -- one of which will interrupt the GUI thread and the other one will run simulataneously
+with the GUI thread). The goal of Async Threads is not to be able to allow the user
+to use the GUI while the thread is running, but rather the goal is to allow the audio
+to play without interruption or overload.
+
 
 ### Usage
 

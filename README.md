@@ -16,12 +16,13 @@ For example projects using this SDK, see [metamodule-plugin-examples](https://gi
 ## SDK Topics:
  - [Text Screens/Displays](docs/text-displays.md)
  - [Graphical Screens/Displays](docs/graphic-displays.md)
- - [Async Thread API](docs/async-threads.md)
  - [Native Plugins](docs/native-plugin.md)
+ - [Licensing and Permissions](docs/licensing_permissions.md)
+ - [Releasing a plugin](docs/release.md)
  - [Plugin file format](docs/plugin-file-format.md)
+ - [Async Thread API](docs/async-threads.md)
  - [API reference](docs/api.md)
  - [Tips](docs/tips.md)
- - [Releasing a plugin](docs/release.md)
 
 ## Basic Example for Converting a Rack Plugin
 
@@ -179,7 +180,11 @@ In short:
 
 See [limitations](docs/limitations.md) for more discussion.
 
+## Licensing/Permissions 
 
+If you are porting a plugin which you are not the original author, read this
+before you get too far in the porting process: (Licensing and
+Permissions)[licensing_permissions.md]
 
 
 
