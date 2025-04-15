@@ -35,6 +35,8 @@ def write_yaml(outfile, syms):
         # Pad so that data size is aligned to 4 bytes
         padding = len(data) % 4
         f.write("\x00" * padding)
+        # Add an additional padding of 4 bytes
+        f.write("\x00" * 4)
 
 def write_json(outfile, syms):
     data = json.dumps(syms)
