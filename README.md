@@ -16,10 +16,11 @@ For example projects using this SDK, see [metamodule-plugin-examples](https://gi
 ## More Reading:
  - [Text Screens/Displays](docs/text-displays.md)
  - [Native Plugins](docs/native-plugin.md)
- - [Tips](docs/tips.md)
+ - [Licensing and Permissions](docs/licensing_permissions.md)
  - [Releasing a plugin](docs/release.md)
- - [plugin-mm.json file format](docs/plugin-mm-json.md)
- - [Graphics Guide](docs/graphics.md)
+ - [Plugin file format](docs/plugin-file-format.md)
+ - [API reference](docs/api.md)
+ - [Tips](docs/tips.md)
 
 ## Basic Example for Converting a Rack Plugin
 
@@ -183,5 +184,14 @@ The next major firmware release (v2.0) will address some of these issues:
     access files in the plugin .mmplugin file, or anywhere on the SD Card or
     USB drive. There is a file picker and file save dialog box so users can
     locate files or specify a path to save into.
+
+
+
+## Licensing/Permissions 
+
+If you are porting a plugin which you are not the original author, read this
+before you get too far in the porting process: (Licensing and
+Permissions)[licensing_permissions.md]
+
 
 
