@@ -1,11 +1,34 @@
 #!/usr/bin/env python3
 
+import json
 import argparse
 import logging
 import subprocess
-from helpers import read_symbol_list
 from elftools.elf.elffile import ELFFile
 from elftools.elf.sections import SymbolTableSection
+
+def read_json_symbols(infile):
+    with open(infile, "r") as f:
+        table = json.load(f)
+    if isinstance(table, dict):
+        return table.keys()
+    else:
+        return table
+
+def read_textfile_symbols(infile):
+    with open(infile, "r") as f:
+        needed_syms = [line.rstrip() for line in f]
+    return needed_syms
+
+def read_symbol_list(infile):
+    if str(infile).endswith(".json"):
+        needed_syms = read_json_symbols(infile)
+    else:
+        needed_syms = read_textfile_symbols(infile)
+
+    needed_syms = list(set(needed_syms))
+    return needed_syms
+
 
 def GetPluginRequiredSymbolNames(file):
     needed_syms = []
