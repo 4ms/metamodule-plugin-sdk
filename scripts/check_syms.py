@@ -59,9 +59,14 @@ if __name__ == "__main__":
             demangled = demangle(sym)
             if sym != demangled:
                 sym = demangled + " aka " + sym 
-            logging.error(f"Symbol in plugin not found in api: {sym}")
+            if len(missing_syms) == 1:
+                logging.error("********************")
+            logging.error(f"***** ERROR: Symbol in plugin not found in api: {sym}")
 
     if len(missing_syms) == 0:
-        logging.info(f"All symbols found!")
+        logging.info(f"All symbols found!\n------------------")
+    else:
+        logging.error("***** Some symbols are not present in the plugin code or in the SDK: this plugin will not load on the MetaModule")
+        logging.error("********************")
 
 
