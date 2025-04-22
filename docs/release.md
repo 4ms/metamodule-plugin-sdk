@@ -69,7 +69,7 @@ maintainers must send us at least the following:
 
 The .mmplugin file name is important! It's used in three place:
 - The script that scans releases for putting them on the plugin page on our website
-- The MetaModule firmware plugin loader (Settings > Plugin tab, and the auto-loader)
+- The MetaModule firmware plugin loader (Settings > Plugin tab, and the preloader)
 - Users who want to keep all their plugins organized
 
 The file name must be in this format:
@@ -90,25 +90,50 @@ The file name must be in this format:
   Notice that there is a `v` before the first number.
 
 - `sdk-version`. This is the SDK version used to build your plugin, which also
-  tells users the minimum firmware version needed to load the plugin. It must
-  be in the form `fw-X.Y` for officially released firmware, or `dev-Z` for
-  pre-release development or beta versions. For legacy support reasons, if this
-  field is missing, the website and plugin loader will both attempt to scan
-  this file for more version information, so it may work to omit the version.
-  However, without an SDK version in the file name, users will be confused, so
-  we require this for all releases.
+  tells users about the firmware version needed to load the plugin.
+    - This field is mandatory if the plugin only runs on development firmware.
+      In this case the field must be in the form `dev-Z`, where `Z` is the
+      minimum development firmware version required.
+    - This field is optional if the plugin runs on the currently 
+      released firmware. If it's omitted then the website and the MM firmware
+      will scan the contents to determine if it's compatible with the current
+      firmware. If this field is present then it must be in the form `fw-X.Y`,
+      e.g. `fw-2.0` indicates it requries firmware v2.0 or later.
+        - Note: if you omit using this field in your plugin name, then it's a good
+          idea to bump up the plugin version whenever you recompile with a new SDK.
+          This will make it clear to users which one to use. For example if you
+          originally released `Myplugin-v1.0-dev-13.mmplugin`, and then when a new
+          SDK was released you recompiled it, you should *NOT* call the new release
+          `Myplugin-v1.0.mmplugin`, since that would be unclear to users which one
+          is more recent. Instead call it `Myplugin-v1.0.1.mmplugin` (or any
+          version > 1.0) or use the -fw tag like `Myplugin-v1.0-fw-2.0.mmplugin`.
 
 - optional text after the `sdk-version`, but before the `.mmplugin` is OK.
 
 Example: If it's compiled with SDK v1.6, then these are all OK:
-  - `Myplugin-v0.99-fw-1.6.mmplugin` 
+  - `Myplugin-v0.9.mmplugin` 
+  - `Myplugin-v0.9-fw-1.6.mmplugin` 
   - `Myplugin-v1.2.3-fw-1.6.9.mmplugin`
   - `Myplugin-v1.2.3-fw-1.6-hotfix.mmplugin`
 
-Example: If it's compiled with SDK v2.0-dev-12, then these are all OK:
-  - `Myplugin-v0.9-dev-12.mmplugin` 
-  - `Myplugin-v14.2-dev-12.1.mmplugin`
-  - `Myplugin-v1.2.3-dev-12.6.mmplugin`
+Example: If it's compiled with SDK v2.0, then these are all OK:
+  - `Myplugin-v0.9.mmplugin` 
+  - `Myplugin-v0.9-fw-2.0.mmplugin` 
+  - `Myplugin-v1.2.3-fw-2.0.1.mmplugin`
+  - `Myplugin-v1.2.3-fw-2.0-test.mmplugin`
+
+Example: If it's compiled with SDK v2.0-dev-13, then these are all OK:
+  - `Myplugin-v0.9.mmplugin` 
+  - `Myplugin-v0.9-dev-13.mmplugin` 
+  - `Myplugin-v14.2-dev-13.1.mmplugin`
+  - `Myplugin-v1.2.3-dev-13.6.mmplugin`
+
+Notice `Myplugin-v0.9.mmplugin` could be valid for v1.6 or v2.0 firmware.
+This ambiguity will not happen in actual circumstance because when re-compiling
+with a newer SDK you should bump up the plugin version (or use the -fw-X.Y tag).
+The website and MM firmware will scan the contents of the plugin file
+to determine the SDK version, so no special considerations need to be made with
+regards to those.
 
 
 ## Plugin-mm.json file
