@@ -259,7 +259,11 @@ jobs:
       - name: Build
         run: |
           mkdir -p metamodule-plugins
+          # Get the SDK
           git clone -b ${{ inputs.SDK_branch }} https://github.com/4ms/metamodule-plugin-sdk --recursive 
+          # Validate plugin-mm.json syntax
+          jq -e . plugin-mm.json >/dev/null || exit 1
+          # Build the plugin
           cmake -B build -G Ninja -DMETAMODULE_SDK_DIR=metamodule-plugin-sdk
           cmake --build build
           # Add version tag and required firmware version to the plugin file name:
@@ -302,7 +306,7 @@ git tag -a v1.0-dev-13 -m "First release for firmware dev-13, yay!"
 git push origin v1.0-dev-13
 ```
 
-This will make a plugin file named `Plugin-v1.0.0-dev-13.mmplugin`
+This will make a plugin file named `Plugin-v1.0-dev-13.mmplugin`
 
 Then you can go to the Actions tab on the github site for your repo and click
 on the "Build and release plugin" action. On the right, you can then select
