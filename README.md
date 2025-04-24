@@ -12,6 +12,7 @@ For example projects using this SDK, see [metamodule-plugin-examples](https://gi
   - ninja (not required if you configure cmake to use a different generator) 
   - arm-none-eabi-gcc toolchain 12.2 or 12.3
   - python 3.6 or later
+  - Optional (recommended): jq (for validating plugin-mm.json file)
 
 ## SDK Topics:
  - [Text Screens/Displays](docs/text-displays.md)
@@ -64,11 +65,11 @@ target_include_directories(MyPlugin PRIVATE ${SOURCE_DIR}/src)
 
 # Call this to link and create the plugin file
 create_plugin(
-    SOURCE_LIB      MyPlugin                                          # The cmake target name (defined in add_target)
-    PLUGIN_NAME     MyPlugin                                          # This must match the brand "slug" used in VCV Rack
-    PLUGIN_JSON     ${SOURCE_DIR}/plugin.json                         # Path to the plugin.json file used by VCV Rack
-    SOURCE_ASSETS   ${CMAKE_CURRENT_LIST_DIR}/assets                  # Path to the assets/ dir containing the PNGs
-    DESTINATION     ${CMAKE_CURRENT_LIST_DIR}/../metamodule-plugins   # Path to where you want the plugin file output
+    SOURCE_LIB      MyPlugin                                        # The cmake target name (defined in add_target)
+    PLUGIN_NAME     MyPlugin                                        # This must match the brand "slug" used in VCV Rack
+    PLUGIN_JSON     ${SOURCE_DIR}/plugin.json                       # Path to the plugin.json file used by VCV Rack
+    SOURCE_ASSETS   ${CMAKE_CURRENT_LIST_DIR}/assets                # Path to the assets/ dir containing the PNGs
+    DESTINATION     ${CMAKE_CURRENT_LIST_DIR}/metamodule-plugins    # Path to where you want the plugin file output
 )
 ```
 
@@ -76,10 +77,10 @@ Notice that you must give the path to the `plugin.json` file that the Rack-SDK r
 This file is read by the MetaModule in order to get the brand name and slug.
 
 3. Create a `plugin-mm.json` file. Read more about this file [here](docs/plugin-mm-json.md).
-You can just use a blank file to get started.
+You can just use an empty json file to get started.
 
 ```bash
-touch plugin-mm.json
+echo "{}" > plugin-mm.json
 ```
 
 4. Add any graphical assets (svgs must be converted to png) and fonts (ttf) your project uses. See [Graphics Guide](docs/graphics.md).
