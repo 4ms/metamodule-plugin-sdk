@@ -1,12 +1,44 @@
-# Text Displays (Screens)
+# Displays (Screens)
 
-Plugin API v1.3 supports screens on modules that display text only.
+Virtual modules can have screens (or "display") which display information about the modules's state.
+The MetaModule recognizes two types of displays: Text and Graphics.
 
-Plugins have control over the font and color.
+Text Displays have text only. Graphics Displays can have text and/or graphics
+(generally speaking: filled or outlined polygons).
+
+If you are porting a VCV Rack module to MetaModule, then Graphic Displays often work automatically.
+
+For more information about Graphics Displays, see the docs page: [Graphical Screens/Displays](graphic-displays.md)
+
+
+## When to use Text Displays vs. Graphics Displays?
+
+In general, Graphic Displays are more versatile and usually work automatically
+with existing VCV Rack modules. So, if possible, choose Graphics Displays.
+
+The main advantage of using a Text Display is that they are drawn more
+efficiently. However, for most purposes, Graphical Displays have a good-enough
+framerate and no one would notice a difference.
+
+The other reason to use Text Displays is that Graphics Displays are not
+supported in the v1.x firmware branch, so if you are targetting that branch
+then you're limited to using Text Displays only. Also, there is no native plugin
+API for graphics displays (yet -- I would be happy to prioritize this if
+someone wants to use it!).
+
+For more information about Graphics Displays, see the docs page: [Graphical Screens/Displays](graphic-displays.md)
+
+The remainder of this document refers to Text Displays only.
+
+
+# Text Displays
+
+
 
 ## Using the VCV Rack adaptor
-To create a display using the VCV Rack adatpor interface, create a
-`MetaModule::VCVTextDisplay` object (or a class that dervives from this). 
+
+To create a display using the VCV Rack adaptor interface, create a
+`MetaModule::VCVTextDisplay` object (or a class that derives from this). 
 
 Set the object's box and pos to place it on the module faceplate.
 Then set the font and color fields.
@@ -14,8 +46,11 @@ Then set the font and color fields.
 You also must give each display a unique ID (similar to how each Param or Input or Output
 needs a unique ID in VCV Rack). This ID must also be different than any Light's unique ID.
 
-For full examples, see OrangeLine and CountModula projects in the [metamodule-plugin-examples
-repo](https://github.com/4ms/metamodule-plugin-examples).
+For full examples, see port of the Rack MIDI_CV module [here](https://github.com/4ms/metamodule/blob/v2.0-dev/firmware/vcv_ports/RackCore/MIDI_CV.cpp), or the Befaco NoisePlethora, specifically these lines:
+[here](https://github.com/hemmer/Befaco/blob/85bd071a4f39ed866892ef3370fab3f72c41126f/src/NoisePlethora.cpp#L611-L621), 
+[here](https://github.com/hemmer/Befaco/blob/85bd071a4f39ed866892ef3370fab3f72c41126f/src/NoisePlethora.cpp#L678-L682), 
+and [here](https://github.com/hemmer/Befaco/blob/85bd071a4f39ed866892ef3370fab3f72c41126f/src/NoisePlethora.cpp#L877-L892).
+
 
 A brief example:
 ```c++

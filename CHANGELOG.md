@@ -1,5 +1,29 @@
 # Change Log for SDK API
 
+### API v2.0 (in progress)
+
+#### v2.0-dev-12.0
+
+- Heavily modified rack classes to match the API of Rack-SDK. While this adds
+  no new features or change in functionality, it makes an API break from v2.0-dev-11
+  because the class layouts for many classes have changed (vtables, member layout, etc).
+  The reason this was done was to allow future functionality without breaking the API 
+  (that is, without having to bump up the major version number and force all plugins
+  to make a new release)
+
+#### v2.0-dev-11.1
+- Added libsamplerate
+- Added async file dialog box browser functions
+- Added more support for rack::Menu* classes
+- Added dirent functions (opendir, closedir, readdir)
+
+#### v2.0-dev-11.0
+
+#### v2.0-dev-10.0
+- Added async task support
+- Added support for drawing with ttf fonts with nanovg
+
+
 ### API v1.6.0 
 
 - `presets/` folder is copied into .mmplugin file by the plugin.cmake script

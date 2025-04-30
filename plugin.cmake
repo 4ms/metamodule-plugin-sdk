@@ -1,3 +1,4 @@
+cmake_minimum_required(VERSION 3.19)
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/cmake/arm-none-eabi-gcc.cmake)
 project(MetaModulePluginSDK LANGUAGES C CXX ASM)
 
@@ -37,17 +38,17 @@ function(create_plugin)
         set(PLUGIN_NAME ${LIB_NAME})
     endif()
 
-	# Path to final plugin tar file
-	cmake_path(NORMAL_PATH PLUGIN_OPTIONS_DESTINATION OUTPUT_VARIABLE PLUGIN_DEST_DIR)
-	cmake_path(APPEND PLUGIN_DEST_FILE ${PLUGIN_DEST_DIR} ${PLUGIN_NAME}.mmplugin)
+    # Path to final plugin tar file
+    cmake_path(NORMAL_PATH PLUGIN_OPTIONS_DESTINATION OUTPUT_VARIABLE PLUGIN_DEST_DIR)
+    cmake_path(APPEND PLUGIN_DEST_FILE ${PLUGIN_DEST_DIR} ${PLUGIN_NAME}.mmplugin)
 
-	cmake_path(APPEND PLUGIN_DEST_TMP_DIR ${CMAKE_CURRENT_BINARY_DIR} ${PLUGIN_NAME})
+    cmake_path(APPEND PLUGIN_DEST_TMP_DIR ${CMAKE_CURRENT_BINARY_DIR} ${PLUGIN_NAME})
 
     set(PLUGIN_FILE_FULL ${PLUGIN_NAME}-debug.so)
     cmake_path(APPEND PLUGIN_FILE_TMP ${CMAKE_CURRENT_BINARY_DIR} ${PLUGIN_NAME}.so)
     cmake_path(APPEND PLUGIN_FILE ${PLUGIN_DEST_TMP_DIR} ${PLUGIN_NAME}.so)
 
-	# plugin.json file:
+    # plugin.json file:
     if (DEFINED PLUGIN_OPTIONS_PLUGIN_JSON)
         set(PLUGIN_JSON_SOURCE ${PLUGIN_OPTIONS_PLUGIN_JSON})
         if (EXISTS ${PLUGIN_JSON_SOURCE})
@@ -60,27 +61,45 @@ function(create_plugin)
         message(FATAL_ERROR "You must provide the path to the `plugin.json` file with the PLUGIN_JSON argument of create_plugin()")
     endif()
 
-	# plugin-mm.json file
-	cmake_path(APPEND PLUGIN_MM_JSON_SOURCE ${CMAKE_CURRENT_SOURCE_DIR} plugin-mm.json)
-	cmake_path(APPEND PLUGIN_MM_JSON_DEST ${PLUGIN_DEST_TMP_DIR} plugin-mm.json)
-	if (NOT EXISTS ${PLUGIN_MM_JSON_SOURCE})
-		message(FATAL_ERROR "plugin-mm.json must be in the root dir of the plugin: ${CMAKE_CURRENT_SOURCE_DIR}.")
-	endif()
+    # plugin-mm.json file
+    cmake_path(APPEND PLUGIN_MM_JSON_SOURCE ${CMAKE_CURRENT_SOURCE_DIR} plugin-mm.json)
+    cmake_path(APPEND PLUGIN_MM_JSON_DEST ${PLUGIN_DEST_TMP_DIR} plugin-mm.json)
+    if (NOT EXISTS ${PLUGIN_MM_JSON_SOURCE})
+        message(FATAL_ERROR "plugin-mm.json must be in the root dir of the plugin: ${CMAKE_CURRENT_SOURCE_DIR}.")
+    endif()
+
+    find_program(JQ_EXECUTABLE jq)
+    if(NOT JQ_EXECUTABLE)
+        message(WARNING "Cannot find jq program. You must manually validate plugin-mm.json")
+    else()
+        add_custom_target(VALIDATE_PLUGIN_MM_JSON ALL
+            COMMAND ${JQ_EXECUTABLE} -e . ${PLUGIN_MM_JSON_SOURCE} > /dev/null || echo "**** Error: JSON syntax error in ${PLUGIN_MM_JSON_SOURCE}"
+            VERBATIM
+            USES_TERMINAL
+            COMMENT "Validating plugin-mm.json"
+        )
+    endif()
 
     ###############
 
-	target_link_libraries(${LIB_NAME} PRIVATE metamodule-sdk)
 
-	# TODO: configure version file with SDK_MAJOR_VERSION etc
+    target_link_libraries(${LIB_NAME} PRIVATE metamodule-sdk)
+
+    # TODO: configure version file with SDK_MAJOR_VERSION etc
     set(VERSION_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/version.cc)
     target_sources(${LIB_NAME} PRIVATE ${VERSION_FILE})
 
     target_compile_definitions(${LIB_NAME} PRIVATE METAMODULE)
+    target_compile_options(${LIB_NAME} PRIVATE 
+        -fvisibility=hidden
+        $<$<COMPILE_LANGUAGE:CXX>:-fvisibility-inlines-hidden>
+    )
 
-	set(LFLAGS
+    set(LFLAGS
         -shared
         -Wl,-Map,plugin.map,--cref
         -Wl,--gc-sections
+        -Wl,--require-defined=init
         -nostartfiles 
         -nostdlib
         ${ARCH_MP15x_A7_FLAGS}
@@ -99,34 +118,34 @@ function(create_plugin)
     get_target_property(LIBC_BIN_DIR metamodule-plugin-libc BINARY_DIR)
     find_library(LIBC_BIN_DIR "metamodule-plugin-libc" PATHS ${LIBC_BIN_DIR} REQUIRED)
 
-	# Get objects of linked libraries, except those we know about
-	get_target_property(DEP_LIBS ${LIB_NAME} LINK_LIBRARIES)
-	list(REMOVE_ITEM DEP_LIBS "arch_mp15x_a7")
-	list(REMOVE_ITEM DEP_LIBS "metamodule-sdk")
-	foreach(LIB IN LISTS DEP_LIBS)
-		list(APPEND TARGET_LINK_LIB_OBJS $<TARGET_OBJECTS:${LIB}>)
-	endforeach()
+    # Get objects of linked libraries, except those we know about
+    get_target_property(DEP_LIBS ${LIB_NAME} LINK_LIBRARIES)
+    list(REMOVE_ITEM DEP_LIBS "arch_mp15x_a7")
+    list(REMOVE_ITEM DEP_LIBS "metamodule-sdk")
+    foreach(LIB IN LISTS DEP_LIBS)
+        list(APPEND TARGET_LINK_LIB_OBJS $<TARGET_OBJECTS:${LIB}>)
+    endforeach()
 
-	# Link objects into a shared library (CMake won't do it for us)
+    # Link objects into a shared library (CMake won't do it for us)
     add_custom_command(
-		OUTPUT ${PLUGIN_FILE_FULL}
-		DEPENDS ${LIB_NAME}
-		COMMAND ${CMAKE_CXX_COMPILER} ${LFLAGS} -o ${PLUGIN_FILE_FULL}
-				$<TARGET_OBJECTS:${LIB_NAME}> 
-				${TARGET_LINK_LIB_OBJS}
+        OUTPUT ${PLUGIN_FILE_FULL}
+        DEPENDS ${LIB_NAME}
+        COMMAND ${CMAKE_CXX_COMPILER} ${LFLAGS} -o ${PLUGIN_FILE_FULL}
+                $<TARGET_OBJECTS:${LIB_NAME}> 
+                ${TARGET_LINK_LIB_OBJS}
                 -L${LIBC_BIN_DIR} 
                 -lmetamodule-plugin-libc #FIXME: silently fails if this lib is not found
                 -lgcc
-		COMMAND_EXPAND_LISTS
-		VERBATIM USES_TERMINAL
+        COMMAND_EXPAND_LISTS
+        VERBATIM USES_TERMINAL
     )
 
-	# Strip symbols to create a smaller plugin file
+    # Strip symbols to create a smaller plugin file
     add_custom_command(
         OUTPUT ${PLUGIN_FILE_TMP}
         DEPENDS ${PLUGIN_FILE_FULL}
         COMMAND ${CMAKE_STRIP} -g -v -o ${PLUGIN_FILE_TMP} ${PLUGIN_FILE_FULL}
-		COMMAND ${CMAKE_SIZE_UTIL} ${PLUGIN_FILE_TMP}
+        COMMAND ${CMAKE_SIZE_UTIL} ${PLUGIN_FILE_TMP}
         VERBATIM USES_TERMINAL
     )
     add_custom_target(plugin ALL DEPENDS ${PLUGIN_FILE_TMP})
@@ -142,11 +161,11 @@ function(create_plugin)
             # -v
         WORKING_DIRECTORY ${CMAKE_CURRENT_FUNCTION_LIST_DIR}
         VERBATIM USES_TERMINAL
-	)
+    )
 
-	add_custom_command(
-		TARGET plugin
-		POST_BUILD
+    add_custom_command(
+        TARGET plugin
+        POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E echo "Creating plugin at ${PLUGIN_DEST_FILE}"
         COMMAND ${CMAKE_COMMAND} -E rm -rf ${PLUGIN_DEST_TMP_DIR}
         COMMAND ${CMAKE_COMMAND} -E make_directory ${PLUGIN_DEST_TMP_DIR}
@@ -189,7 +208,7 @@ function(create_plugin)
         ${PLUGIN_FILE_FULL}.diss
     )
 
-	# TODO: ?? target to convert a dir of SVGs to PNGs?
+    # TODO: ?? target to convert a dir of SVGs to PNGs?
 
 endfunction()
 

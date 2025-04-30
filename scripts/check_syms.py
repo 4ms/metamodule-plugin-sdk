@@ -1,10 +1,34 @@
 #!/usr/bin/env python3
 
+import json
 import argparse
 import logging
-from helpers import read_symbol_list
+import subprocess
 from elftools.elf.elffile import ELFFile
 from elftools.elf.sections import SymbolTableSection
+
+def read_json_symbols(infile):
+    with open(infile, "r") as f:
+        table = json.load(f)
+    if isinstance(table, dict):
+        return table.keys()
+    else:
+        return table
+
+def read_textfile_symbols(infile):
+    with open(infile, "r") as f:
+        needed_syms = [line.rstrip() for line in f]
+    return needed_syms
+
+def read_symbol_list(infile):
+    if str(infile).endswith(".json"):
+        needed_syms = read_json_symbols(infile)
+    else:
+        needed_syms = read_textfile_symbols(infile)
+
+    needed_syms = list(set(needed_syms))
+    return needed_syms
+
 
 def GetPluginRequiredSymbolNames(file):
     needed_syms = []
@@ -20,6 +44,12 @@ def GetPluginRequiredSymbolNames(file):
                 logging.debug(f"{i}: bind:{l} type:{t} {n}")
                 needed_syms.append(n)
     return needed_syms
+
+def demangle(name):
+   try:
+       return subprocess.check_output(['c++filt', name], stderr=subprocess.DEVNULL).decode().strip()
+   except subprocess.CalledProcessError:
+       return name
 
 
 if __name__ == "__main__":
@@ -49,9 +79,17 @@ if __name__ == "__main__":
     for sym in required_syms:
         if sym not in provided_syms:
             missing_syms.append(sym)
-            logging.error(f"Symbol in plugin not found in api: {sym}")
+            demangled = demangle(sym)
+            if sym != demangled:
+                sym = demangled + " aka " + sym 
+            if len(missing_syms) == 1:
+                logging.error("********************")
+            logging.error(f"***** ERROR: Symbol in plugin not found in api: {sym}")
 
     if len(missing_syms) == 0:
-        logging.info(f"All symbols found!")
+        logging.info(f"All symbols found!\n------------------")
+    else:
+        logging.error("***** Some symbols are not present in the plugin code or in the SDK: this plugin will not load on the MetaModule")
+        logging.error("********************")
 
 
