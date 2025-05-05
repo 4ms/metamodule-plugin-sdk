@@ -61,11 +61,11 @@ plugins website. Order does not matter:
   as the same plugin when opening a patch file. In the example json file above,
   there are three aliases: "4ms-company", "4MS" and "4msVCV". If we open a
   patch file that asks for a module named "4msVCV:SuperVCO" then the MetaModule
-  will search this plugin for the SuperVCO module. Brand aliases that match the
-  brand slug of another plugin will be ignored. However, if two plugins happen
-  to have the same alias, then either one might get used depending on the order
-  that the user or autoloader loaded the plugins. So make sure to choose
-  aliases that will definitely be used only by you.
+  will first look for a plugin called "4msVCV", and if it doesn' find that then it
+  will scan the aliases of all plugins until it finds one that has "4msVCV" for an alias.
+  If two plugins happen to have the same alias, then either one might get used
+  depending on the order that the plugins were loaded. So make sure to choose
+  aliases that will definitely be used only by your brand.
 
 - `MetaModulePluginMaintainer`
 - `MetaModulePluginMaintainerEmail`
