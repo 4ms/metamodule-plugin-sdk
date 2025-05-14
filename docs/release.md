@@ -270,7 +270,7 @@ jobs:
           cd metamodule-plugins && for f in *.mmplugin; do mv $f ${f%.mmplugin}-${{ env.CI_REF_NAME }}.mmplugin; done;
 
       - name: Release
-        if: startsWith(github.ref, 'refs/tags/') && ${{ inputs.do_release }}
+        if: startsWith(github.ref, 'refs/tags/') && inputs.do_release
         uses: softprops/action-gh-release@v2
         with:
           name: "Release: ${{ env.CI_REF_NAME }}"
