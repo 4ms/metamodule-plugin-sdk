@@ -1,8 +1,48 @@
 # Change Log for SDK API
 
-### API v2.0 (in progress)
 
-#### v2.0-dev-12.0
+### v2.0.2
+
+- Add position labels to Knob element class, to support "snapped" knobs. Max 15 labels.
+
+- Fixed bug where Rack MIDI Message size was not always set correctly.
+
+### v2.0.1
+
+- Add CoreHelper helpers to get a parameter, input, output, light, or display ID more easily:
+   - E.g. `unsigned my_param_id = param_idx<MyParameterName>`
+
+- Make SmartCoreProcessor derive from CoreHelper, so it can use the above helpers automatically
+
+- Validate plugin-mm.json file during build
+
+
+### v2.0.0
+
+- Added lots to documentation
+- Tagged v2.0-dev-13.7 as v2.0.0
+
+### API v2.0-dev (development)
+
+#### v2.0-dev-13
+
+- Add CoreProcessor graphics drawing virtual functions
+- Fix debug_raw pins
+- Add times_r symbol
+- Add get_ticks() symbol
+- Add register_module overloads
+- Add missing symbols for CableWidgets
+- Use 16-bits for element counts: allows > 256 LEDs in a module
+- Add native alignment enums to rack::ui::Label
+
+
+#### v2.0-dev-12.2
+
+- Add AsyncThread symbols
+- Add Midi::toPrettyMultiLineString()
+- Add missing rack MIDI symbols
+
+#### v2.0-dev-12.0, 12.1
 
 - Heavily modified rack classes to match the API of Rack-SDK. While this adds
   no new features or change in functionality, it makes an API break from v2.0-dev-11
