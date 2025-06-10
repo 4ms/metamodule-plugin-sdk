@@ -1,5 +1,16 @@
 # Change Log for SDK API
 
+### v2.0.4
+
+- Change KnobSnapped::pos_name type to `const char*`
+  - This goes along with the API "unbreaking" from v2.0.3
+
+### v2.0.3
+
+- Remove position labels from Knob class, and make new class KnobSnapped
+   - This fixes the unintentional API break created in v2.0.2
+
+- Add a flag in DynamicGraphicDisplay to indicate whether the display is for the entire module or not
 
 ### v2.0.2
 
