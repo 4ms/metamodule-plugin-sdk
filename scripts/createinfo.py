@@ -104,7 +104,10 @@ def panel_to_components(tree):
         split = name.split("@")
         if len(split) == 2:
             name = split[0]
-            c['num_choices'] = int(split[1])
+            try:
+                c['num_choices'] = int(split[1])
+            except:
+                c['pos_names'] = split[1:]
         elif len(split) > 2:
             name = split[0]
             c['pos_names'] = split[1:]
@@ -275,9 +278,12 @@ def panel_to_components(tree):
         #Medium grey: AltParam
         elif color.startswith('#8080'):
             if len(c['pos_names']) > 0:
-                set_class_if_not_set(c, "AltParamChoiceLabeled")
-                c['num_choices'] = len(c['pos_names'])
-                c['default_val'] = str(max(0, min(c['num_choices'], default_val_int - 128)))
+                if c['pos_names'][0] == "action":
+                    set_class_if_not_set(c, "AltParamAction")
+                else:
+                    set_class_if_not_set(c, "AltParamChoiceLabeled")
+                    c['num_choices'] = len(c['pos_names'])
+                    c['default_val'] = str(max(0, min(c['num_choices'], default_val_int - 128)))
 
             elif c['num_choices'] > 0:
                 set_class_if_not_set(c, "AltParamChoice")
