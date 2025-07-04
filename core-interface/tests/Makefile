@@ -7,7 +7,7 @@ $(BUILDDIR):
 
 all: $(BUILDDIR)
 	@cmake --build $(BUILDDIR)
-	@$(BUILDDIR)/runtests --out=$(TMPFILE) && echo "[√] Unit tests passed: metamodule-core-interface" || cat $(TMPFILE)
+	@$(BUILDDIR)/runtests --out=$(TMPFILE) && echo "[√] Unit tests passed: metamodule core-interface" || cat $(TMPFILE)
 
 clean:
 	rm -rf $(BUILDDIR)
