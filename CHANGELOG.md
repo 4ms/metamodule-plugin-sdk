@@ -1,5 +1,12 @@
 # Change Log for SDK API
 
+### v2.1 (in progress)
+
+- Add Element type AltParamAction, which can be used by a module to perform an action when the value is changed
+
+- Replace metamodule-core-interface, metamodule-rack-interface, and metamodule-plugin-libc submodules with
+  normal files in normal directories (no submodules)
+
 ### v2.0.4
 
 - Change KnobSnapped::pos_name type to `const char*`
