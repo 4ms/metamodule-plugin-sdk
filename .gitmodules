@@ -1,6 +1,3 @@
 [submodule "cpputil"]
 	path = cpputil
 	url = https://github.com/4ms/cpputil
-[submodule "metamodule-plugin-libc"]
-	path = metamodule-plugin-libc
-	url = https://github.com/4ms/metamodule-plugin-libc.git
