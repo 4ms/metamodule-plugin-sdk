@@ -3,7 +3,7 @@
 The code directly contained in the root directory of this repository is
 copyrighted 4ms Company, 2024.
 
-Additionally, the code contained in the metamodule-core-interface directory
+Additionally, the code contained in the core-interface directory
 is copyrighted 4ms Company, 2024.
 
 All of the above mentioned code is free software and can be redistributed and/or
@@ -13,7 +13,7 @@ version. In addition, you are granted the "MetaModule Plugin License
 Exception", allowed under section 7 of GPLv3, and a commercial licensing
 option.
 
-The remaining code (cpputil, metamodule-rack-interface, metamodule-plugin-libc)
+The remaining code (cpputil, rack-interface, plugin-libc)
 is subject to copyright and licensing described in the LICENSE files within
 those directories.
 

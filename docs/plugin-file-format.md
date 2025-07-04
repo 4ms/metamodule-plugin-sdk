@@ -50,7 +50,7 @@ merged with the existing contents.
 When modules in the plugin want to access resources (such as their faceplate
 PNG files), they need to use this directory name. For VCV-ported modules,
 typically they will call `asset::plugin()` to create the path to the resource.
-The metamodule-rack-interface adaptor uses this function to create a path to the
+The rack-interface adaptor uses this function to create a path to the
 in the RAM disk that starts with the same name as the slug name. Therefore, the
 slug must match the directory name, or else VCV Rack ported plugins won't be
 able to find their resources.

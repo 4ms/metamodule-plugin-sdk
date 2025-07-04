@@ -1,4 +1,4 @@
-## metamodule-core-interface
+## MetaModule core-interface
 
 This is the interface for modules with the MetaModule core.
 

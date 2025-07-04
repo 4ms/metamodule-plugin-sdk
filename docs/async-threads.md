@@ -5,7 +5,7 @@ real-time requirements (for example, allocating memory or reading files, or
 performing complex analysis such as large FFTs) then it can be run in an
 AsyncThread.
 
-The API is defined in [`CoreModules/async_thread.hh`](https://github.com/4ms/metamodule-core-interface/blob/v2.0-dev/CoreModules/async_thread.hh)
+The API is defined in [`CoreModules/async_thread.hh`](../core-interface/CoreModules/async_thread.hh)
 
 ## Background and Best Practices
 

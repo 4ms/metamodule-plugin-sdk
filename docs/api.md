@@ -3,7 +3,7 @@
 This document provides an overview of the MetaModule plugin SDK.
 It focuses on help for creating native CoreModule plugins, also
 called "Native" plugins.
-When porting modules from VCV Rack, the metamodule-rack-interface
+When porting modules from VCV Rack, the rack-interface
 layer interfaces between the VCV Rack code and the plugin SDK's API.
 However, it still may be useful to read this to understand what's
 going on behind the scenes.
@@ -154,7 +154,7 @@ ModuleInfoBase is the base class for ModuleInfo structs which define the
 characteristics of all module elements (knobs, jacks, lights, etc) and other
 meta data. Modules should create their own ModuleInfo class that derives from
 this.
-(see [metamodule-core-interface/CoreModules/elements/element_info.hh])
+(see [core-interface/CoreModules/elements/element_info.hh])
 
 ```c++
 namespace MetaModule {
@@ -193,8 +193,8 @@ struct ModuleInfoBase {
 
 `Elements`: this is an array of elements such as jacks, knobs, etc. 
 Each entry is of the type `Element` which is a std::variant type of various base types:
-(see [metamodule-core-interface/CoreModules/elements/elements.hh] for the variant definition and 
-[metamodule-core-interface/CoreModules/elements/base_element.hh] for the element definitions).
+(see [core-interface/CoreModules/elements/elements.hh] for the variant definition and 
+[core-interface/CoreModules/elements/base_element.hh] for the element definitions).
 
 
 
@@ -327,7 +327,7 @@ Once you have a custom class that derives from `CoreProcessor`, and
 an Info class, you need to register your module using the `register_module`
 function.
 There are several overloads for `register_module` function, you can read details
-in [metamodule-core-interface/CoreModules/register_module.hh].
+in [core-interface/CoreModules/register_module.hh].
 
 We'll discuss one common and easy to use overload here:
 

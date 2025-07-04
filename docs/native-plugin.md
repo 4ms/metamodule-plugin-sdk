@@ -34,8 +34,8 @@ VCV Rack plugin, modules are registered with calls to `p->addModel(modelName)`
 in `init(rack::plugin *p)`. 
 
 With native plugins you can register modules using the function
-`register_module()`. This function is declared in `metamodule-core-interface`
-in `CoreModules/register_module.hh`:
+`register_module()`. This function is declared in
+`core-interface/CoreModules/register_module.hh`:
 
 ```c++
 
@@ -142,7 +142,7 @@ In the end, both techniques do the same two things:
 ### Technique 1: Creating ModuleInfoView via ModuleInfo class
 
 This technique is to create a class that's derived from `ModuleInfoBase`.
-You can see this base class [here](https://github.com/4ms/metamodule-core-interface/blob/main/CoreModules/elements/element_info.hh)
+You can see this base class in [element_info.hh](../core-interface/CoreModules/elements/element_info.hh)
 
 Then we pass this class to `register_module` as a template parameter.
 
@@ -168,10 +168,10 @@ void init() {
 
 
 The types in the `Elements` array such as `Knob`, `JackInput`, etc are all defined in
-[metamodule-core-interface/CoreModules/elements/base_element.hh](https://github.com/4ms/metamodule-core-interface/blob/main/CoreModules/elements/base_element.hh)
+[core-interface/CoreModules/elements/base_element.hh](../core-interface/CoreModules/elements/base_element.hh)
 Notice that the `Elements` array contains `Element` objects. The `Element` type is a `std::variant` of
 all the different types of controls, jacks, buttons, etc a module can have (`Knob`, `JackInput`, `JackOutput`, etc).
-You can see all the alternative types in `Element` [here](https://github.com/4ms/metamodule-core-interface/blob/main/CoreModules/elements/elements.hh)
+You can see all the alternative types in `Element` in [elements.hh](../core-interface/CoreModules/elements/elements.hh)
 
 //TODO: more info on Element types, making custom types.//
 
