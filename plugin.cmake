@@ -115,8 +115,8 @@ function(create_plugin)
         )
     endif()
 
-    get_target_property(LIBC_BIN_DIR plugin-libc BINARY_DIR)
-    find_library(LIBC_BIN_DIR "plugin-libc" PATHS ${LIBC_BIN_DIR} REQUIRED)
+    get_target_property(LIBC_BIN_DIR metamodule-plugin-libc BINARY_DIR)
+    find_library(LIBC_BIN_DIR "metamodule-plugin-libc" PATHS ${LIBC_BIN_DIR} REQUIRED)
 
     # Get objects of linked libraries, except those we know about
     get_target_property(DEP_LIBS ${LIB_NAME} LINK_LIBRARIES)
@@ -134,7 +134,7 @@ function(create_plugin)
                 $<TARGET_OBJECTS:${LIB_NAME}> 
                 ${TARGET_LINK_LIB_OBJS}
                 -L${LIBC_BIN_DIR} 
-                -lplugin-libc #FIXME: silently fails if this lib is not found
+                -lmetamodule-plugin-libc #FIXME: silently fails if this lib is not found
                 -lgcc
         COMMAND_EXPAND_LISTS
         VERBATIM USES_TERMINAL
