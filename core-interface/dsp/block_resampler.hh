@@ -13,7 +13,7 @@ public:
 	~BlockResampler();
 
 	size_t process(uint32_t channel_index, std::span<const float> in, std::span<float> out);
-	void set_sample_rate_in_out(uint32_t input_rate, uint32_t output_rate);
+	void set_samplerate_in_out(uint32_t input_rate, uint32_t output_rate);
 	void set_input_stride(uint32_t stride);
 	void set_output_stride(uint32_t stride);
 	float ratio(unsigned chan) const;
@@ -43,6 +43,21 @@ private:
 // ResamplingInterleavedBuffer
 //
 // Helper class for resampling interleaved buffers
+// Owns the output buffer.
+// Calling process() returns a span to the resampled data.
+//
+// Usage:
+//     std::array<float, 32> in; // interleaved LRLRLR...
+//
+//     res.set_samplerate_in_out(48000, samplerate);
+//
+//     auto out = res.process_block(2, in);
+//     for (size_t i = 0; i < out.size(); i+=2) {
+//         float left = out[i];
+//         float right = out[i+1];
+//         ...
+//     }
+//
 
 template<size_t MaxChans, size_t MaxBlockSize, size_t MaxResampleRatio>
 class ResamplingInterleavedBuffer {
@@ -64,7 +79,7 @@ public:
 	}
 
 	void set_samplerate_in_out(uint32_t input_rate, uint32_t output_rate) {
-		core.set_sample_rate_in_out(input_rate, output_rate);
+		core.set_samplerate_in_out(input_rate, output_rate);
 	}
 
 	void flush() {
