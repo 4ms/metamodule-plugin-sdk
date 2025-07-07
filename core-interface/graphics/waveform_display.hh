@@ -9,16 +9,18 @@ namespace MetaModule
 {
 
 // StreamingWaveformDisplay
+// ------------------------
 // class to display a streaming waveform, when we only know
 // the value of the waveform one sample at a time
 // (as opposed to displaying a waveform which we know all the values of)
 // The waveform is drawn with the oldest sample at the far left
-// and newer samples progressing to the right
+// and newer samples progressing to the right.
+// Memory usage is one float per pixels in the x-dimension
 //
 // Usage:
 //
 //   struct MyModule : CoreProcessor {
-//     	StreamingWaveformDisplay waveform;
+//     	StreamingWaveformDisplay waveform{100,80}; //100x80 pixel display
 //
 //     	MyModule() {
 //     		waveform.set_wave_color(0x33, 0xFF, 0xBB); //teal
