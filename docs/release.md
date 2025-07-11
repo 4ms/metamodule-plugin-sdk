@@ -75,6 +75,13 @@ The .mmplugin file name is important! It's used in three place:
 The file name must be in this format:
 
 ```
+[BrandSlug]-v[plugin-version].mmplugin
+```
+
+
+Optionally, you can include the SDK version which is only required if you're building
+for a developement (e.g. beta or pre-release) firmware.
+```
 [BrandSlug]-v[plugin-version]-[sdk-version].mmplugin
 ```
 
@@ -88,6 +95,8 @@ The file name must be in this format:
   the reserved words `-fw` or `-dev` (see next item). For legacy reasons, this
   field is technically optional but we will ask you to add it if missing.
   Notice that there is a `v` before the first number.
+  Since the official plugins website only lists the latest versions, this field 
+  is used to determine what the latest version is. We follow the SemVer 2.0 standard.
 
 - `sdk-version`. This is the SDK version used to build your plugin, which also
   tells users about the firmware version needed to load the plugin.
@@ -99,36 +108,36 @@ The file name must be in this format:
       will scan the contents to determine if it's compatible with the current
       firmware. If this field is present then it must be in the form `fw-X.Y`,
       e.g. `fw-2.0` indicates it requries firmware v2.0 or later.
-        - Note: if you omit using this field in your plugin name, then it's a good
-          idea to bump up the plugin version whenever you recompile with a new SDK.
-          This will make it clear to users which one to use. For example if you
-          originally released `Myplugin-v1.0-dev-13.mmplugin`, and then when a new
-          SDK was released you recompiled it, you should *NOT* call the new release
-          `Myplugin-v1.0.mmplugin`, since that would be unclear to users which one
-          is more recent. Instead call it `Myplugin-v1.0.1.mmplugin` (or any
-          version > 1.0) or use the -fw tag like `Myplugin-v1.0-fw-2.0.mmplugin`.
+        - Note: if you recompile using a new SDK, make sure to bump the version up.
+          Otherwise it'll be unclear to users which version is for which firmware.
 
 - optional text after the `sdk-version`, but before the `.mmplugin` is OK.
 
-Example: If it's compiled with SDK v1.6, then these are all OK:
-  - `Myplugin-v0.9.mmplugin` 
-  - `Myplugin-v0.9-fw-1.6.mmplugin` 
-  - `Myplugin-v1.2.3-fw-1.6.9.mmplugin`
-  - `Myplugin-v1.2.3-fw-1.6-hotfix.mmplugin`
-
 Example: If it's compiled with SDK v2.0, then these are all OK:
   - `Myplugin-v0.9.mmplugin` 
+  - `Myplugin-v3.1-hotfix99.mmplugin` 
   - `Myplugin-v0.9-fw-2.0.mmplugin` 
   - `Myplugin-v1.2.3-fw-2.0.1.mmplugin`
   - `Myplugin-v1.2.3-fw-2.0-test.mmplugin`
 
+Example: If it's compiled with SDK v2.1, then these are all OK:
+  - `Myplugin-v0.9.mmplugin` 
+  - `Myplugin-v1.2.3-testing.mmplugin`
+  - `Myplugin-v0.9-fw-2.1.mmplugin` 
+  - `Myplugin-v3.2.1-fw-2.1.mmplugin`
+  - `Myplugin-v1.2.3-testing.mmplugin`
+
 Example: If it's compiled with SDK v2.0-dev-13, then these are all OK:
   - `Myplugin-v0.9.mmplugin` 
+  - `Myplugin-v0.9-newideas.mmplugin` 
   - `Myplugin-v0.9-dev-13.mmplugin` 
   - `Myplugin-v14.2-dev-13.1.mmplugin`
   - `Myplugin-v1.2.3-dev-13.6.mmplugin`
 
-Notice `Myplugin-v0.9.mmplugin` could be valid for v1.6 or v2.0 firmware.
+Example: This is never OK for a release (only OK for testing locally):
+  - `Myplugin.mmplugin`
+
+Notice `Myplugin-v0.9.mmplugin` could be valid for any version firmware.
 This ambiguity will not happen in actual circumstance because when re-compiling
 with a newer SDK you should bump up the plugin version (or use the -fw-X.Y tag).
 The website and MM firmware will scan the contents of the plugin file
