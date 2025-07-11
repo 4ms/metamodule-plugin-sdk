@@ -1,9 +1,9 @@
 #include <cstdint>
 
-namespace MetaModule
+namespace MetaModule::System
 {
 
 uint32_t total_memory();
 uint32_t free_memory();
 
-} // namespace MetaModule
+} // namespace MetaModule::System

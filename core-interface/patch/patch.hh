@@ -1,6 +1,6 @@
 #pragma once
 
-namespace MetaModule
+namespace MetaModule::Patch
 {
 
 // Indicates the currently playing patch has been modified. A red
@@ -17,4 +17,4 @@ namespace MetaModule
 // as modified.
 void mark_patch_modified();
 
-} // namespace MetaModule
+} // namespace MetaModule::Patch
