@@ -1,8 +1,11 @@
 #pragma once
+#include "util/static_string.hh"
+#include <string>
 
 namespace MetaModule::Patch
 {
 
+// mark_patch_modified()
 // Indicates the currently playing patch has been modified. A red
 // dot will appear above the File icon and the user can save the patch file.
 // This is only necessary if the internal state changes in a way users would
@@ -16,5 +19,28 @@ namespace MetaModule::Patch
 // So use this only if you're sure the user will want the patch to be marked
 // as modified.
 void mark_patch_modified();
+
+// get_volume()
+// Returns the volume that the currently playing patch is on, as a null-terminated string.
+// Will be one of the following:
+//   "usb:/" == USB drive
+//   "sdc:/" == SD card
+//   "nor:/" == Internal storage
+//   "ram:/" == Patch is not saved, exists only in RAM
+// Future variations of the MetaModule might support more volumes, so keep that in mind.
+//
+// You can test the path like this:
+//    if (Patch::patch_volume().is_equal("usb:/"))
+//
+// You can use the volume to create a path:
+//    std::string tmp_path = std::string(Patch::patch_volume()) + "tmp.json";
+//
+StaticString<7> get_volume();
+
+// get_path()
+// Returns the full path to the patch file as dynamically allocated string.
+// Example: "usb:/live-set-01/random-drums.yml"
+// Do not use in audio context (since it will allocate)
+std::string get_path();
 
 } // namespace MetaModule::Patch
