@@ -1,4 +1,9 @@
 #pragma once
+#ifdef VCVRACK
+
+#include "osdialog/osdialog.h"
+
+#else
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,4 +19,6 @@ typedef enum {
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
