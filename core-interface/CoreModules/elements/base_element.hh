@@ -231,6 +231,7 @@ struct AltParamChoice : AltParamElement {
 struct AltParamAction : AltParamElement {
 	// clicking this performs an action
 	using State_t = bool;
+	std::array<std::string_view, 4> args{};
 };
 
 struct AltParamChoiceLabeled : AltParamChoice {
