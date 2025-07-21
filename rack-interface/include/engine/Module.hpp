@@ -112,19 +112,18 @@ struct Module : VCVModuleWrapper {
 								  std::string name = "",
 								  std::vector<std::string> labels = {}) {
 		TSwitchQuantity *sq = configParam<TSwitchQuantity>(paramId, minValue, maxValue, defaultValue, name);
-		sq->snapEnabled = true;
-		// TODO: does this need to be removed in MM?
-		// sq->ParamQuantity::smoothEnabled = false;
-		sq->labels = labels;
+		sq->ParamQuantity::snapEnabled = true;
+		sq->ParamQuantity::smoothEnabled = false;
+		sq->ParamQuantity::labels = labels;
 		return sq;
 	}
 
 	template<class TSwitchQuantity = SwitchQuantity>
 	TSwitchQuantity *configButton(int paramId, std::string name = "") {
 		TSwitchQuantity *sq = configParam<TSwitchQuantity>(paramId, 0.f, 1.f, 0.f, name);
-		// sq->randomizeEnabled = false;
-		// sq->ParamQuantity::smoothEnabled = false;
-		sq->snapEnabled = true;
+		sq->ParamQuantity::randomizeEnabled = false;
+		sq->ParamQuantity::smoothEnabled = false;
+		sq->ParamQuantity::snapEnabled = true;
 		return sq;
 	}
 
@@ -141,7 +140,7 @@ struct Module : VCVModuleWrapper {
 		inputInfos[portId]->PortInfo::type = Port::INPUT;
 		inputInfos[portId]->PortInfo::portId = portId;
 		inputInfos[portId]->PortInfo::name = name;
-		return inputInfos[portId];
+		return static_cast<TPortInfo *>(inputInfos[portId]);
 	}
 
 	template<class TPortInfo = PortInfo>
@@ -158,7 +157,7 @@ struct Module : VCVModuleWrapper {
 		outputInfos[portId]->PortInfo::type = Port::OUTPUT;
 		outputInfos[portId]->PortInfo::portId = portId;
 		outputInfos[portId]->PortInfo::name = name;
-		return outputInfos[portId];
+		return static_cast<TPortInfo *>(outputInfos[portId]);
 	}
 
 	template<class TLightInfo = LightInfo>
@@ -170,13 +169,10 @@ struct Module : VCVModuleWrapper {
 			delete lightInfos[lightId];
 
 		lightInfos[lightId] = new TLightInfo;
-
-		// TODO: is any of this necessary? In case a VCV module reads its own lightInfos?
 		lightInfos[lightId]->LightInfo::module = this;
 		lightInfos[lightId]->LightInfo::lightId = lightId;
 		lightInfos[lightId]->LightInfo::name = name;
-
-		return lightInfos[lightId];
+		return static_cast<TLightInfo *>(lightInfos[lightId]);
 	}
 
 	void configBypass(int inputId, int outputId) {
