@@ -1,5 +1,10 @@
 # Change Log for SDK API
 
+### v2.0.5
+
+- Fix configInput, configOutput, and configLight when custom types are used
+- Add helper scripts for converting artwork: `scripts/createinfo.py` and `scripts/vcv-artwork.py`
+
 ### v2.0.4
 
 - Change KnobSnapped::pos_name type to `const char*`
