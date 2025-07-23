@@ -235,7 +235,7 @@ struct AltParamAction : AltParamElement {
 };
 
 struct AltParamChoiceLabeled : AltParamChoice {
-	static constexpr size_t MaxChoices = 8;
+	static constexpr size_t MaxChoices = 21;
 	std::array<std::string_view, MaxChoices> pos_names{};
 };
 
