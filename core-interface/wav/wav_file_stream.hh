@@ -18,6 +18,8 @@ struct WavFileStream {
 	// (any loaded file remains loaded)
 	void resize(size_t max_samples);
 
+	size_t size() const;
+
 	////
 	/// Load/unloading wav file:
 	///
