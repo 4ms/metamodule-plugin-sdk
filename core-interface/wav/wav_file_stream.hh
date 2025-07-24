@@ -1,6 +1,7 @@
 #pragma once
 #include "dr_wav.h"
 #include "util/lockfree_fifo_spsc_dyn.hh"
+#include <array>
 #include <cstdio>
 #include <string_view>
 
@@ -14,11 +15,13 @@ struct WavFileStream {
 	// 1024*1024 is a good starting place
 	WavFileStream(size_t max_samples);
 
-	// Resizes the buffer. This resets and clears all contents.
-	// (any loaded file remains loaded)
-	void resize(size_t max_samples);
+	// Sets the maximum size of the buffer in samples.
+	// If needed, the buffer may be cleared and reset.
+	// Returns true if this happens, false if not.
+	bool resize(size_t max_samples);
 
-	size_t size() const;
+	size_t max_size() const;
+	size_t buffer_size() const;
 
 	////
 	/// Load/unloading wav file:
@@ -112,7 +115,7 @@ private:
 	void reset_prebuff();
 	uint32_t first_frame_in_buffer() const;
 
-	size_t MaxSamples;
+	size_t max_samples;
 
 	drwav wav;
 
