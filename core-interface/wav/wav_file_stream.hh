@@ -67,6 +67,8 @@ struct WavFileStream {
 	// which is just samples_available / # of channels
 	unsigned frames_available() const;
 
+	float sample_seconds() const;
+
 	// Whether or not the file has been read to the end.
 	// Useful if you want to loop, then you can seek back to the beginning
 	bool is_eof() const;
