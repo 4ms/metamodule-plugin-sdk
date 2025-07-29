@@ -73,6 +73,8 @@ struct WavFileStream {
 	// Useful if you want to loop, then you can seek back to the beginning
 	bool is_eof() const;
 
+	bool is_file_error() const;
+
 	// The index of the audio frame that will be returned in the next call to
 	// pop_sample().
 	// When this equals the total_frames(), the entire sample has been played.
@@ -122,6 +124,7 @@ private:
 	drwav wav;
 
 	bool eof = true;
+	bool file_error = false;
 	bool loaded = false;
 
 	std::atomic<uint32_t> frames_in_buffer = 0;

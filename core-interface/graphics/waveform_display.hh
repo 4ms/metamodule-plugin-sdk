@@ -69,9 +69,11 @@ public:
 
 	// Sets the color of the waveform
 	void set_wave_color(uint8_t r, uint8_t g, uint8_t b);
+	void set_wave_color(std::span<const float, 3> rgb);
 
 	// Sets the color of the bar at the bottom that the cursor travels along
 	void set_bar_color(uint8_t r, uint8_t g, uint8_t b);
+	void set_bar_color(std::span<const float, 3> rgb);
 
 	// Sets the width of the cursor in unscaled pixels
 	void set_cursor_width(unsigned width);
