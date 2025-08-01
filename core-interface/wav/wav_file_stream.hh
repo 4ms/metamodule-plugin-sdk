@@ -79,6 +79,8 @@ struct WavFileStream {
 	// pop_sample().
 	// When this equals the total_frames(), the entire sample has been played.
 	unsigned current_playback_frame() const;
+	unsigned latest_buffered_frame() const;
+	uint32_t first_frame_in_buffer() const;
 
 	////
 	/// TRANSPORT
@@ -117,7 +119,6 @@ struct WavFileStream {
 private:
 	bool is_frame_in_buffer(uint32_t frame_num) const;
 	void reset_prebuff();
-	uint32_t first_frame_in_buffer() const;
 
 	size_t max_samples;
 
