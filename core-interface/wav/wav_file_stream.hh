@@ -135,9 +135,7 @@ private:
 	LockFreeFifoSpscDyn<float> pre_buff;
 
 	// assume 4kB is an efficient size to read from an SD Card or USB Drive
-	// 4k: 1.9ms-2.8ms, avg 2.1ms = 1.90 kB/ms -- but lose a lot of time between async calls
-	//16k: 11.7-12.3ms = 1.365 kB/ms
-	static constexpr unsigned ReadBlockBytes = 16 * 1024;
+	static constexpr unsigned ReadBlockBytes = 4096;
 
 	// read_buff needs to be big enough to hold 4kB of any data converted to floats
 	// Worst case: 4kB of 8-bit mono data will convert to 4096 floats
