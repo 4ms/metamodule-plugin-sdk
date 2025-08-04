@@ -75,6 +75,10 @@ public:
 	void set_bar_color(uint8_t r, uint8_t g, uint8_t b);
 	void set_bar_color(std::span<const float, 3> rgb);
 
+	// Sets the color of the highlighed region of the bar
+	void set_highlight_color(uint8_t r, uint8_t g, uint8_t b);
+	void set_highlight_color(std::span<const float, 3> rgb);
+
 	// Sets the width of the cursor in unscaled pixels
 	void set_cursor_width(unsigned width);
 
@@ -82,6 +86,11 @@ public:
 	// 0 => At the left end
 	// 1 => At the right end
 	void set_cursor_position(float pos);
+
+	// Sets the region that's highlighted along the bar
+	// 0 => At the left end
+	// 1 => At the right end
+	void set_highlighted_begin_end(float begin, float end);
 
 	// These three fuctions should be called from the similarly named CoreProcessor::*_graphic_display
 	// functions in your module code. See example above
@@ -98,6 +107,8 @@ private:
 
 	float cursor_pos = 0;
 	float cursor_width = 1;
+	float highlight_begin = 0.5;
+	float highlight_end = 0.8;
 	float bar_height = 3;
 
 	float x_zoom = 1;
@@ -105,6 +116,7 @@ private:
 
 	uint8_t wave_r = 0, wave_g = 0xFF, wave_b = 0xFF;
 	uint8_t bar_r = 0xF0, bar_g = 0x88, bar_b = 0x00;
+	uint8_t hilite_r = 0x00, hilite_g = 0x20, hilite_b = 0xF0;
 
 	float scaling = 1;
 
