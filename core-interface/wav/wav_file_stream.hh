@@ -1,8 +1,6 @@
 #pragma once
-#include "dr_wav.h"
-#include "util/lockfree_fifo_spsc_dyn.hh"
-#include <array>
-#include <cstdio>
+#include <memory>
+#include <optional>
 #include <string_view>
 
 namespace MetaModule
@@ -14,6 +12,8 @@ struct WavFileStream {
 	// Must be a power of 2
 	// 1024*1024 is a good starting place
 	WavFileStream(size_t max_samples);
+
+	~WavFileStream();
 
 	// Sets the maximum size of the buffer in samples.
 	// If needed, the buffer may be cleared and reset.
@@ -117,29 +117,8 @@ struct WavFileStream {
 	std::optional<uint32_t> wav_sample_rate() const;
 
 private:
-	bool is_frame_in_buffer(uint32_t frame_num) const;
-	void reset_prebuff();
-
-	size_t max_samples;
-
-	drwav wav;
-
-	bool eof = true;
-	bool file_error = false;
-	bool loaded = false;
-
-	std::atomic<uint32_t> frames_in_buffer = 0;
-	std::atomic<uint32_t> next_frame_to_write = 0;
-	std::atomic<uint32_t> next_sample_to_read = 0;
-
-	LockFreeFifoSpscDyn<float> pre_buff;
-
-	// assume 4kB is an efficient size to read from an SD Card or USB Drive
-	static constexpr unsigned ReadBlockBytes = 4096;
-
-	// read_buff needs to be big enough to hold 4kB of any data converted to floats
-	// Worst case: 4kB of 8-bit mono data will convert to 4096 floats
-	std::array<float, ReadBlockBytes> read_buff;
+	struct Internal;
+	std::unique_ptr<Internal> internal;
 };
 
 } // namespace MetaModule
