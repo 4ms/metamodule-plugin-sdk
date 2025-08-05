@@ -1,7 +1,7 @@
 #pragma once
 #ifdef VCVRACK
 
-#include "osdialog/osdialog.h"
+#include "osdialog.h"
 
 #else
 
