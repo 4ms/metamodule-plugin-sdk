@@ -9,8 +9,6 @@ namespace MetaModule
 struct WavFileStream {
 
 	// Construct WavFileStream with the size of the pre-buffer
-	// Must be a power of 2
-	// 1024*1024 is a good starting place
 	WavFileStream(size_t max_samples);
 
 	~WavFileStream();
