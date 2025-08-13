@@ -37,95 +37,7 @@ With native plugins you can register modules using the function
 `register_module()`. This function is declared in
 `core-interface/CoreModules/register_module.hh`:
 
-```c++
-
-template <typename ModuleT, ModuleInfoT>
-bool register_module(std::string_view brand_name, 
-                     std::string_view module_slug,
-                     std::string_view faceplate_filename)  { /*...*/ }
-```
-
-Here is an outline of typical usage:
-```c++
-
-class MyModuleClass : CoreProcessor {
-    //... 
-};
-
-struct MyModuleInfo : ModuleInfoBase {
-    //...
-};
-
-void init() {
-    register_module<MyModuleClass, MyModuleInfo>("MyBrand", "MyModule", "MyBrand/faceplates/module1.png");
-}
-
-```
-
-The `MyModuleClass` template parameter is your module class, which must be derived
-from `CoreProcessor`. See CoreProcessor section below.
-
-`MyModuleInfo` template parameter defines your module's elements (knobs, jacks,
-etc). See ModuleInfo section below.
-
-The `brand_name` and `module_slug` parameters are the plugin name and the module name. These 
-must match what's present in VCV Rack if you want your users to be able to create
-patches in VCV Rack using your modules.
-
-`faceplate_filename` is the full path to the faceplate PNG file.
-
-The `register_module` function returns a bool to indicate if the module was
-registered ok. You normally don't need to check the return value.
-
-## CoreProcessor
-
-The `CoreProcessor` class is a virtual base class which is the base of all
-MetaModule modules:
-
-```c++
-class CoreProcessor {
-public:
-	virtual void update() = 0;
-	virtual void set_samplerate(float sr) = 0;
-	virtual void set_param(int param_id, float val) = 0;
-	virtual void set_input(int input_id, float val) = 0;
-	virtual float get_output(int output_id) const = 0;
-	virtual float get_led_brightness(int led_id) { return 0; }
-	virtual size_t get_display_text(int display_id, std::span<char> text) { return 0; }
-	virtual void mark_all_inputs_unpatched() {}
-	virtual void mark_input_unpatched(int input_id) {}
-	virtual void mark_input_patched(int input_id) {}
-	virtual void mark_all_outputs_unpatched() {}
-	virtual void mark_output_unpatched(int output_id) {}
-	virtual void mark_output_patched(int output_id) {}
-	virtual void load_state(std::string_view state_data) {}
-	virtual std::string save_state() { return ""; }
-};
-```
-
-Your module class must derive from this, and should implement as many of the
-virtual functions as it needs to. At minimum, it has to implement update(),
-set_samplerate(), set_param(), set_input(), and get_output().
-
-TODO: discussion on what each function does.
-
-### Customizing the module's factory function
-
-When registering the module, you can use the `register_module()` function
-template discussed above. But if you need more control over how the module
-object is created, you can pass a function that returns a std::unique_ptr to
-your module class like this: 
-
-```c++
-// Say, for instance we need to pass `someParameter` to all instances of our
-// module's constructor. We could do it like this:
-register_module(
-    "MyBrand", "MyModule", 
-    [&]() { return std::make_unqiue<MyModuleClass>(someParameter); }, 
-    info, faceplate);
-
-// Note that you need to also define `info`, see next section:
-```
+See [docs/module-registry.md] for an example.
 
 
 ## ModuleInfo
@@ -173,7 +85,7 @@ Notice that the `Elements` array contains `Element` objects. The `Element` type 
 all the different types of controls, jacks, buttons, etc a module can have (`Knob`, `JackInput`, `JackOutput`, etc).
 You can see all the alternative types in `Element` in [elements.hh](../core-interface/CoreModules/elements/elements.hh)
 
-//TODO: more info on Element types, making custom types.//
+See [docs on elements](docs/elements.hh) for more information.
 
 4ms modules use this technique, by defining custom types derived from the Element types.
 This reduces all the braces needed and also repeating things like the image name.

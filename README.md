@@ -21,9 +21,13 @@ For example projects using this SDK, see [metamodule-plugin-examples](https://gi
  - [Licensing and Permissions](docs/licensing_permissions.md)
  - [Releasing a plugin](docs/release.md)
  - [Plugin file format](docs/plugin-file-format.md)
- - [Async Thread API](docs/async-threads.md)
- - [API reference](docs/api.md)
  - [Tips](docs/tips.md)
+
+ API Reference:
+ - [CoreProcessor class](docs/coreprocessor.md)
+ - [Elements](docs/elements.md)
+ - [Registering a module](docs/module-registry.md)
+ - [Async Thread API](docs/async-threads.md)
 
 ## Basic Example for Converting a Rack Plugin
 

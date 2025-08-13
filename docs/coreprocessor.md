@@ -1,40 +1,54 @@
-# MetaModule SDK overview
+# CoreProcessor
 
-This document provides an overview of the MetaModule plugin SDK.
-It focuses on help for creating native CoreModule plugins, also
+This document provides an overview of the CoreProcessor class.
+It focuses on help for creating native plugins, also
 called "Native" plugins.
 When porting modules from VCV Rack, the rack-interface
 layer interfaces between the VCV Rack code and the plugin SDK's API.
 However, it still may be useful to read this to understand what's
 going on behind the scenes.
 
-## CoreProcessor
 
 All modules must derive from this class.
 
 ```c++
 class CoreProcessor {
 public:
+    // These functions are required for you to implement:
     virtual void update() = 0;
     virtual void set_samplerate(float sr) = 0;
     virtual void set_param(int param_id, float val) = 0;
     virtual float get_param(int param_id) const = 0;
     virtual void set_input(int input_id, float val) = 0;
     virtual float get_output(int output_id) const = 0;
+
+    // All functions below here are not required to implement if you aren't using them
+
+    // For using LEDs and text displays:
     virtual float get_led_brightness(int led_id) { return 0; }
     virtual size_t get_display_text(int display_id, std::span<char> text) { return 0; }
+
+    // Responding to jacks being plugged/unplugged
     virtual void mark_all_inputs_unpatched() {}
     virtual void mark_input_unpatched(int input_id) {}
     virtual void mark_input_patched(int input_id) {}
     virtual void mark_all_outputs_unpatched() {}
     virtual void mark_output_unpatched(int output_id) {}
     virtual void mark_output_patched(int output_id) {}
+
+    // For loading/saving the module state in patch files:
     virtual void load_state(std::string_view state_data) {}
     virtual std::string save_state() { return ""; }
+
+    // For graphic displays:
+	virtual void show_graphic_display(int display_id, std::span<uint32_t> pix_buffer, unsigned width, lv_obj_t *lvgl_canvas) {}
+	virtual bool draw_graphic_display(int display_id) { return false; }
+	virtual void hide_graphic_display(int display_id) {}
 };
 ```
 
-### Real-time functions (called by the audio engine):
+
+## Real-time functions (called by the audio engine):
 
 The following functions are called by the audio engine and thus have hard
 real-time requirements. These must not allocate memory (no malloc,
@@ -141,232 +155,39 @@ not have real-time requirements:
   user saves a patch, then the engine will call this to get a string that
   represents the state of the module.
 
+- `show_graphic_display()`, `draw_graphic_display()`, `hide_graphic_display()`:
+  The GUI engine calls these if you registered one or more
+  DynamicGraphicDisplay elements. For each of these functions, the display_id
+  is passed in so you can handle multiple displays on a single module.
+    - `show_graphic_display` will be called when the display is first shown on
+      screen, and this is where you should perform any initialization or memory
+      allocation. The pixel buffer that you should draw into is also provided,
+      along with the width (so you can calculate height by
+      `pix_buffer.size()/width`). You must keep a pointer to this pixel buffer because
+      you need to draw into it when `draw_graphic_display` is called. Note that
+      the pixel buffer passed to you is a `std::span`, meaning it's a pointer and a size. 
+      So copying the `std::span` is an easy and light-weight way to store this for later use.
+      The last parameter is the LVGL canvas object
+      associated with the pixel buffer. If you are using LVGL widgets in your
+      graphic display then they should use this as their parent. Otherwise in
+      most cases you should ignore this parameter.
+    - `draw_graphic_display` is called each time the display needs to be redrawn.
+      The user can control the maximum frame rate, and the number of displays to 
+      draw plus other things will determine the actual frequency that this is called.
+      Note that you do not need to redraw everything each time this is called. 
+      If only one pixel changes, then just change that one value in the pixel buffer.
+      If no pixels changed, reutrn `false` and the GUI will not update the screen.
+      OTherwise, return `true` and the GUI will use the pixel buffer to update the screen.
+    - `hide_graphic_display`: this is called when the display is no longer
+      being drawn and should be de-allocated. Once this is called, the
+      `draw_graphic_display` function will not be called unless another call to
+      `show_graphic_display` is made first.
+      
+
 - Constructor and destructor: The audio thread will be paused (not playing)
   when these are called, so it's safe to perform memory allocations, make
   filesystem calls, or do expensive calculations. In many situations, the
   constructor is the ideal time to populate or reserve space for `std::vector`
   or other dynamic containers.
 
-
-## ModuleInfoBase
-
-ModuleInfoBase is the base class for ModuleInfo structs which define the 
-characteristics of all module elements (knobs, jacks, lights, etc) and other
-meta data. Modules should create their own ModuleInfo class that derives from
-this.
-(see [core-interface/CoreModules/elements/element_info.hh])
-
-```c++
-namespace MetaModule {
-
-struct ModuleInfoBase {
-    static constexpr std::string_view slug{""};
-    static constexpr std::string_view description{""};
-    static constexpr uint32_t width_hp = 0;
-    static constexpr std::array<Element, 0> Elements{};
-    static constexpr std::string_view svg_filename{""};
-    static constexpr std::string_view png_filename{""};
-
-    struct BypassRoute {
-        uint16_t input;
-        uint16_t output;
-    };
-    static constexpr std::array<BypassRoute, 0> bypass_routes{};
-};
-
-
-}
-```
-
-
-`slug`: this is the exact name used to identify the module. If porting from VCV Rack, it must match the VCV module slug.
-
-`description`: currently not used.
-
-`width_hp`: currently not used, but must not be 0.
-
-`svg_filename`: used only by 4ms modules for the 4ms VCV plugin.
-
-`png_filename`: the path to the PNG file used for the faceplate. Must start with the brand slug, e.g. `4ms/faceplates/module.png`
-
-`bypass_routes`: Optional. Specify an array of input->output paths, providing the element ID for each.
-
-`Elements`: this is an array of elements such as jacks, knobs, etc. 
-Each entry is of the type `Element` which is a std::variant type of various base types:
-(see [core-interface/CoreModules/elements/elements.hh] for the variant definition and 
-[core-interface/CoreModules/elements/base_element.hh] for the element definitions).
-
-
-
-```c++
-using Element = std::variant<NullElement,
-                             ImageElement,
-                             ParamElement,
-
-                             Knob,
-                             Slider,
-                             SliderLight,
-
-                             FlipSwitch,
-                             SlideSwitch,
-
-                             MomentaryButton,
-                             MomentaryButtonLight,
-                             MomentaryButtonRGB,
-
-                             LatchingButton,
-
-                             Encoder,
-                             EncoderRGB,
-
-                             JackInput,
-                             JackOutput,
-
-                             MonoLight,
-                             DualLight,
-                             RgbLight,
-
-                             TextDisplay,
-                             DynamicTextDisplay,
-
-                             AltParamContinuous,
-                             AltParamChoice,
-                             AltParamChoiceLabeled>;
-```
-
-You may use these types (Knob, Slider, RgbLight, etc) or create your own types
-that derive from one of these. Each type has different fields which describe
-it. For example, `Knob` has fields for the angles that it should be drawn as
-the user turns the knob:
-
-```c++
-struct Knob : Pot {
-    // How much to rotate the image when param val == 0
-    // 0 is noon, negative is CCW, positive is CW
-    float min_angle = -135.f;
-    // How much to rotate the image when param val == 1
-    float max_angle = 135.f;
-};
-```
-
-`Knob` inherits from `Pot`, which has more fields:
-
-```c++
-struct Pot : ParamElement {
-    State_t default_value = 0.5f;
-    State_t min_value = 0.f;
-    State_t max_value = 1.f;
-    float display_base = 0.f;
-    float display_mult = 1.f;
-    float display_offset = 0.f;
-    std::string_view units = "";
-    bool integral = false;
-    uint8_t display_precision = 0;
-};
-
-```
-
-`Pot` inherits from `ParamElement` which in turn inherits from `ImageElement`:
-
-```c++
-struct ImageElement : BaseElement {
-    std::string_view image = "";
-};
-```
-
-`image`: This is where the path to the PNG image for the knob is specified.
-
-Finally, we see that ImageElement inherits from the top base class `BaseElement`:
-
-```c++
-struct BaseElement {
-    float x_mm = 0;
-    float y_mm = 0;
-    Coords coords = Coords::Center;
-
-    std::string_view short_name;
-    std::string_view long_name;
-
-    float width_mm = 0;
-    float height_mm = 0;
-};
-```
-
-`x_mm`, `y_mm`: This specifies the x,y position of where to draw the element.
-
-
-`coords` This can be Coords::Center to indicate x,y is the center of the
-element; or it can be Coords::TopLeft to indicate x,y is the top-left of the
-element.
-
-`short_name`: The display name of the element.
-
-`long_name`: not used.
-
-`width_mm`, `height_mm`: Not always used since the image itself determines the
-dimensions, but in case the image file cannot be found then these are used.
-Also used for DynamicTextDisplay and DynamicGraphicDisplay to know what size
-pixel buffer to allocate.
-
-Please take a look at `CoreModules/elements/base_element.hh` for the complete list of types and their fields.
-
-
-### Elements array
-
-The order of the elements in the Elements array determines the ID of each param, jack, and light.
-The first param has ID 0, the second param has ID 1, etc...
-
-To make this easy, the ElementCount namespace provides several ways to get the index of an entry in the Elements array.
-
-TODO: Finish this
-
-
-## Registering a Module:
-
-Once you have a custom class that derives from `CoreProcessor`, and
-an Info class, you need to register your module using the `register_module`
-function.
-There are several overloads for `register_module` function, you can read details
-in [core-interface/CoreModules/register_module.hh].
-
-We'll discuss one common and easy to use overload here:
-
-```c++
-
-namespace MetaModule {
-
-template <typename ModuleT, ModuleInfoT>
-bool register_module(std::string_view brand_name); 
-
-```
-
-Typically you will call this from your init() function. 
-Simply fill in your module and brand info like this:
-
-```c++
-void init() {
-    using namespace MetaModule;
-
-    register_module<MyModule, MyModuleInfo>("MyBrand");
-    register_module<MyModule2, MyModule2Info>("MyBrand");
-    //...
-}
-```
-
-However, you also can call it during static global initialization, 
-say for instance in the module class itself:
-
-```c++
-struct MyModule {
-
-    static inline bool mymodule_ok = register_module<MyModule, MyModuleInfo>("MyBrand");
-```
-
-Make sure that your class `MyModuleInfo` has a member variable for the slug and png_filename like this:
-
-```c++
-struct MyModuleInfo : ModuleInfoBase {
-    static constexpr std::string_view slug{"MyModule"};
-    static constexpr std::string_view png_filename{"MyBrand/faceplates/my-module-light.png"};
-```
 

@@ -5,7 +5,18 @@ real-time requirements (for example, allocating memory or reading files, or
 performing complex analysis such as large FFTs) then it can be run in an
 AsyncThread.
 
-The API is defined in [`CoreModules/async_thread.hh`](../core-interface/CoreModules/async_thread.hh)
+The API is defined in [`threads/async_thread.hh`](../core-interface/threads/async_thread.hh)
+
+Each AsyncThread is called periodically (about every 0.5ms) and will be run from start to
+finish. The only thing that can interrupt an AsyncThread is the audio thread
+itself.
+
+You should design your AsyncThreads to be run repeatedly. Typically they will check 
+for some flag or state, perform an action if needed, or immediately exit if no action is needed.
+
+If you have a one-off action that 
+needs to be performed, you can use an AsyncThread to do this, but it might be more simple
+to perform that action in the constructor or destructor of your module.
 
 ## Background and Best Practices
 
@@ -20,8 +31,18 @@ with the GUI thread). The goal of Async Threads is not to be able to allow the u
 to use the GUI while the thread is running, but rather the goal is to allow the audio
 to play without interruption or overload.
 
+If your AsyncThread takes too long to execute, the GUI thread might stall until it completes.
+So try to break up your tasks into shorter sub-tasks, and perform the sub-tasks in order
+each time the AsyncThread is run.
 
-### Usage
+The thread runners start when a patch is loaded. The runners are stopped when the
+audio is paused (muted) or the patch is unloaded. They are resumed again when
+the patch is un-muted. Whenever a thread runner is paused, the currently
+executing task will always run to completion. Then, no more threads will be run
+until the thread runner is un-paused.
+
+
+### Basic Usage
 
 Create an `AsyncThread` object in your module class. Provide `this` (which is the pointer
 to your module) and a callable object (e.g. a lambda) in the constructor. When
@@ -29,8 +50,7 @@ you want the thread to start running call `start()`.
 
 ```c++
 
-    AsyncThread async{this, []() {
-        // do something in the background
+    AsyncThread async{this, [this]() {
         do_something();
     }};
 
@@ -38,32 +58,89 @@ you want the thread to start running call `start()`.
         async.start();
     }
 
+    void do_something() {
+        // something happens in the background here..
+    }
+
 ```
 
 Alternatively, you can provide the lambda in `start()` (you still have to pass
 `this` to the constructor to AsyncThread)
 
-The thread will be called at irregular intervals (depending on audio load) and
-run until completion. If you want it to run at a slow, but more-or-less steady
+If you want it to stop running, call `stop()`. This will not halt current
+execution of the thread (if any), it merely prevents it from starting again.
+
+## More realistic usage
+
+The above example is not very useful because `do_something()` will be called every time the thread is run,
+and the audio thread and AsyncThreads do not share any information.
+A more useful AsyncThread will communicate with the module to know when (and what) to do.
+
+Use `std::atomic` to communicate between threads, i.e. to pass control of data
+structures and to signal changes in state.
+
+For example: 
+
+```c++
+    std::atomic<bool> need_more_data{false};
+    std::atomic<bool> data_ready{false};
+
+    AsyncThread async{this, [this]() {
+        if (need_more_data) {
+            need_more_data = false;
+            read_file(buffer); // slow operation
+            data_ready = true;
+        }
+    }};
+
+    void process() {
+        //...
+        if (buffer.empty()) {
+            need_more_data = true;
+        }
+
+        if (data_ready) {
+            data_ready = false;
+            output_data(buffer);
+        }
+        //...
+    }
+
+    MyModule() {
+        async.start();
+    }
+
+```
+
+To be more robust in the above example, you should use the proper concurrency memory model when setting data_ready:
+```c++
+data_ready.store(true, std::memory_order_release)
+```
+
+Doing this prevents the compiler from setting `data_ready` to true before `read_file()` completes
+
+## Timed execution
+
+If you want it to run at a slow, but more-or-less steady
 period, do something like this:
 
 ```c++
 
     long long last_tm = 0;
 
-    AsyncThread async{[this]() {
+    AsyncThread async{this, [this]() {
         auto now_ms = std::chrono::steady_clock::now().time_since_epoch().count() / 1'000'000LL;
 
         if (now_ms - last_tm > 1000) {
             last_tm = now_ms;
-            printf("Out 1 is at %f\n", output1);
+            printf("Output 1 reads %f\n", output1);
         }
     }};
 
 ```
 
-If you want it to stop running, call `stop()`. This will not halt current
-execution of the thread (if any), it merely prevents it from starting again.
+
+## One-shot
 
 You can also run a thread once by calling `run_once()` instead of `start()`:
 
@@ -86,10 +163,6 @@ You can also run a thread once by calling `run_once()` instead of `start()`:
 
 ```
 
-Threads are stopped when the audio is paused (muted), and resumed when the
-patch is played. Like calling `stop()`, they will not have their execution
-halted, instead they simply will not get run again until unpaused.
-
 
 ### Concurrency
 
@@ -102,34 +175,12 @@ At most two AsyncThreads may be running at once (one on each core). If multiple
 copies of a module are present in a patch, then multiple copies of an
 AsyncThread might be running at the same time, on different cores.
 
-Using `std::atomic` is recommended to pass control of data structures between threads.
+AsyncThreads running on Core 0 tend to have less time to run because more
+audio-related tasks are run on that core. These AsyncThreads will not slow
+down the GUI when run. On the other hand, AsyncThreads running on Core 1 tend
+to have more execution time, but they will stall the GUI thread whenever
+running. Since you cannot control which core your AsyncThreads are running on,
+always design your system such that each time the AsyncThread is called, it
+does the minimum amount of work necessary and then returns. This will help keep
+the GUI responsive, and share time with other modules' AsyncThreads.
 
-For example: 
-
-```c++
-    std::atomic<bool> need_more_data{false};
-    std::atomic<bool> data_ready{false};
-
-    AsyncThread async{[this]() {
-        if (need_more_data) {
-            need_more_data = false;
-            read_file(buffer); // slow operation
-            data_ready = true;
-        }
-    }};
-
-    void process() {
-        //...
-        if (buffer.empty()) {
-            need_more_data = true;
-        }
-
-        if (data_ready) {
-            data_ready = false;
-            output_data(buffer);
-        }
-        //...
-    }
-
-
-```
