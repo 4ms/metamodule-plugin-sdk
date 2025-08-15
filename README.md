@@ -17,6 +17,7 @@ For example projects using this SDK, see [metamodule-plugin-examples](https://gi
 ## API Reference:
  - [CoreProcessor class](docs/coreprocessor.md)
  - [Elements](docs/elements.md)
+ - VCV Rack adaptor
  - [Registering a module](docs/module-registry.md)
  - [Text Screens/Displays](docs/text-displays.md)
  - [Graphical Screens/Displays](docs/graphic-displays.md)

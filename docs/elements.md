@@ -1,18 +1,21 @@
 # MetaModule Elements
 
-Elements are the parts of a module that connect it to the outside world. These include jacks,
-knobs, buttons, lights, etc.
+Elements are the parts of a module that connect it to the outside world. These
+include jacks, knobs, buttons, lights, etc.
 
-All modules have an array of elements that's passed to the module registry when the module is registered.
-Elements can be constructed during runtime but once they are registered they are not allowed to change.
+All modules have an array of elements that's passed to the module registry when
+the module is registered. Elements can be constructed during runtime but once
+they are registered they are not allowed to change.
 
-Different elements have different fields that govern their behavior. For instance a knob has a field for
-min and max angle, and a three-position switch has a field for the graphic files to be used for each position.
+Different elements have different fields that govern their behavior. For
+instance a knob has a field for min and max angle, and a three-position switch
+has a field for the graphic files to be used for each position.
 
 
 ## BaseElement
 
-All elements derive from BaseElement, which contains basic information such as position, size, and name.
+All elements derive from BaseElement, which contains basic information such as
+position, size, and name.
 
 ```c++
 struct BaseElement {
@@ -37,7 +40,7 @@ struct BaseElement {
 - `width_mm`, `height_mm`: Not always used since the image itself determines
   the dimensions, but in case the image file cannot be found then these are
   used. Also used for DynamicTextDisplay and DynamicGraphicDisplay to know what
-  size pixel buffer to allocate.
+  size buffer to allocate.
 
 ## Other element types
 
