@@ -175,3 +175,72 @@ void async_osdialog_file(osdialog_file_action action,
 ```
 
 
+This is meant to easily replace the function used in VCV Rack. The function parameters are the same, see the 
+docs for `osdialog.h` in the Rack SDK for more information. This function will open a Open File Browser, 
+Open Directory Browser, or Save File Browser, depending on the parameters.
+
+Example Usage:
+
+Typically you would be porting a VCV Rack module that has some code like this:
+```c++
+    char* path = osdialog_file(OSDIALOG_OPEN, wavetableDir.empty() ? NULL : wavetableDir.c_str(), NULL, filters);
+    if (path) {
+        load_file(path);
+        free(path);
+    }
+```
+
+To make this work on the MetaModule, you need to change the function call to `async_osdialog_file` and also
+change the block of code below to be a lambda.
+
+Like this:
+
+
+```c++
+async_osdialog_file(OSDIALOG_OPEN, wavetableDir.empty() ? NULL : wavetableDir.c_str(), NULL, filters, [this](char *path) {
+    if (path) {
+        load_file(path);
+        free(path);
+    }
+});
+
+```
+
+The conditional `if (path)` is not necessary on the MetaModule since it will never call your callback with nullptr for path.
+But it does no harm if it's present, and leaving it there means less things to change when porting a module.
+
+Often, if you want the code to work on MetaModule and in VCV Rack, you can use an `#ifdef`:
+
+
+```c++
+```c++
+#if defined(METAMODULE)
+    async_osdialog_file(OSDIALOG_OPEN, wavetableDir.empty() ? NULL : wavetableDir.c_str(), NULL, filters, [this](char *path) {
+#else
+    char* path = osdialog_file(OSDIALOG_OPEN, wavetableDir.empty() ? NULL : wavetableDir.c_str(), NULL, filters);
+#endif
+    if (path) {
+        load_file(path);
+        free(path);
+    }
+#if defined(METAMODULE)
+    });
+#endif
+```
+
+
+### Cardinal API
+
+
+```c++
+void async_dialog_filebrowser(const bool saving,
+							  const char *const nameOrExtensions,
+							  const char *const startDir,
+							  const char *const title,
+							  const std::function<void(char *path)> action_function);
+```
+
+Example Usage:
+This API is not well tested and should be considered experimental. In theory, this should work as-is without modifications.
+Please report any issues you find.
+

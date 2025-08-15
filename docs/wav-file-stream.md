@@ -1,0 +1,1 @@
+# Wave File Stream class
