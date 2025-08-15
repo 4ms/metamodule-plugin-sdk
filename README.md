@@ -14,20 +14,32 @@ For example projects using this SDK, see [metamodule-plugin-examples](https://gi
   - python 3.6 or later
   - Optional (recommended): jq (for validating plugin-mm.json file)
 
-## SDK Topics:
+## API Reference:
+ - [CoreProcessor class](docs/coreprocessor.md)
+ - [Elements](docs/elements.md)
+ - [Registering a module](docs/module-registry.md)
  - [Text Screens/Displays](docs/text-displays.md)
  - [Graphical Screens/Displays](docs/graphic-displays.md)
- - [Native Plugins](docs/native-plugin.md)
+ - [System API](docs/system-api.md)
+     - Audio Settings
+     - File browser
+     - Filesystem calls
+     - Notifications
+     - Patch files
+     - Memory
+     - Random
+     - Time
+ - [Async Thread API](docs/async-threads.md)
+ - [DSP helper classes](docs/dsp.md)
+ - [Graphics helper classes](docs/graphics-helpers.md)
+ - [Wav File Streaming class](docs/wav-file-stream.md)
+
+ ## General topics:
+ - [How Plugins Work](docs/how-plugins-work.md)
  - [Licensing and Permissions](docs/licensing_permissions.md)
  - [Releasing a plugin](docs/release.md)
  - [Plugin file format](docs/plugin-file-format.md)
  - [Tips](docs/tips.md)
-
- API Reference:
- - [CoreProcessor class](docs/coreprocessor.md)
- - [Elements](docs/elements.md)
- - [Registering a module](docs/module-registry.md)
- - [Async Thread API](docs/async-threads.md)
 
 ## Basic Example for Converting a Rack Plugin
 
