@@ -16,23 +16,23 @@ public:
 	void set_samplerate_in_out(uint32_t input_rate, uint32_t output_rate);
 	void set_input_stride(uint32_t stride);
 	void set_output_stride(uint32_t stride);
-	float ratio(unsigned chan) const;
+	float ratio() const;
 	void flush();
 
 private:
 	struct Channel {
-		float ratio = 1;
-		bool flush{true};
-
 		float frac_pos{};
 		float xm1{};
 		float x0{};
 		float x1{};
 		float x2{};
+
+		bool flush{true};
 	};
 
 	static constexpr size_t MAX_RESAMPLER_CHANNELS = 16;
 	FixedVector<Channel, MAX_RESAMPLER_CHANNELS> chans;
+	float _ratio = 1;
 
 	unsigned input_stride = 1;
 	unsigned output_stride = 1;
@@ -62,16 +62,17 @@ private:
 template<size_t MaxChans, size_t MaxBlockSize, size_t MaxResampleRatio>
 class ResamplingInterleavedBuffer {
 public:
-	ResamplingInterleavedBuffer() = default;
+	ResamplingInterleavedBuffer() {
+		core.set_input_stride(MaxChans);
+		core.set_output_stride(MaxChans);
+	}
 
-	std::span<float> process_block(unsigned num_chans, std::span<const float> input) {
-		core.set_input_stride(num_chans);
-		core.set_output_stride(num_chans);
+	std::span<float> process_block(std::span<const float> input) {
 
 		auto output = std::span<float>{out_buff};
 		auto output_size = 0u;
 
-		for (auto chan = 0u; chan < num_chans; chan++) {
+		for (auto chan = 0u; chan < MaxChans; chan++) {
 			output_size = core.process(chan, input, output);
 		}
 
