@@ -17,7 +17,7 @@ For example projects using this SDK, see [metamodule-plugin-examples](https://gi
 ## API Reference:
  - [CoreProcessor class](docs/coreprocessor.md)
  - [Elements](docs/elements.md)
- - VCV Rack adaptor
+ - VCV Rack adaptor (TODO)
  - [Registering a module](docs/module-registry.md)
  - [Text Screens/Displays](docs/text-displays.md)
  - [Graphical Screens/Displays](docs/graphic-displays.md)
@@ -32,7 +32,7 @@ For example projects using this SDK, see [metamodule-plugin-examples](https://gi
  - [File browser](docs/file-browser.md)
  - [Async Thread API](docs/async-threads.md)
  - [DSP helper classes](docs/dsp.md)
- - [Graphics helper classes](docs/graphics-helpers.md)
+ - [Graphics helper classes](docs/graphics-helpers.md) (TODO)
  - [Wav File Streaming class](docs/wav-file-stream.md)
 
  ## General topics:

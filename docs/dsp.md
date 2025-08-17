@@ -39,6 +39,43 @@ public:
 	void flush();
 ```
 
+#### Example Usage: simple .wav file player
+
+For this example we load a .wav file from disk when the module is first loaded,
+and store the audio data into a buffer.
+Then we resample that audio sample-by-sample and send it to the output jacks.
+
+For a streaming approach suitable for large files, see [WavFileStream](wav-file-stream.md)
+
+```c++
+
+class WavPlayer : CoreProcessor {
+    StreamResampler resampler;
+    CircularBuffer<float, SIZE_OF_WAV_FILE> wav_buff;
+
+public:
+    // Constructor initializes the resampler settings and
+    // fills the buffer with the sample data
+    WavPlayer() {
+        read_file_and_fill_buffer("sample.wav", &wav_buff);
+        resampler.set_sample_rate_in_out(44100, 48000); // resample 44.1kHz data to 48kHz
+        resampler.set_num_channels(2); // stereo
+    }
+
+    void update() override {
+        if (!wav_buff.empty()) {
+            // Pop the buffer as needed to output one resampled LR pair.
+            auto [left, right] = resampler.process_stereo([this] { return in_buff.get(); });
+
+            // Set the output jacks
+            setOutput<LEFT_OUT>(left);
+            setOutput<RIGHT_OUT>(right);
+        }
+    }
+
+    //...
+```
+
 
 #### Constructor
 ```c++
@@ -82,6 +119,17 @@ float resample_ratio(unsigned chan) const;
 
 Returns the current resampling ratio.
 
+#### flush()
+
+```c++
+void flush();
+```
+
+Call this to force the internal buffers to be cleared. This will most likely
+result in a click or audio glitch unless all recent samples have all been 0.
+This is automatically called when the sample rate changes, but not when the 
+number of channels changes.
+
 
 #### process_stereo()
 ```c++
@@ -97,18 +145,6 @@ If the stream is stereo, then the returned pair will be left, right
 If the stream is mono, then the returned pair will be mono, mono
 If the stream has > 2 channels, then the output will be garbage.
 
-Example usage:
-
-```c++
-float pop_sample() {
-    //... return the next input sample (left, right, left, right, etc)
-}
-
-auto [left, right] = resampler.process_stereo([this] { return pop_sample(); });
-```
-
-In the above example, if the number of channels was 1, then `left` would
-equal `right`.
 
 #### process_mono()
 
@@ -156,16 +192,6 @@ Usage:
 
 ...where `stream.pop_sample()` returns the next interleaved input sample
 
-#### flush()
-
-```c++
-void flush();
-```
-
-Call this to force the internal buffers to be cleared. This will most likely
-result in a click or audio glitch unless all recent samples have all been 0.
-This is automatically called when the sample rate changes, but not when the 
-number of channels changes.
 
 ## Block Resampler
 
@@ -190,8 +216,7 @@ public:
 ```
 
 The BlockResampler resamples a block of samples to another sample rate. It uses
-a lightweight hermetian algorithm, which performs efficiently on the MetaModule
-hardware.
+a hermetian algorithm which performs efficiently on the MetaModule hardware.
 
 ```c++
 BlockResampler(uint32_t num_channels = 2);
@@ -255,11 +280,6 @@ The strides will automatically be set to the number of channel when you
 construct the BlockResampler.
 
 
-
-Example usage:
-
-We recommend using the helper class `ResamplingInterleavedBuffer`.
-
 ## ResamplingInterleavedBuffer
 
 This is a wrapper helper class for BlockResampler. It contains
@@ -281,8 +301,9 @@ public:
 ```
 
 
+#### Constructor
+
 ```c++
-// Constructor:
 ResamplingInterleavedBuffer<MaxChans, MaxBlockSize, MaxResampleRatio>();
 ```
 
@@ -295,6 +316,8 @@ see efficiency improvements if this is a power of 2 (or at least a multiple of 4
 make sure this is a little more than you actually require.
 
 
+#### process_block()
+
 ```c++
 std::span<float> process_block(std::span<const float> input) { ... }
 ```
@@ -304,37 +327,11 @@ The span is points to data that is stored in the `ResamplingInterleavedBuffer`, 
 lifetime is the same as the lifetime of the resampler object.
 
 
-Example Usage:
+#### flush()
 
 ```c++
-#include "dsp/block_resampler.hh"
-using namespace MetaModule;
-
-std::array<float, 32> in_buffer; // samples to be resampled: interleaved LRLRLRL
-
-// Create a resampler
-// 2 = stereo, 32 = in_buffer.size()
-// 1.1f = more than required 44.1kHz => 48kHz
-ResamplingInterleavedBuffer<2, 32, 1.1f> resampler; 
-
-MyModule() {
-    resampler.set_samplerate_in_out(44100, 48000); //resample 44.1kHz to 48kHz
-}
-
-void update() {
-
-    add_sample_to_in_buffer(in_buffer);
-
-    if (in_buffer_is_full) {
-        auto out = res.process_block(in);
-
-        for (size_t i = 0; i < out.size(); i+=2) {
-            float left = out[i];
-            float right = out[i+1];
-            //...
-        }
-    }
-}
-
+void flush();
 ```
+
+This will clear the internal resampler state.
 
