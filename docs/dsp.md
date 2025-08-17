@@ -9,16 +9,16 @@ StreamResampler resamples a mono or interleaved multi-channel audio stream,
 sample-by-sample (not by blocks). 
 
 Instead of providing a block of samples like you would with a typical block
-sesampler, you provide a callback function that returns a sample on demand. The
-`process()` function will call your callback as many times as needed until it
-can produce one audio frame of data. 
+resampler, you provide a callback function that returns a sample on demand. 
+Each time you need a resampled audio frame, the resampler will call your
+callback as many times as needed until it can produce the frame for you.
 
 The benefit of StreamResamplers are that 
-- The latency is minimal (as low as possible)
+- The latency is minimal (as low as possible for the resampling algorithm)
 - It's equally efficient at any block size
+- Simple to use: no intermediate buffers or sample counters required
 - Less memory footprint
-- Making it safe for concurrent accesses to the audio input stream is easier
-  than it is for block resamplers
+- Easy to make safe for concurrent accesses to the audio input stream
 
 It never allocates memory, so it's safe for use in audio threads (even when
 changing number of channels or flushing). Uses a hermetian algorithm optimzed
@@ -47,6 +47,41 @@ StreamResampler(uint32_t num_channels = 2);
 
 You can specify the number of channels when constructing a StreamResampler.
 By default, there will be two channels (stereo audio).
+
+#### set_num_channels()
+
+```c++
+void set_num_channels(unsigned num_channels);
+```
+
+Sets the number of channels. Typically this is 2 for stereo or 1 for mono, but
+up to 8 channels are supported.
+
+You can safely change the number of channels during runtime. Just make sure
+that your callback function returns a stream of samples that's interpolated
+correctly for the number of channels.
+
+The internal buffer is not flushed automatically when changing the number 
+of channels. Call `flush()` if necessary.
+
+#### set_sample_rate_in_out()
+
+```c++
+void set_sample_rate_in_out(uint32_t input_rate, uint32_t output_rate);
+```
+
+Changes the resampling ratio. Only the ratio between the two parameters is
+stored. If the ratio is changes, then a flush is automatically done
+the next time you call a `process` function.
+
+#### resample_ratio()
+
+```c++
+float resample_ratio(unsigned chan) const;
+```
+
+Returns the current resampling ratio.
+
 
 #### process_stereo()
 ```c++
@@ -121,6 +156,16 @@ Usage:
 
 ...where `stream.pop_sample()` returns the next interleaved input sample
 
+#### flush()
+
+```c++
+void flush();
+```
+
+Call this to force the internal buffers to be cleared. This will most likely
+result in a click or audio glitch unless all recent samples have all been 0.
+This is automatically called when the sample rate changes, but not when the 
+number of channels changes.
 
 ## Block Resampler
 
@@ -292,3 +337,4 @@ void update() {
 }
 
 ```
+
