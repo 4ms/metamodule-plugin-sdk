@@ -32,8 +32,8 @@ For example projects using this SDK, see [metamodule-plugin-examples](https://gi
  - [File browser](docs/file-browser.md)
  - [Async Thread API](docs/async-threads.md)
  - [DSP helper classes](docs/dsp.md)
+ - [Wav File Streaming class](docs/wav-file-stream.md) (TODO)
  - [Graphics helper classes](docs/graphics-helpers.md) (TODO)
- - [Wav File Streaming class](docs/wav-file-stream.md)
 
  ## General topics:
  - [How Plugins Work](docs/how-plugins-work.md)
