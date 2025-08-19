@@ -18,8 +18,13 @@ struct WavFileStream {
 	// Returns true if this happens, false if not.
 	bool resize(size_t max_samples);
 
+	// This returns the maximum allowed buffer size, in samples
+	// The actually buffer might be smaller if the wav file is smaller than max_size()
 	size_t max_size() const;
-	size_t buffer_size() const;
+
+	// Returns the size of the buffer
+	size_t buffer_samples() const;
+	size_t buffer_frames() const;
 
 	////
 	/// Load/unloading wav file:
