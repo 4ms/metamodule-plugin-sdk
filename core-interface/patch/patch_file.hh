@@ -43,4 +43,10 @@ StaticString<7> get_volume();
 // Do not use in audio context (since it will allocate)
 std::string get_path();
 
+// get_dir()
+// Like get_path() but strips the patch name:
+// Example: "usb:/live-set-01/"
+// Do not use in audio context (since it will allocate)
+std::string get_dir();
+
 } // namespace MetaModule::Patch
