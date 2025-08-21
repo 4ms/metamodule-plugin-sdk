@@ -131,22 +131,24 @@ class MyModule : rack::engine::Module {
 
 ```
 
-** Examples with different num_subdirs**
+**Examples with different num_subdirs**
 
 `translate_path_to_("/Users/4ms/music/rack/samples/loop.wav", "sdc:/live-set/", num_subdirs)`
 - num_subdirs = 0: => sdc:/live-set/loop.wav
 - num_subdirs = 1: => sdc:/live-set/samples/loop.wav
 - num_subdirs = 2: => sdc:/live-set/rack/samples/loop.wav
 
-** More Examples: **
-- `translate_path_to_local("/Users/user/rack/samples/a.wav", "sdc:/", 0)  			==> sdc:/a.wav`
-- `translate_path_to_local("/Users/user/rack/samples/a.wav", "sdc:/", 1)  			==> sdc:/samples/a.wav`
-- `translate_path_to_local("/Users/user/rack/samples/a.wav", "sdc:/patches/", 0)  	==> sdc:/patches/a.wav`
-- `translate_path_to_local("/Users/user/rack/samples/a.wav", "sdc:/patches/", 1)  	==> sdc:/patches/samples/a.wav`
-- `translate_path_to_local("C:\Users\user\rack\samples\a.wav", "sdc:/patches/", 1)  ==> sdc:/patches/samples/a.wav`
-- `translate_path_to_local("usb:/samples/a.wav", "sdc:/patches/", 1)  				==> usb:/samples/a.wav (path is already local)`
-- `translate_path_to_local("/root/a.wav", "sdc:/patches/", 1)  						==> sdc:/patches/root/a.wav`
-- `translate_path_to_local("/root/a.wav", "sdc:/patches/", 2)  						==> sdc:/patches/root/a.wav`
+**More Examples:**
+```
+- translate_path_to_local("/Users/user/rack/samples/a.wav", "sdc:/", 0)				==> sdc:/a.wav
+- translate_path_to_local("/Users/user/rack/samples/a.wav", "sdc:/", 1)				==> sdc:/samples/a.wav
+- translate_path_to_local("/Users/user/rack/samples/a.wav", "sdc:/patches/", 0)		==> sdc:/patches/a.wav
+- translate_path_to_local("/Users/user/rack/samples/a.wav", "sdc:/patches/", 1)		==> sdc:/patches/samples/a.wav
+- translate_path_to_local("C:\User\rack\samples\a.wav", "sdc:/patches/", 1)			==> sdc:/patches/samples/a.wav
+- translate_path_to_local("usb:/samples/a.wav", "sdc:/patches/", 1)					==> usb:/samples/a.wav (path is already local)
+- translate_path_to_local("/root/a.wav", "sdc:/patches/", 1)						==> sdc:/patches/root/a.wav
+- translate_path_to_local("/root/a.wav", "sdc:/patches/", 2)						==> sdc:/patches/root/a.wav
+```
 
 ### Filesystem::is_local_path()
 
