@@ -65,21 +65,24 @@ Namespace: `MetaModule::Filesystem`
 std::string translate_path_to_local(std::string_view path, std::string_view local_path, unsigned num_subdirs = 0);
 ```
 
-Translate a path to a file on a computer hard drive, to a path that works on the MetaModule.
+Translate a path for a file on a computer hard drive, to a path for a file on the MetaModule.
 
 The common use case is when a module stores a path to a sample or wavetable
 file. The module can call this function to translate the stored path into one
-that will work on the MetaModule.
+that's relative to the currently playing patch file.
 
 The function works by appending the file name from the computer path to the
 provided local path. Typically the local path would be the path to the
 currently playing patch file.
 
 Stated another way: you give it a path to a file on a hard drive, and it
-creates a path to a file with the same name, but in the patch directory.
+creates a path to a file with the same name, but in the patch directory on the MetaModule.
 From the user's perspective, they would need to copy the file into the same directory
 as the patch .yml file on their USB drive or SD Card, and then everything will work 
 as expected.
+
+The returned path may or may not refer to an actual file, so the module must handle the case
+where the file does not exist.
 
 As an optional parameter, one or more parent directories from the computer path can be appended.
 This lets the module access files in a sub-directory that's in the same directory as the 
@@ -90,7 +93,10 @@ MetaModule volume name. If so, it returns the path unaltered. This allows the mo
 to always process all file paths with `translate_path_to_local`.
 
 **Parameters:**
-- `path`: the path from a computer that you want to translate. If the path is already local, it will be returned.
+- `path`: the path from a computer that you want to translate. If the path is
+  already local, it will be returned unaltered. If `num_subdirs` is 0, the filename will
+  be extracted from the path and the rest will be ignored. If `num_subdirs` >
+  0, the filename plus `num_subdirs` parent directories will be kept.
 - `local_path`: the MetaModule path you want to pre-prend. Typically this is `Patch::get_path()`.
 - `num_subdirs`: sets how many subdirectories to capture from `path` (default 0, max 2)
 
@@ -133,7 +139,7 @@ class MyModule : rack::engine::Module {
 
 **Examples with different num_subdirs**
 
-`translate_path_to_("/Users/4ms/music/rack/samples/loop.wav", "sdc:/live-set/", num_subdirs)`
+`translate_path_to_local("/Users/4ms/music/rack/samples/loop.wav", "sdc:/live-set/", num_subdirs)`
 - num_subdirs = 0: => sdc:/live-set/loop.wav
 - num_subdirs = 1: => sdc:/live-set/samples/loop.wav
 - num_subdirs = 2: => sdc:/live-set/rack/samples/loop.wav
@@ -144,10 +150,11 @@ class MyModule : rack::engine::Module {
 - translate_path_to_local("/Users/user/rack/samples/a.wav", "sdc:/", 1)				==> sdc:/samples/a.wav
 - translate_path_to_local("/Users/user/rack/samples/a.wav", "sdc:/patches/", 0)		==> sdc:/patches/a.wav
 - translate_path_to_local("/Users/user/rack/samples/a.wav", "sdc:/patches/", 1)		==> sdc:/patches/samples/a.wav
-- translate_path_to_local("C:\User\rack\samples\a.wav", "sdc:/patches/", 1)			==> sdc:/patches/samples/a.wav
-- translate_path_to_local("usb:/samples/a.wav", "sdc:/patches/", 1)					==> usb:/samples/a.wav (path is already local)
-- translate_path_to_local("/root/a.wav", "sdc:/patches/", 1)						==> sdc:/patches/root/a.wav
-- translate_path_to_local("/root/a.wav", "sdc:/patches/", 2)						==> sdc:/patches/root/a.wav
+- translate_path_to_local("C:\User\rack\samples\a.wav", "usb:/patches/", 1)			==> usb:/patches/samples/a.wav
+- translate_path_to_local("usb:/samples/a.wav", "nor:/ignored/", 1)					==> usb:/samples/a.wav (path is already local)
+- translate_path_to_local("/root/a.wav", "usb:/patches/", 0)						==> usb:/patches/a.wav
+- translate_path_to_local("/root/a.wav", "usb:/patches/", 1)						==> usb:/patches/root/a.wav
+- translate_path_to_local("/root/a.wav", "usb:/patches/", 2)						==> usb:/patches/root/a.wav (only one parent dir)
 ```
 
 ### Filesystem::is_local_path()
