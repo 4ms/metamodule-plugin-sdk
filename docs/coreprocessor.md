@@ -52,7 +52,8 @@ public:
 
 The following functions are called by the audio engine and thus have hard
 real-time requirements. These must not allocate memory (no malloc,
-vector.push_back(), string.resize(), etc.).
+vector.push_back(), string.resize(), etc.), and they must not make filesystem
+calls.
 
 - `void update()`: Called at sample rate on every module in the patch. The main
 processing code should go here: calculate jack and light outputs based on jack
@@ -188,6 +189,11 @@ not have real-time requirements:
   when these are called, so it's safe to perform memory allocations, make
   filesystem calls, or do expensive calculations. In many situations, the
   constructor is the ideal time to populate or reserve space for `std::vector`
-  or other dynamic containers.
+  or other dynamic containers, or to read from support files.
 
+- AsyncThreads: these are tasks that your main module can launch to run
+  in the background. See [./async-threads.md].
+
+- For VCV-ported modules, context menus are called by the GUI thread and thus
+  are safe to make filesystem calls or memory allocations.
 

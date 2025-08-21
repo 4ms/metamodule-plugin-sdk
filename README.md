@@ -15,9 +15,9 @@ For example projects using this SDK, see [metamodule-plugin-examples](https://gi
   - Optional (recommended): jq (for validating plugin-mm.json file)
 
 ## API Reference:
+ - VCV Rack adaptor (TODO)
  - [CoreProcessor class](docs/coreprocessor.md)
  - [Elements](docs/elements.md)
- - VCV Rack adaptor (TODO)
  - [Registering a module](docs/module-registry.md)
  - [Text Screens/Displays](docs/text-displays.md)
  - [Graphical Screens/Displays](docs/graphic-displays.md)

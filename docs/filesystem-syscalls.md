@@ -4,7 +4,7 @@ The MetaModule uses newlib for libc. This provides standard library filesystem f
 
 You can use these exactly as they are used on a desktop computer. However, there are some things to keep in mind:
 
-- Paths are different. Paths start with a the volume name (3 characters), then a colon, then a slash. 
+- Paths are different. Paths start with the volume name (3 characters), then a colon, then a slash. 
   The volumes available on the MetaModule are:
    - `sdc:/` -- The SD Card drive.
    - `usb:/` -- The USB drive.
@@ -34,6 +34,24 @@ You can use these exactly as they are used on a desktop computer. However, there
   mean it's not surprising if a read request occasionally takes up to 4 or 5
   seconds even for just a few kB of data. You must plan for stalls and delays.
   If you have large files, buffering data to/from RAM is a good idea.
+
+
+- Disk access is not allowed from the audio context. That is, you cannot 
+  read or write files in the modules's `process()` or `update()` function.
+  Accessing the filesystem is allowed only in the module's constructor and
+  destructor, `load_state` or `save_state` function (`dataToJson` and `dataFromJson` 
+  for VCV ports), in any GUI code (`*_graphic_display()`), VCV context menus,
+  and in AsyncThreads. See [./coreprocessor.md] for a detailed discussion.
+
+
+  Note that not access the filesystem in the audio context is 
+  also true for desktop computer usage, but due to the threading model
+  and speed of modern disks, it might only cause problems on some user's 
+  computers some of the time, and appear to work OK other times.
+  However, it violates DSP best practices and should be avoided
+  regardless of the intended platform.
+
+
 
 ## Helper functions
 
