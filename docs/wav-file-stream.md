@@ -1,22 +1,64 @@
-# Wave File Stream class
+# WavFileStream class
 
 See [wav/wav_file_stream.hh](../core-interface/wav/wav_file_stream.hh)
+
+Typically on a desktop computer, wav files will be loaded into memory before being played.
+Since memory on the MetaModule is limited to around 300MB, if the user wants to 
+play more sample data than will fit in memory, then the files cannot be loaded into memory.
+
+Even if there is enough memory to load the .wav files, it can take a long time, and users
+would prefer not to wait 30 seconds to a minute or more for their patch to load.
+
+The solution to both these issues is "streaming". This means the .wav files are
+partially loaded into small buffers, and audio is played from those buffers. As
+the audio playback consumes more samples, the buffer must be continually filled
+from disk.
+
+The buffer size can be controlled based on how much RAM you are willing to allocate
+towards sample playback. The buffer is owned by this class, so it's quite possible
+an instance of this class would be 8MB, 32MB or more.
+
+
+If the RAM buffer is large enough to hold the entire sample, then at some point
+the sample will be "fully buffered" and no more disk access is required to play
+the sample.
+
+The `WavFileStream` class handles a lot of the difficult details required to 
+make streaming work properly. It's the engine behind the 4ms Basic Sample Player module,
+so for a complete example, see that [module's source](https://github.com/4ms/metamodule-core-modules/blob/TSP/4ms/core/BWAVPCore.cc)
+
+### Overview of usage:
+
+To use this class, you need to have an AsyncThread periodically calling `read_frames_from_file()`
+whenever more samples are needed to fill the buffer.
+
+Then in the module's update() or process() function, you simply call `pop_sample()` to
+get the next sample. If the wav file is stereo, call it twice; if it's mono, call it once.
 
 ```c++
 struct WavFileStream {
 	WavFileStream(size_t max_samples);
 
+    // Buffer size
 	bool resize(size_t max_samples);
 	size_t max_size() const;
-	size_t buffer_size() const;
+	size_t buffer_samples() const;
+	size_t buffer_frames() const;
 
+    // Load/unload .wav file
 	bool load(std::string_view sample_path);
 	void unload();
 
+    // Reading frames (only call this from AsyncThread):
 	void read_frames_from_file();
 	void read_frames_from_file(int num_frames);
 
+    // Getting samples (only call this from audio context):
 	float pop_sample();
+
+    // File Transport
+	void reset_playback_to_frame(uint32_t frame_num);
+	void seek_frame_in_file(uint32_t frame_num = 0);
 
     // Playback buffer state
 	bool is_loaded() const;
@@ -27,10 +69,6 @@ struct WavFileStream {
 	unsigned current_playback_frame() const;
 	unsigned latest_buffered_frame() const;
 	uint32_t first_frame_in_buffer() const;
-
-    // File Transport
-	void reset_playback_to_frame(uint32_t frame_num);
-	void seek_frame_in_file(uint32_t frame_num = 0);
 
     // Wav file information
 	float sample_seconds() const;
@@ -114,9 +152,10 @@ slow.
 WavFileStream(size_t max_samples);
 ```
 
-Creates a WavFileStream with a buffer that's the size
+Creates a WavFileStream. The maxmimum size of the buffer is provided. 
+The buffer will not actually be allocated at this time: that happens
+later when the file is loaded.
 
-#### Constructor
 
 ```c++
 ```
