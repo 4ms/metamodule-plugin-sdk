@@ -35,52 +35,10 @@ whenever more samples are needed to fill the buffer.
 Then in the module's update() or process() function, you simply call `pop_sample()` to
 get the next sample. If the wav file is stereo, call it twice; if it's mono, call it once.
 
-```c++
-struct WavFileStream {
-	WavFileStream(size_t max_samples);
-
-    // Buffer size
-	bool resize(size_t max_samples);
-	size_t max_size() const;
-	size_t buffer_samples() const;
-	size_t buffer_frames() const;
-
-    // Load/unload .wav file
-	bool load(std::string_view sample_path);
-	void unload();
-
-    // Reading frames (only call this from AsyncThread):
-	void read_frames_from_file();
-	void read_frames_from_file(int num_frames);
-
-    // Getting samples (only call this from audio context):
-	float pop_sample();
-
-    // File Transport
-	void reset_playback_to_frame(uint32_t frame_num);
-	void seek_frame_in_file(uint32_t frame_num = 0);
-
-    // Playback buffer state
-	bool is_loaded() const;
-	unsigned samples_available() const;
-	unsigned frames_available() const;
-	bool is_eof() const;
-	bool is_file_error() const;
-	unsigned current_playback_frame() const;
-	unsigned latest_buffered_frame() const;
-	uint32_t first_frame_in_buffer() const;
-
-    // Wav file information
-	float sample_seconds() const;
-	bool is_stereo() const;
-	unsigned total_frames() const;
-	std::optional<uint32_t> wav_sample_rate() const;
-```
-
 #### Example Usage: simple streaming .wav file player
 
 This example module streams a .wav file from disk, resamples it to whatever sample rate
-the MetaModule is operating, plays it on the output jacks. The file is read in small
+the MetaModule is operating, and plays it on the output jacks. The file is read in small
 blocks as needed, so the sample file can start playing almost immediately regardless of 
 its size.
 
@@ -93,7 +51,7 @@ class WavPlayer : CoreProcessor {
     static constexpr unint32_t Threshold = 2048; // min. frames to buffer before playing
 
     AsyncThread file_reader{this, [this] {
-        // Stop reading when we read end of file
+        // Stop reading when we reach end of file
         if (stream.is_eof())
             return;
 
@@ -111,8 +69,8 @@ public:
         stream.load("sample.wav");
 
         // Initialize resampler
-        resampler.set_sample_rate_in_out(stream.wav_sample_rate().value_or(48000), sample_rate);
-        resampler.set_num_channels(stream.is_stereo() ? 2 : 1);
+        resampler.set_sample_rate_in_out(stream.wav_sample_rate(), sample_rate);
+        resampler.set_num_channels(stream.num_channels());
 
         // Don't start playing until `Threshold` frames have been buffered
         ready_to_play = false;
@@ -133,7 +91,7 @@ public:
     }
 
     void set_samplerate(uint32_t samplerate) override {
-        resampler.set_sample_rate_in_out(stream.wav_sample_rate().value_or(48000), samplerate);
+        resampler.set_sample_rate_in_out(stream.wav_sample_rate(), samplerate);
     }
 
     //...
@@ -144,6 +102,11 @@ minimum needed for a single sample playback but larger is safer if the disk is
 slow.
 
 `Threshold` is a value that determines how far ahead the AsyncThread should buffer samples.
+
+This example will work with mono or stereo samples, as the resampler.process_stereo() call 
+will handle splitting a mono stream into stereo. See [dsp/stream_resampler.hh](../core-interface/dsp/stream_resampler.hh)
+
+### Interface:
 
 #### Constructor
 
