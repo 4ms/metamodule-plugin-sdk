@@ -77,7 +77,6 @@ struct WavFileStream {
 	std::optional<uint32_t> wav_sample_rate() const;
 ```
 
-
 #### Example Usage: simple streaming .wav file player
 
 This example module streams a .wav file from disk, resamples it to whatever sample rate
@@ -157,6 +156,196 @@ The buffer will not actually be allocated at this time: that happens
 later when the file is loaded.
 
 
+#### Load/unload a file
+
 ```c++
+bool load(std::string_view sample_path);
+void unload();
+bool is_loaded() const;
 ```
+
+
+`load()` loads a file, given the path. The path should contain the volume, for example:
+`sdc:/samples/loop84bpm.wav`. This function returns true if the file was successfully loaded
+or false if not. The buffer will be allocated or resized if necessary to accomodate the new
+file size. The filesystem will read the and the file will be open
+until `unload()` is called. This cannot be called from the audio context.
+
+`unload()` closes the .wav file and clears the buffer. It does
+not release the memory of the buffer. This cannot be called from the audio context.
+
+`is_loaded()` returns true if a file is loaded, false if not.
+
+#### Buffer size
+
+```c++
+bool resize(size_t max_samples);
+```
+
+Sets the maximum size (in number of samples) of the buffer. The actual buffer
+may be smaller than this, if the file is smaller. That is:
+
+```
+buffer size in samples = minimum(max_samples, samples in the file);
+```
+
+If a .wav file is already loaded, then the buffer will be resized immediately
+and the content clearted. The function will return true in this case. Otherwise
+(if the buffer didn't change size, or if there is no file loaded), it returns
+false.
+
+This function may allocate so it should not be called from the audio context
+unless you are sure there is no file loaded.
+
+```c++
+size_t max_size() const;
+size_t buffer_samples() const;
+size_t buffer_frames() const;
+```
+
+These three functions return information about the buffer. They are safe
+to call from any context.
+
+`max_size()` returns the maximum number of samples in the buffer. This is the
+same as the last value passed to `resize()` (or the value passed to the
+constructor if `resize()` has never been called).
+
+`buffer_samples()` and `buffer_frames()` return the actual size of the buffer,
+in number of samples or number of frames, respectively. As mentioned above,
+`buffer_samples()` will be equal to the smaller of `max_size()` and the number
+of samples in the file.
+
+
+#### Reading from disk -> writing into the buffer
+
+```c++
+void read_frames_from_file();
+void read_frames_from_file(int num_frames);
+```
+
+`read_frames_from_file()` reads a block of data from the loaded file. You can
+specify the number of frames to read, but if you omit that parameter it will
+automatically determine the optimal value based on the wav file format (this is
+recommended unless you know what you're doing).
+This cannot be called from the audio context. Call this periodically from the
+AsyncThread whenever the buffer is below a threshold.
+
+This function will set the `eof` flag or `file_error` flag if it runs into
+those conditions.
+
+#### Reading out of the buffer -> playback
+
+```c++
+float pop_sample();
+```
+
+Call this from the audio context to get the next sample in the buffer.
+The samples are interleaved, so if the .wav file is stereo, this will
+return alternating left and right channel samples.
+The range is -1 to +1 (inclusive), so scale the value accordingly.
+
+If the buffer is empty (that is, `samples_available() == 0`: see next section)
+then this will return 0 without error.
+
+#### Transport
+```c++
+void reset_playback_to_frame(uint32_t frame_num);
+```
+
+Jumps the play head to a particular frame. If the frame is in the buffer,
+then the read head will just jump to that position in the buffer. Otherwise
+the buffer will be cleared/reset in anticipation of needing to start buffering
+from this frame. Must only be called by audio thread. The async thread should
+call seek_frame_in_file after this.
+
+```c++
+void seek_frame_in_file(uint32_t frame_num = 0);
+```
+
+Jumps the wav file reading head to a particular frame index in the wav file. If
+the frame is alraedy in the pre-buffer, then this does nothing at all.
+Otherwise it will do a file seek. The audio thread should have just called
+reset_playback_to_frame() when you call this, or if you are looping playback
+then call this when is_eof is true. 
+If the requested frame is in the buffer, this function does nothing.
+Otherwise, the read head of the file will seek to the proper position and 
+the EOF flag will be cleared.
+
+Must only be called by async filesystem thread.
+
+
+#### Current state of the buffer
+
+All the following functions are safe to call from any context.
+
+```c++
+unsigned samples_available() const;
+unsigned frames_available() const;
+```
+
+Returns the number of samples or frames available for playback in the buffer.
+That is, it returns the number of samples that have been written
+but not yet popped. Every time you call `pop_sample()`, this goes down
+by 1 until it hits 0. Every time `read_frames_from_file()` successfully 
+reads from the file, this goes up by the number of samples read.
+
+
+```c++
+unsigned current_playback_frame() const;
+unsigned latest_buffered_frame() const;
+uint32_t first_frame_in_buffer() const;
+```
+`current_playback_frame()` is the index of the next audio frame that will
+be returned by the next call to `pop_sample()`. If this equals `total_frames()`
+then the entire sample has been played.
+
+`latest_buffered_frame()` returns the frame index that was most 
+recently written to the buffer.
+
+`first_frame_in_buffer()` returns the frmae index of the oldest frame
+in the buffer. If the buffer has been filled, then this value plus
+the buffer size will equal `latest_buffered_frame()`.
+
+
+#### State of the file
+
+These functions are safe to call from any context.
+
+```c++
+bool is_eof() const;
+```
+This returns true if the file has been read to the end.
+
+```c++
+bool is_file_error() const;
+```
+
+This returns true if there was a file error while reading.
+To clear the error, unload and load the file again.
+
+
+#### Wav file information
+
+These functions return information about the currently loaded file.
+They are safe to call from any context.
+
+```c++
+float sample_seconds() const;
+```
+Returns the length of wav file in seconds, or 0 if no file is loaded.
+
+```c++
+unsigned total_frames() const;
+```
+Returns the length of wav file in number of audio frames, or 0 if no file is loaded.
+
+```c++
+bool is_stereo() const;
+```
+Returns true if the file is loaded and has 2 channels.
+
+```c++
+unsigned wav_sample_rate() const;
+```
+Returns the sample rate of the wav file, or 0 if no file is loaded.
 
