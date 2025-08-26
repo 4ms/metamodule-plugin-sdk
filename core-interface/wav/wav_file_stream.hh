@@ -83,7 +83,7 @@ struct WavFileStream {
 	// When this equals the total_frames(), the entire sample has been played.
 	unsigned current_playback_frame() const;
 	unsigned latest_buffered_frame() const;
-	uint32_t first_frame_in_buffer() const;
+	unsigned first_frame_in_buffer() const;
 
 	////
 	/// TRANSPORT
@@ -112,12 +112,14 @@ struct WavFileStream {
 
 	// Whether the file is stereo or not
 	bool is_stereo() const;
+	// number of channels
+	unsigned num_channels() const;
 
 	// Total number of audio frames in the sample
 	unsigned total_frames() const;
 
 	// Sample rate of the wav file
-	std::optional<uint32_t> wav_sample_rate() const;
+	unsigned wav_sample_rate() const;
 
 private:
 	struct Internal;
