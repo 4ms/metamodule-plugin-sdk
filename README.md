@@ -32,7 +32,7 @@ For example projects using this SDK, see [metamodule-plugin-examples](https://gi
  - [File browser](docs/file-browser.md)
  - [Async Thread API](docs/async-threads.md)
  - [DSP helper classes](docs/dsp.md)
- - [Wav File Streaming class](docs/wav-file-stream.md) (TODO)
+ - [Wav File Streaming class](docs/wav-file-stream.md)
  - [Graphics helper classes](docs/graphics-helpers.md) (TODO)
 
  ## General topics:
@@ -191,7 +191,7 @@ cmake --fresh -B build -G Ninja -DMETAMODULE_SDK_DIR=/path/to/metamodule-plugin-
 cmake --build build
 ```
 
-You also can doing neither of the above and just make sure the SDK is in the parent dir.
+You also can do neither of the above and just make sure the SDK is in the parent dir.
 
 
 ## Limitations
@@ -211,6 +211,4 @@ See [limitations](docs/limitations.md) for more discussion.
 If you are porting a plugin which you are not the original author, read this
 before you get too far in the porting process: (Licensing and
 Permissions)[licensing_permissions.md]
-
-
 
