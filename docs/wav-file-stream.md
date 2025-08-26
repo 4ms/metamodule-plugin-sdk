@@ -131,8 +131,8 @@ bool is_loaded() const;
 `load()` loads a file, given the path. The path should contain the volume, for example:
 `sdc:/samples/loop84bpm.wav`. This function returns true if the file was successfully loaded
 or false if not. The buffer will be allocated or resized if necessary to accomodate the new
-file size. The filesystem will read the and the file will be open
-until `unload()` is called. This cannot be called from the audio context.
+file size. The file will be open until `unload()` is called. This cannot be
+called from the audio context.
 
 `unload()` closes the .wav file and clears the buffer. It does
 not release the memory of the buffer. This cannot be called from the audio context.
@@ -153,11 +153,11 @@ buffer size in samples = minimum(max_samples, samples in the file);
 ```
 
 If a .wav file is already loaded, then the buffer will be resized immediately
-and the content clearted. The function will return true in this case. Otherwise
+and the content cleared. The function will return true in this case. Otherwise
 (if the buffer didn't change size, or if there is no file loaded), it returns
 false.
 
-This function may allocate so it should not be called from the audio context
+`resize()` may allocate, so it should not be called from the audio context
 unless you are sure there is no file loaded.
 
 ```c++
@@ -166,17 +166,18 @@ size_t buffer_samples() const;
 size_t buffer_frames() const;
 ```
 
-These three functions return information about the buffer. They are safe
-to call from any context.
-
 `max_size()` returns the maximum number of samples in the buffer. This is the
 same as the last value passed to `resize()` (or the value passed to the
-constructor if `resize()` has never been called).
+constructor if `resize()` has never been called). It does not mean the buffer
+is this size, it just means this is the maximum size the buffer could be.
 
 `buffer_samples()` and `buffer_frames()` return the actual size of the buffer,
 in number of samples or number of frames, respectively. As mentioned above,
-`buffer_samples()` will be equal to the smaller of `max_size()` and the number
+`buffer_samples()` will be equal to whichever is smaller: `max_size()` or the number
 of samples in the file.
+
+These three functions return information about the buffer. They are safe
+to call from any context.
 
 
 #### Reading from disk -> writing into the buffer
@@ -207,7 +208,7 @@ The samples are interleaved, so if the .wav file is stereo, this will
 return alternating left and right channel samples.
 The range is -1 to +1 (inclusive), so scale the value accordingly.
 
-If the buffer is empty (that is, `samples_available() == 0`: see next section)
+If the buffer is empty (that is, `samples_available() == 0`: see below)
 then this will return 0 without error.
 
 #### Transport
@@ -226,7 +227,7 @@ void seek_frame_in_file(uint32_t frame_num = 0);
 ```
 
 Jumps the wav file reading head to a particular frame index in the wav file. If
-the frame is alraedy in the pre-buffer, then this does nothing at all.
+the frame is already in the pre-buffer, then this does nothing at all.
 Otherwise it will do a file seek. The audio thread should have just called
 reset_playback_to_frame() when you call this, or if you are looping playback
 then call this when is_eof is true. 
@@ -265,7 +266,7 @@ then the entire sample has been played.
 `latest_buffered_frame()` returns the frame index that was most 
 recently written to the buffer.
 
-`first_frame_in_buffer()` returns the frmae index of the oldest frame
+`first_frame_in_buffer()` returns the frame index of the oldest frame
 in the buffer. If the buffer has been filled, then this value plus
 the buffer size will equal `latest_buffered_frame()`.
 
