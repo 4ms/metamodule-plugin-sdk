@@ -1,11 +1,43 @@
 # Change Log for SDK API
 
-### v2.1 (in progress)
+### v2.1.0
+
+- Expanded API documentation 
+
+- New functions in the API:
+   - Gui::notify_user()
+   - Audio::get_block_size()
+   - System::free_memory()
+   - System::total_memory()
+   - System::hardware_random()/hardware_random_ready()
+   - System::random()
+   - System::delay_ms()
+   - System::get_ticks()
+   - Patch::mark_patch_modified()
+   - Patch::get_volume()
+   - Patch::get_path()
+   - Patch::get_dir()
+   - Filesystem::translate_path_to_local()
+   - Filesystem::is_path_local()
+
+- New classes in the API:
+   - BlockResampler: resamples multi-channel blocks of audio
+   - StreamResampler: resamples multi-channel streams of audio (i.e. single frames at a time).
+   - StreamingWaveformDisplay: draws a waveform with a position bar
+   - WavFileStream: handles streaming wav files from disk, interfacing with dr_wav and managing the concurrent-safe buffer.
+   - dr_wav is part of the SDK (and is used by WavFileStream).
 
 - Add Element type AltParamAction, which can be used by a module to perform an action when the value is changed
 
+- async_thread.hh moved from CoreModules/ dir to threads/ (old location replaced with a file pointing to the new location -- will be deprecated eventually)
+
 - Replace metamodule-core-interface, metamodule-rack-interface, and metamodule-plugin-libc submodules with
   normal files in normal directories (no submodules)
+
+### v2.0.5
+
+- Fix configInput, configOutput, and configLight when custom types are used
+- Add helper scripts for converting artwork: `scripts/createinfo.py` and `scripts/vcv-artwork.py`
 
 ### v2.0.4
 
