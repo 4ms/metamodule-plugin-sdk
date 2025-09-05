@@ -16,10 +16,6 @@ see the docs page: [Text Screens/Displays](text-displays.md)
 
 Graphics Displays require firmware v2.0 or later.
 
-In firmware v2.0.0-dev-12.x, there is only a VCV Rack adaptor layer for using
-graphics displays. Starting in v2.0.0-dev-13, native plugins can draw to
-graphic displays as well.
-
 ## Usage
 
 Often, if you are porting a module from VCV Rack to MetaModule, you do not need
@@ -76,7 +72,7 @@ MetaModule will notice any widget that's not derived from a `ParamWidget`,
 marked as "dynamic". Their position and box size is stored.
 
 When the module is displayed on screen and the patch is playing, then the GUI
-engine will allocate a pixel buffer for aall the widgets marked as dynamic. The
+engine will allocate a pixel buffer for all the widgets marked as dynamic. The
 widget box size will be used to determine the size of the pixel buffer.
 
 Then, on each frame, each `rack::Module` will be updated as follows:
@@ -84,9 +80,10 @@ Then, on each frame, each `rack::Module` will be updated as follows:
 2. If the ModuleWidget implements a custom draw() or drawLayer() function, then
    they will be called also. 
 3. Next, it will loop through all dynamic widgets in the order that they were
-   added to the ModuleWidget: A. The widget's step() function will be called.
-   B. The widget's draw() and drawLayer() functions will be called. C. The
-   draw() and drawLayer() functions of widget's children will be called.
+   added to the ModuleWidget: 
+     A. The widget's step() function will be called.
+     B. The widget's draw() and drawLayer() functions will be called. 
+     C. The draw() and drawLayer() functions of widget's children will be called.
 
 Calls to nvg* functions end up rendering to the pixel buffer, which is then
 checked to see if any pixels changed. If so, the GUI back-end engine (LVGL) is

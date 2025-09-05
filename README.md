@@ -14,15 +14,32 @@ For example projects using this SDK, see [metamodule-plugin-examples](https://gi
   - python 3.6 or later
   - Optional (recommended): jq (for validating plugin-mm.json file)
 
-## SDK Topics:
+## API Reference:
+ - VCV Rack adaptor (TODO)
+ - [CoreProcessor class](docs/coreprocessor.md)
+ - [Elements](docs/elements.md)
+ - [Registering a module](docs/module-registry.md)
  - [Text Screens/Displays](docs/text-displays.md)
  - [Graphical Screens/Displays](docs/graphic-displays.md)
- - [Native Plugins](docs/native-plugin.md)
+ - [System API](docs/system-api.md)
+     - Audio Settings
+     - Notifications
+     - Patch files
+     - Memory
+     - Random
+     - Time
+ - [Filesystem calls](docs/filesystem-syscalls.md)
+ - [File browser](docs/file-browser.md)
+ - [Async Thread API](docs/async-threads.md)
+ - [DSP helper classes](docs/dsp.md)
+ - [Wav File Streaming class](docs/wav-file-stream.md)
+ - [Graphics helper classes](docs/graphics-helpers.md) (TODO)
+
+ ## General topics:
+ - [How Plugins Work](docs/how-plugins-work.md)
  - [Licensing and Permissions](docs/licensing_permissions.md)
  - [Releasing a plugin](docs/release.md)
  - [Plugin file format](docs/plugin-file-format.md)
- - [Async Thread API](docs/async-threads.md)
- - [API reference](docs/api.md)
  - [Tips](docs/tips.md)
 
 ## Basic Example for Converting a Rack Plugin
@@ -174,7 +191,7 @@ cmake --fresh -B build -G Ninja -DMETAMODULE_SDK_DIR=/path/to/metamodule-plugin-
 cmake --build build
 ```
 
-You also can doing neither of the above and just make sure the SDK is in the parent dir.
+You also can do neither of the above and just make sure the SDK is in the parent dir.
 
 
 ## Limitations
@@ -194,6 +211,4 @@ See [limitations](docs/limitations.md) for more discussion.
 If you are porting a plugin which you are not the original author, read this
 before you get too far in the porting process: (Licensing and
 Permissions)[licensing_permissions.md]
-
-
 

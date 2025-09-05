@@ -1,12 +1,3 @@
-[submodule "metamodule-rack-interface"]
-	path = metamodule-rack-interface
-	url = https://github.com/4ms/metamodule-rack-interface.git
 [submodule "cpputil"]
 	path = cpputil
 	url = https://github.com/4ms/cpputil
-[submodule "metamodule-core-interface"]
-	path = metamodule-core-interface
-	url = https://github.com/4ms/metamodule-core-interface.git
-[submodule "metamodule-plugin-libc"]
-	path = metamodule-plugin-libc
-	url = https://github.com/4ms/metamodule-plugin-libc.git

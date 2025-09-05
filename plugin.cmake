@@ -106,7 +106,7 @@ function(create_plugin)
     )
 
     if (METAMODULE_PLUGIN_STATIC_LIBC)
-        set(LINK_LIBS_DIR ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/metamodule-plugin-libc/lib)
+        set(LINK_LIBS_DIR ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/plugin-libc/lib)
         find_library(LIBCLIB "pluginc" PATHS ${LINK_LIBS_DIR} REQUIRED)
         find_library(LIBMLIB "pluginm" PATHS ${LINK_LIBS_DIR} REQUIRED)
         set(LINK_STATIC_LIBC

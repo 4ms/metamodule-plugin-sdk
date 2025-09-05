@@ -9,7 +9,7 @@ from helpers.xml_helper import register_all_namespaces
 from helpers.util import *
 from helpers.svg_parse_helpers import *
 
-def createInfoFile(svgFilename, infoFilePath = None, brand = "4ms"):
+def createInfoFile(svgFilename, infoFilePath = None, doLegacy = False, brand = "4ms"):
     if infoFilePath == None:
         infoFilePath = os.getenv('METAMODULE_INFO_DIR')
         if infoFilePath is None:
@@ -30,7 +30,7 @@ def createInfoFile(svgFilename, infoFilePath = None, brand = "4ms"):
     register_all_namespaces(svgFilename)
     tree = xml.etree.ElementTree.parse(svgFilename)
     components = panel_to_components(tree)
-    infoFileText = components_to_infofile(components, brand)
+    infoFileText = components_to_infofile(components, doLegacy, brand)
     infoFileName = os.path.join(infoFilePath, components['slug']+"_info.hh")
     with open(infoFileName, "w") as f:
         f.write(infoFileText)
@@ -104,7 +104,10 @@ def panel_to_components(tree):
         split = name.split("@")
         if len(split) == 2:
             name = split[0]
-            c['num_choices'] = int(split[1])
+            try:
+                c['num_choices'] = int(split[1])
+            except:
+                c['pos_names'] = split[1:]
         elif len(split) > 2:
             name = split[0]
             c['pos_names'] = split[1:]
@@ -275,9 +278,12 @@ def panel_to_components(tree):
         #Medium grey: AltParam
         elif color.startswith('#8080'):
             if len(c['pos_names']) > 0:
-                set_class_if_not_set(c, "AltParamChoiceLabeled")
-                c['num_choices'] = len(c['pos_names'])
-                c['default_val'] = str(max(0, min(c['num_choices'], default_val_int - 128)))
+                if c['pos_names'][0] == "action":
+                    set_class_if_not_set(c, "AltParamAction")
+                else:
+                    set_class_if_not_set(c, "AltParamChoiceLabeled")
+                    c['num_choices'] = len(c['pos_names'])
+                    c['default_val'] = str(max(0, min(c['num_choices'], default_val_int - 128)))
 
             elif c['num_choices'] > 0:
                 set_class_if_not_set(c, "AltParamChoice")
@@ -336,7 +342,7 @@ def set_class_if_not_set(comp, newclass):
         comp['class'] = newclass
 
 
-def components_to_infofile(components, brand="4ms"):
+def components_to_infofile(components, doLegacy = False, brand="4ms"):
     slug = components['slug']
     DPI = components['dpi']
 
@@ -366,15 +372,20 @@ struct {slug}Info : ModuleInfoBase {{
 
     enum class Elem {{{list_elem_names(components['elements'])}
     }};
+"""
+    if doLegacy:
+        source += f"""
 
-    // Legacy naming
-    {make_legacy_enum("Knob", components['legacy_knobs'])}
-    {make_legacy_enum("Switch", components['legacy_switches'])}
-    {make_legacy_enum("Input", components['legacy_inputs'])}
-    {make_legacy_enum("Output", components['legacy_outputs'])}
-    {make_legacy_enum("Led", components['lights'])}
-    {make_legacy_enum("AltParam", components['alt_params'])}
+        // Legacy naming
+        {make_legacy_enum("Knob", components['legacy_knobs'])}
+        {make_legacy_enum("Switch", components['legacy_switches'])}
+        {make_legacy_enum("Input", components['legacy_inputs'])}
+        {make_legacy_enum("Output", components['legacy_outputs'])}
+        {make_legacy_enum("Led", components['lights'])}
+        {make_legacy_enum("AltParam", components['alt_params'])}
+"""
 
+    source += f"""
 }};
 }} // namespace MetaModule
 """
@@ -513,6 +524,7 @@ if __name__ == "__main__":
     parser.add_argument("--input", required=True, help="Name of info SVG file (*.svg: typically *_info.svg). Pass a directory name to process all *.svg in the directory")
     parser.add_argument("--outdir", required=True, help="Directory to output *_info.hh header file")
     parser.add_argument("--brand", required=True, help="Brand slug, used in `png_filename = \"BRAND/...\"")
+    parser.add_argument("--legacy", required=False, help="Include legacy naming", default=False) 
     parser.add_argument("-v", dest="verbose", help="Verbose logging", action="store_true")
     args = parser.parse_args()
 
@@ -528,7 +540,7 @@ if __name__ == "__main__":
         outdir = args.outdir
 
     if os.path.isfile(args.input):
-        createInfoFile(args.input, outdir, args.brand)
+        createInfoFile(args.input, outdir, args.legacy, args.brand)
 
     elif os.path.isdir(args.input):
         svg_files = Path(args.input).glob("*.svg")

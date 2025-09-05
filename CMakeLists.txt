@@ -1,13 +1,13 @@
 project(Metamodule-SDK)
 
-# metamodule-rack-interface: library to interface with RackSDK adaptor
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/metamodule-rack-interface metamodule-rack-interface)
+# rack-interface: library to interface with RackSDK adaptor
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/rack-interface rack-interface)
 
-# metamodule-core-interface: library to interface with MetaModule CoreModule
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/metamodule-core-interface metamodule-core-interface)
+# core-interface: library to interface with MetaModule CoreModule
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/core-interface core-interface)
 
-# metamodule-plugin-libc: provides libc and libstdc++ for plugins
-add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/metamodule-plugin-libc metamodule-plugin-libc)
+# plugin-libc: provides libc and libstdc++ for plugins
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/plugin-libc plugin-libc)
 
 # cpputil
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/cpputil cpputil)

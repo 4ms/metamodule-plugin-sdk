@@ -1,0 +1,129 @@
+#pragma once
+#include <memory>
+#include <optional>
+#include <string_view>
+
+namespace MetaModule
+{
+
+struct WavFileStream {
+
+	// Construct WavFileStream with the size of the pre-buffer
+	WavFileStream(size_t max_samples);
+
+	~WavFileStream();
+
+	// Sets the maximum size of the buffer in samples.
+	// If needed, the buffer may be cleared and reset.
+	// Returns true if this happens, false if not.
+	bool resize(size_t max_samples);
+
+	// This returns the maximum allowed buffer size, in samples
+	// The actually buffer might be smaller if the wav file is smaller than max_size()
+	size_t max_size() const;
+
+	// Returns the size of the buffer
+	size_t buffer_samples() const;
+	size_t buffer_frames() const;
+
+	////
+	/// Load/unloading wav file:
+	///
+
+	// Given a file path, loads the wav file
+	// The file will be read periodically until you call unload()
+	bool load(std::string_view sample_path);
+
+	// Releases use of the wav file
+	void unload();
+
+	bool is_loaded() const;
+
+	////
+	/// Reading into and out of the pre-buffer
+	///
+
+	// Reads audio frames from the wav file on disk
+	// You can omit the number of frames if you want to use
+	// an optimized amount based on the wav file format.
+	// Since this blocks while accessing the disk,
+	// DO NOT CALL THIS FROM THE AUDIO CONTEXT
+	// Instead, call this periodically when the buffer is low
+	// from an Async thread.
+	// This gives an error (which is not yet handled) if you overflow the buffer.
+	void read_frames_from_file();
+	void read_frames_from_file(int num_frames);
+
+	// Call this from the audio context to get the next sample.
+	// Keep in mind if your file is stereo, then you should call this
+	// twice in a row to get the whole frame.
+	float pop_sample();
+
+	////
+	/// Current state of playback and buffering
+	///
+
+	// Returns the number of samples available in the buffer
+	unsigned samples_available() const;
+
+	// Returns the number of samples available in the buffer
+	// which is just samples_available / # of channels
+	unsigned frames_available() const;
+
+	float sample_seconds() const;
+
+	// Whether or not the file has been read to the end.
+	// Useful if you want to loop, then you can seek back to the beginning
+	bool is_eof() const;
+
+	bool is_file_error() const;
+
+	// The index of the audio frame that will be returned in the next call to
+	// pop_sample().
+	// When this equals the total_frames(), the entire sample has been played.
+	unsigned current_playback_frame() const;
+	unsigned latest_buffered_frame() const;
+	unsigned first_frame_in_buffer() const;
+
+	////
+	/// TRANSPORT
+	///
+
+	// Jumps the play head to a particular frame.
+	// If the frame is in the pre-buffer, then the read head will just
+	// jump to that position in the pre-buffer.
+	// Otherwise the pre-buffer will be cleared/reset in anticipation
+	// of starting to pre-buffer from this frame.
+	// Must only be called by audio thread. The async thread
+	// should call seek_frame_in_file after this.
+	void reset_playback_to_frame(uint32_t frame_num);
+
+	// Jumps the wav file reading head to a particular frame index in the
+	// wav file. If the frame is alraedy in the pre-buffer,
+	// then this does nothing at all. Otherwise it will do a file seek.
+	// The audio thread should have just called reset_playback_to_frame()
+	// when you call this.
+	// Must be called by async filesystem thread.
+	void seek_frame_in_file(uint32_t frame_num = 0);
+
+	////
+	/// Wav file information
+	///
+
+	// Whether the file is stereo or not
+	bool is_stereo() const;
+	// number of channels
+	unsigned num_channels() const;
+
+	// Total number of audio frames in the sample
+	unsigned total_frames() const;
+
+	// Sample rate of the wav file
+	unsigned wav_sample_rate() const;
+
+private:
+	struct Internal;
+	std::unique_ptr<Internal> internal;
+};
+
+} // namespace MetaModule
