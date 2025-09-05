@@ -1,6 +1,5 @@
 #pragma once
 #include "util/version_tools.hh"
-#include <cstdint>
 
 namespace MetaModule
 {
