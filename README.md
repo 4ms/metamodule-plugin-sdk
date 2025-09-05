@@ -17,12 +17,10 @@ For example projects using this SDK, see [metamodule-plugin-examples](https://gi
 ## API Reference:
  - VCV Rack-ported modules
     - [VCV Rack adaptor](docs/rack-adaptor.md)
-
  - CoreModules ("native" MetaModule modules)
      - [CoreProcessor class](docs/coreprocessor.md)
      - [Elements](docs/elements.md)
      - [Registering a module](docs/module-registry.md)
-
  - [Text Screens/Displays](docs/text-displays.md)
  - [Graphical Screens/Displays](docs/graphic-displays.md)
  - [System API](docs/system-api.md)
