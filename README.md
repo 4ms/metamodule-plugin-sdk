@@ -15,10 +15,14 @@ For example projects using this SDK, see [metamodule-plugin-examples](https://gi
   - Optional (recommended): jq (for validating plugin-mm.json file)
 
 ## API Reference:
- - VCV Rack adaptor (TODO)
- - [CoreProcessor class](docs/coreprocessor.md)
- - [Elements](docs/elements.md)
- - [Registering a module](docs/module-registry.md)
+ - VCV Rack-ported modules
+    - [VCV Rack adaptor](docs/rack-adaptor.md)
+
+ - CoreModules ("native" MetaModule modules)
+     - [CoreProcessor class](docs/coreprocessor.md)
+     - [Elements](docs/elements.md)
+     - [Registering a module](docs/module-registry.md)
+
  - [Text Screens/Displays](docs/text-displays.md)
  - [Graphical Screens/Displays](docs/graphic-displays.md)
  - [System API](docs/system-api.md)
@@ -30,10 +34,10 @@ For example projects using this SDK, see [metamodule-plugin-examples](https://gi
      - Time
  - [Filesystem calls](docs/filesystem-syscalls.md)
  - [File browser](docs/file-browser.md)
- - [Async Thread API](docs/async-threads.md)
+ - [Async Thread](docs/async-threads.md)
  - [DSP helper classes](docs/dsp.md)
  - [Wav File Streaming class](docs/wav-file-stream.md)
- - [Graphics helper classes](docs/graphics-helpers.md) (TODO)
+ - [Graphics helper classes](docs/graphics-helpers.md)
 
  ## General topics:
  - [How Plugins Work](docs/how-plugins-work.md)
@@ -209,6 +213,6 @@ See [limitations](docs/limitations.md) for more discussion.
 ## Licensing/Permissions 
 
 If you are porting a plugin which you are not the original author, read this
-before you get too far in the porting process: (Licensing and
-Permissions)[licensing_permissions.md]
+before you get too far in the porting process: [Licensing and
+Permissions](licensing_permissions.md)
 

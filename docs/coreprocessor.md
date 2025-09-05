@@ -192,7 +192,7 @@ not have real-time requirements:
   or other dynamic containers, or to read from support files.
 
 - AsyncThreads: these are tasks that your main module can launch to run
-  in the background. See [./async-threads.md].
+  in the background. See [Async Threads](./async-threads.md).
 
 - For VCV-ported modules, context menus are called by the GUI thread and thus
   are safe to make filesystem calls or memory allocations.

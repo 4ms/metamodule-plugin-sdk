@@ -1,13 +1,13 @@
 # Tips
 
 
-## Allocations
+## Memory Allocations
 
 The MetaModule has hard real-time requirements in order to acheive low-latency
 audio. 
 
 There is an audio "thread" which has the highest priority of any task. The
-audio thread calls your module's `process()` function for each sample frame.
+audio thread calls your module's `process()` or `update()` function for each sample frame.
 Therefore any code in the `process()` function must be optimized for efficient
 execution.
  
@@ -47,6 +47,23 @@ a heap allocation. Use `reserve()` if you still need dynamic re-sizing.
 Then, in the `process()` function, make sure there is no situation in which a
 memory allocation can happen.
 
+## Memory
+
+The MetaModule has about 300MB of RAM dedicated for plugins to use. This includes
+the plugin code (but not data such as PNG files), and any memory individual modules
+in the patch will use. Be mindful that this is a shared resource, so try to 
+keep the memory footprint low if your module deals with large buffers (several MB or more)
+or is able to load files of arbitrary sizes. Remember that users will often want
+duplicates of a module in a patch to make it 4-voice, 8-voice, etc. 
+
+## Disk Access
+
+File system access is permitted on the MetaModule. However, it is much slower than
+on a desktop computer. Also keep in mind that file paths differ on the computer
+than they do on the MetaModule.
+Use the helper function `translate_path_to_local()` to convert a computer
+path to a MetaModule path (see [Filesystem Calls](./filesystem-syscalls.md)
+
 
 ## Block sizes
 
@@ -85,4 +102,12 @@ Clearly, if `increment` is some value greater than the size of the wavetable,
 the module might crash. On desktop system, you are more likely to get a value
 of 0 for `increment`, therefore the bug will not show itself.
 
+## MetaModule platform vs. Computer (VCV Rack) platform
+
+The MetaModule runs without an operating system, and so has some different
+requirements than code written to be run on a desktop computer for VCV Rack.
+Also, subtle bugs or or less-than-ideal practices might rarely cause a problem
+on a fast computer with GB of RAM, but might cause frequent issues with the
+MetaModule's constrained resources. So, the process of porting can bring to
+light these issue.
 
