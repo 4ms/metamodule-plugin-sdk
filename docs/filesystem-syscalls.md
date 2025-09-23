@@ -97,7 +97,7 @@ to always process all file paths with `translate_path_to_local`.
   already local, it will be returned unaltered. If `num_subdirs` is 0, the filename will
   be extracted from the path and the rest will be ignored. If `num_subdirs` >
   0, the filename plus `num_subdirs` parent directories will be kept.
-- `local_path`: the MetaModule path you want to pre-prend. Typically this is `Patch::get_path()`.
+- `local_path`: the MetaModule path you want to pre-prend. Typically this is `Patch::get_dir()`.
 - `num_subdirs`: sets how many subdirectories to capture from `path` (default 0, max 2)
 
 This function allocates strings, and is not safe to call from the audio context.
@@ -108,13 +108,16 @@ The most simple way would be to have the user copy any files that a patch uses i
 directory as the patch .yml file. Then the module calls this:
 
 ```c++
-std::string mm_path = translate_path_to_local(vcv_computer_path, Patch::get_path());
+std::string mm_path = Filesystem::translate_path_to_local(vcv_computer_path, Patch::get_dir());
 ```
+
 mm_path will point to a file with the same name as the file in `vcv_computer_path`,
 but in the same dir as the currently playing patch file.
 
 ```c++
 #include "filesystem/helpers.hh"
+#include "patch/patch_file.hh"
+
 using namespace MetaModule;
 
 class MyModule : rack::engine::Module {
@@ -128,7 +131,7 @@ class MyModule : rack::engine::Module {
 			std::string samplePath = json_string_value(samplePathJ);
 
             // Translate the path to "usb:/loop.wav"
-            std::string localSamplePath = translate_path_to_local(samplePath, Patch::get_path());
+            std::string localSamplePath = Filesystem::translate_path_to_local(samplePath, Patch::get_dir());
 
             load_sample_file(localsamplePath);
         }
