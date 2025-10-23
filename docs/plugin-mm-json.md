@@ -42,7 +42,7 @@ plugins website. Order does not matter:
 
 - `MetaModuleBrandName`: This is the display name for your plugin. When adding
   a new module to a patch, modules are sorted by brand names. This field sets
-  how the brand name will be shown. If not present, then the field `name` from 
+  how the brand name will be shown. If not present, then the `name` field from 
   the `plugin.json` file will be used (if that file is present), otherwise the 
   plugin file name stem will be used (e.g. `CoolModular-v1.2.mmplugin` =>
   `CoolModular`). Required for website listing.
