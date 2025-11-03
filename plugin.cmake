@@ -68,6 +68,14 @@ function(create_plugin)
         message(FATAL_ERROR "plugin-mm.json must be in the root dir of the plugin: ${CMAKE_CURRENT_SOURCE_DIR}.")
     endif()
 
+    # If MSYS but not using MSYS Makefiles, then we need to correct the path
+    execute_process(COMMAND uname OUTPUT_VARIABLE uname)
+    if (MSYS OR uname MATCHES "^MSYS" OR uname MATCHES "^MINGW")
+        if (NOT "{CMAKE_GENERATOR}" MATCHES "MSYS Makefiles")
+            string(REGEX REPLACE "^([a-zA-Z]):" "/\1" PLUGIN_MM_JSON_SOURCE "${PLUGIN_MM_JSON_SOURCE}")
+        endif()
+    endif()
+
     find_program(JQ_EXECUTABLE jq)
     if(NOT JQ_EXECUTABLE)
         message(WARNING "Cannot find jq program. You must manually validate plugin-mm.json")
