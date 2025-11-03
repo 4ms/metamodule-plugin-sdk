@@ -127,12 +127,23 @@ cmake --fresh -B build -G Ninja
 cmake --build build
 ```
 
+For Windows, using MSYS2 and MinGW, use the MSYS Makefiles generator instead of Ninja:
+```bash
+## For Windows (msys/mingw):
+cmake --fresh -B build -G "MSYS Makefiles"
+cmake --build build
+```
+
+
 You must have the `arm-none-eabi-gcc` toolchain v12 on your PATH. Or, you can
 specify the path to it with the Cmake variable `TOOLCHAIN_BASE_DIR`:
+
 
 ```bash
 cmake --fresh -B build -G Ninja -DTOOLCHAIN_BASE_DIR=/path/to/arm-gnu-toolchain-12.3-arm-none-eabi/bin
 ```
+
+Note: for Windows/msys, use `-G "MSYS Makefiles"` instead of `-G Ninja`
 
 ## Path to the SDK
 
@@ -194,6 +205,8 @@ cmake --build build
 ```
 
 You also can do neither of the above and just make sure the SDK is in the parent dir.
+
+Note: for Windows/msys, use `-G "MSYS Makefiles"` instead of `-G Ninja` in the above commands.
 
 
 ## Limitations
