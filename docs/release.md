@@ -9,7 +9,7 @@ compliance will all licensing requirements and have obtained permission
 from any original author(s) of the code (e.g. if you are porting a plugin
 that you did not originally create).
 
-You must read and follow all guidance here: [Licensing and Permissions](licensing_and_permissions.md).
+You must read and follow all guidance here: [Licensing and Permissions](licensing_permissions.md).
 
 
 ## Listing on the official MetaModule plugins page
