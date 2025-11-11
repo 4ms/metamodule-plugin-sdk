@@ -38,7 +38,7 @@ With native plugins you can register modules using the function
 `register_module()`. This function is declared in
 `core-interface/CoreModules/register_module.hh`:
 
-See [docs/module-registry.md] for an example.
+See [Module Registry](module-registry.md) for an example.
 
 
 ## ModuleInfo and Elements
@@ -48,5 +48,4 @@ Roughly speaking, the CoreProcessor class defines the audio/DSP aspects, and the
 class defines the UI aspects.
 
 See [Elements docs](elements.md) for more information about creating the elements for your module.
-
 

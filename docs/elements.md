@@ -155,7 +155,7 @@ Typically these will be put into a class that you create, called the `ModuleInfo
 This class should derive from ModuleInfoBase.
 ModuleInfoBase also contains some other useful meta data about your module,
 such as the slug, the width, and the faceplate PNG name. 
-See [core-interface/CoreModules/elements/element_info.hh].
+See [core-interface/CoreModules/elements/element_info.hh](../core-interface/CoreModules/elements/element_info.hh).
 
 
 ```c++
@@ -195,8 +195,8 @@ struct ModuleInfoBase {
 
 - `Elements`: this is an array of elements such as jacks, knobs, etc. 
 Each entry is of the type `Element` which is a std::variant type of various base types:
-(see [core-interface/CoreModules/elements/elements.hh] for the variant definition and 
-[core-interface/CoreModules/elements/base_element.hh] for the element definitions).
+(see [core-interface/CoreModules/elements/elements.hh](../core-interface/CoreModules/elements/elements.hh) for the variant definition and 
+[core-interface/CoreModules/elements/base_element.hh](../core-interface/CoreModules/elements/base_element.hh) for the element definitions).
 
 The order of the elements in the Elements array determines the ID of each param, jack, and light.
 The first param has ID 0, the second param has ID 1, etc...
@@ -243,7 +243,7 @@ void init() {
 }
 ```
 
-See [docs/module-registry.md] for more discussion on registring a module.
+See [Module Registry](./module-registry.md) for more discussion on registering a module.
 
 4ms modules use this technique, by defining custom types derived from the `Element` types.
 This reduces all the braces needed and also repeating things like the image name.
@@ -333,4 +333,3 @@ If your Elements use any dynamically generated strings, then you will also need 
 static storage duration. The Airwindows example does this by having a `std::list<std::string>`, and
 all element names are placed in there. Then the `image` and `short_name` fields of each element are
 set to point to these std::strings in the std::list. See the Airwindows example if you need to do this.
-

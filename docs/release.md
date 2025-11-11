@@ -5,7 +5,7 @@ Now that you have a working plugin, it's time to share it with the world!
 ## Licensing and Permissions
 
 Before you consider releasing your plugin, make sure you are 100% in
-compliance will all licensing requirements and have obtained permission
+compliance with all licensing requirements and have obtained permission
 from any original author(s) of the code (e.g. if you are porting a plugin
 that you did not originally create).
 
@@ -67,7 +67,7 @@ maintainers must send us at least the following:
 
 ## .mmplugin file name
 
-The .mmplugin file name is important! It's used in three place:
+The .mmplugin file name is important! It's used in three places:
 - The script that scans releases for putting them on the plugin page on our website
 - The MetaModule firmware plugin loader (Settings > Plugin tab, and the preloader)
 - Users who want to keep all their plugins organized
@@ -79,8 +79,8 @@ The file name must be in this format:
 ```
 
 
-Optionally, you can include the SDK version which is only required if you're building
-for a developement (e.g. beta or pre-release) firmware.
+Optionally, you can include the SDK version, which is only required if you're building
+for a development (e.g., beta or pre-release) firmware.
 ```
 [BrandSlug]-v[plugin-version]-[sdk-version].mmplugin
 ```
@@ -107,7 +107,7 @@ for a developement (e.g. beta or pre-release) firmware.
       released firmware. If it's omitted then the website and the MM firmware
       will scan the contents to determine if it's compatible with the current
       firmware. If this field is present then it must be in the form `fw-X.Y`,
-      e.g. `fw-2.0` indicates it requries firmware v2.0 or later.
+      e.g. `fw-2.0` indicates it requires firmware v2.0 or later.
         - Note: if you recompile using a new SDK, make sure to bump the version up.
           Otherwise it'll be unclear to users which version is for which firmware.
 
@@ -138,14 +138,14 @@ Example: This is never OK for a release (only OK for testing locally):
   - `Myplugin.mmplugin`
 
 Notice `Myplugin-v0.9.mmplugin` could be valid for any version firmware.
-This ambiguity will not happen in actual circumstance because when re-compiling
+This ambiguity will not happen in actual circumstances because when re-compiling
 with a newer SDK you should bump up the plugin version (or use the -fw-X.Y tag).
 The website and MM firmware will scan the contents of the plugin file
 to determine the SDK version, so no special considerations need to be made with
 regards to those.
 
 
-## Plugin-mm.json file
+## plugin-mm.json file
 
 This json file will get packaged into the plugin by the SDK cmake script. 
 At minimum, to be listed on the website, it must contain these fields:
@@ -169,19 +169,19 @@ At minimum, to be listed on the website, it must contain these fields:
 }
 ```
 
-See the [plugin-mm.json](plugin-mm.json) docs for descriptions of the fields, and more fields you can add.
+See the [plugin-mm.json](plugin-mm-json.md) docs for descriptions of the fields, and more fields you can add.
 
 The file must be valid json and not contain syntax errors (json is very picky).
 Consider running it in an online json checker to verify it.
 
 
 
-## Publishing by manually creating Github releases
+## Publishing by manually creating GitHub releases
 
 This is a simple way to publish a release, but it takes some steps to do each time
 you make a release. See the next section if you want to set up an automatic release system.
 
-In a Github repo, go to the Releases tab and click the button to draft a new release.
+In a GitHub repo, go to the Releases tab and click the button to draft a new release.
 
 You need to create a new tag: click Choose a tag and then type a tag name in the box. Click "Create new tag (..your tag..) on publish"
 Any tag would work, but a good practice is to use the version for your tag. For instance, "v0.8" if your plugin is currently v0.8.
@@ -199,7 +199,7 @@ If for some reason you want to hide a release from our website, checking this bo
 Click "Publish Release" and send us a message to scan for your new release!
 
 
-## Publishing with a Github Workflow
+## Publishing with a GitHub Workflow
 
 This is optional, and takes some time to set up, but it pays off by making 
 it easy to generate releases.
@@ -317,14 +317,14 @@ git push origin v1.0-dev-13
 
 This will make a plugin file named `Plugin-v1.0-dev-13.mmplugin`
 
-Then you can go to the Actions tab on the github site for your repo and click
+Then you can go to the Actions tab on the GitHub site for your repo and click
 on the "Build and release plugin" action. On the right, you can then select
 "Run workflow":
 
 ![Run workflow](run-workflow.png)
 
 From this menu, you will need to pick the tag you just pushed. This is important:
-you cannot pick a branch, you have to pick a tag. Github does not allow releases
+you cannot pick a branch; you have to pick a tag. GitHub does not allow releases
 from branches, only from tags. If you don't see the tag you just pushed, make
 sure you really pushed it and refresh your browser. You can go ahead and run
 the workflow without a tag, but you cannot generate a release without a tag.
@@ -348,6 +348,5 @@ tag. You can also can run the workflow from the command line using the `gh`
 program (that's [how we build our
 releases](https://github.com/4ms/metamodule-plugin-examples/blob/main/release.sh)).
 
-Github has extensive docs on workflows, and there are tons of examples
+GitHub has extensive docs on workflows, and there are tons of examples
 online.
-

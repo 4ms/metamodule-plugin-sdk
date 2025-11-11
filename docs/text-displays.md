@@ -1,6 +1,6 @@
 # Displays (Screens)
 
-Virtual modules can have screens (or "display") which display information about the modules's state.
+Virtual modules can have screens (or "displays") that show information about the module's state.
 The MetaModule recognizes two types of displays: Text and Graphics.
 
 Text Displays have text only. Graphics Displays can have text and/or graphics
@@ -8,7 +8,7 @@ Text Displays have text only. Graphics Displays can have text and/or graphics
 
 If you are porting a VCV Rack module to MetaModule, then Graphic Displays often work automatically.
 
-For more information about Graphics Displays, see the docs page: [Graphical Screens/Displays](graphic-displays.md)
+For more information about Graphics Displays, see: [Graphical Screens/Displays](graphic-displays.md)
 
 
 ## When to use Text Displays vs. Graphics Displays?
@@ -21,12 +21,12 @@ efficiently. However, for most purposes, Graphical Displays have a good-enough
 framerate and no one would notice a difference.
 
 The other reason to use Text Displays is that Graphics Displays are not
-supported in the v1.x firmware branch, so if you are targetting that branch
+supported in the v1.x firmware branch, so if you are targeting that branch
 then you're limited to using Text Displays only. Also, there is no native plugin
 API for graphics displays (yet -- I would be happy to prioritize this if
 someone wants to use it!).
 
-For more information about Graphics Displays, see the docs page: [Graphical Screens/Displays](graphic-displays.md)
+For more information about Graphics Displays, see: [Graphical Screens/Displays](graphic-displays.md)
 
 The remainder of this document refers to Text Displays only.
 
@@ -268,4 +268,3 @@ To access this font (MyFont_12), you would set font like this (remember, the `as
 ```c++
     display->font = "MyPlugin/MyFont_12.bin";
 ```
-

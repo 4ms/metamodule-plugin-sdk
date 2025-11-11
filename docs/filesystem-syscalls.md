@@ -37,14 +37,14 @@ You can use these exactly as they are used on a desktop computer. However, there
 
 
 - Disk access is not allowed from the audio context. That is, you cannot 
-  read or write files in the modules's `process()` or `update()` function.
+  read or write files in the module's `process()` or `update()` function.
   Accessing the filesystem is allowed only in the module's constructor and
   destructor, `load_state` or `save_state` function (`dataToJson` and `dataFromJson` 
   for VCV ports), in any GUI code (`*_graphic_display()`), VCV context menus,
-  and in AsyncThreads. See [./coreprocessor.md] for a detailed discussion.
+  and in AsyncThreads. See [CoreProcessor](./coreprocessor.md) for a detailed discussion.
 
 
-  Note that not access the filesystem in the audio context is 
+  Note: do not access the filesystem in the audio context. This is 
   also true for desktop computer usage, but due to the threading model
   and speed of modern disks, it might only cause problems on some user's 
   computers some of the time, and appear to work OK other times.
@@ -97,14 +97,14 @@ to always process all file paths with `translate_path_to_local`.
   already local, it will be returned unaltered. If `num_subdirs` is 0, the filename will
   be extracted from the path and the rest will be ignored. If `num_subdirs` >
   0, the filename plus `num_subdirs` parent directories will be kept.
-- `local_path`: the MetaModule path you want to pre-prend. Typically this is `Patch::get_dir()`.
+- `local_path`: the MetaModule path you want to prepend. Typically this is `Patch::get_dir()`.
 - `num_subdirs`: sets how many subdirectories to capture from `path` (default 0, max 2)
 
 This function allocates strings, and is not safe to call from the audio context.
 
 **Example usage:**
 
-The most simple way would be to have the user copy any files that a patch uses into the same
+The simplest way is to have the user copy any files that a patch uses into the same
 directory as the patch .yml file. Then the module calls this:
 
 ```c++
@@ -133,7 +133,7 @@ class MyModule : rack::engine::Module {
             // Translate the path to "usb:/loop.wav"
             std::string localSamplePath = Filesystem::translate_path_to_local(samplePath, Patch::get_dir());
 
-            load_sample_file(localsamplePath);
+            load_sample_file(localSamplePath);
         }
 	}
 

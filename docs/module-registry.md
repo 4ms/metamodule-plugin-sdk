@@ -9,7 +9,7 @@ See the docs on [CoreProcessor](./coreprocessor.md) and [Elements](./elements.md
 about creating those classes for your module.
 
 There are several overloads for `register_module` function, you can read details
-in [core-interface/CoreModules/register_module.hh].
+in [core-interface/CoreModules/register_module.hh](../core-interface/CoreModules/register_module.hh).
 
 We'll discuss one common and easy to use overload here:
 
@@ -65,11 +65,9 @@ your module class like this:
 // module's constructor. We could do it like this:
 register_module(
     "MyBrand", "MyModule", 
-    [&]() { return std::make_unqiue<MyModuleClass>(someParameter); }, 
+    [&]() { return std::make_unique<MyModuleClass>(someParameter); }, 
     info, faceplate);
 
 // Note that you need to also define `info`, see next section:
 ```
-
-
 

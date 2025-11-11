@@ -1,7 +1,7 @@
 # Graphics Displays
 
-Virtual modules can have screens (or "display") which display information about
-the modules's state. The MetaModule recognizes two types of displays: Text and
+Virtual modules can have screens (or "displays") that show information about
+the module's state. The MetaModule recognizes two types of displays: Text and
 Graphics.
 
 Text Displays have text only. Graphics Displays can have text and/or graphics
@@ -158,4 +158,3 @@ if (font && font->handle >= 0) {
     // safe to use the font here
 }
 ```
-
