@@ -221,9 +221,10 @@ on:
         description: 'MetaModule SDK branch'
         required: true
         type: choice
+        default: main
         options:
           - main
-          - v2.0-dev
+          # You can add more options here if you need to test on different SDK versions
       do_release:
         description: 'Create Release (must also select Tag above!")'
         required: true
@@ -267,16 +268,15 @@ jobs:
 
       - name: Build
         run: |
-          mkdir -p metamodule-plugins
+          mkdir -p ${{ github.workspace }}/metamodule-plugins
           # Get the SDK
-          git clone -b ${{ inputs.SDK_branch }} https://github.com/4ms/metamodule-plugin-sdk --recursive 
-          # Validate plugin-mm.json syntax
-          jq -e . plugin-mm.json >/dev/null || exit 1
+          git clone -b ${{ inputs.SDK_branch }} https://github.com/4ms/metamodule-plugin-sdk --recursive ${{ github.workspace }}/metamodule-plugin-sdk
+
           # Build the plugin
-          cmake -B build -G Ninja -DMETAMODULE_SDK_DIR=metamodule-plugin-sdk
+          cmake -B build -G Ninja -DMETAMODULE_SDK_DIR=${{ github.workspace }}/metamodule-plugin-sdk -DINSTALL_DIR=${{ github.workspace }}/metamodule-plugins
           cmake --build build
           # Add version tag and required firmware version to the plugin file name:
-          cd metamodule-plugins && for f in *.mmplugin; do mv $f ${f%.mmplugin}-${{ env.CI_REF_NAME }}.mmplugin; done;
+          cd ${{ github.workspace }}/metamodule-plugins && for f in *.mmplugin; do mv $f ${f%.mmplugin}-${{ env.CI_REF_NAME }}.mmplugin; done;
 
       - name: Release
         if: startsWith(github.ref, 'refs/tags/') && inputs.do_release
