@@ -202,7 +202,8 @@ Click "Publish Release" and send us a message to scan for your new release!
 ## Publishing with a GitHub Workflow
 
 This is optional, and takes some time to set up, but it pays off by making 
-it easy to generate releases.
+it easy to generate releases. It also makes builds reproducible which
+eliminates a whole class of strange issues.
 
 Use this file as a template and save it as a .yml file in your
 .github/workflows/ dir (create that dir if it doesn't exist), for example
@@ -268,14 +269,15 @@ jobs:
 
       - name: Build
         run: |
+          # Create directory for the plugin to be created in:
           mkdir -p ${{ github.workspace }}/metamodule-plugins
-          # Get the SDK
+          # Get the SDK:
           git clone -b ${{ inputs.SDK_branch }} https://github.com/4ms/metamodule-plugin-sdk --recursive ${{ github.workspace }}/metamodule-plugin-sdk
 
-          # Build the plugin
-          cmake -B build -G Ninja -DMETAMODULE_SDK_DIR=${{ github.workspace }}/metamodule-plugin-sdk -DINSTALL_DIR=${{ github.workspace }}/metamodule-plugins
+          # Build the plugin:
+          cmake -B build -G Ninja -DMETAMODULE_SDK_DIR=${{ github.workspace }}/metamodule-plugin-sdk
           cmake --build build
-          # Add version tag and required firmware version to the plugin file name:
+          # Add version tag to the plugin file name:
           cd ${{ github.workspace }}/metamodule-plugins && for f in *.mmplugin; do mv $f ${f%.mmplugin}-${{ env.CI_REF_NAME }}.mmplugin; done;
 
       - name: Release
@@ -287,17 +289,23 @@ jobs:
             metamodule-plugins/*.mmplugin
 ```
 
-Go to your repo's GitHub page and make sure you see the "Build and release
-MetaModule plugin" action in the Actions tab. If not, check your settings to
-see if Actions or workflows is enabled.
 
-In your repo Settings, click Actions > General in the left side bar. Then scroll
-down to "Workflow permissions" and enable "Read and write permissions"
+### Enabling the workflow permissions
+Go to your repo's GitHub page and make sure you see the "Build and release
+MetaModule plugin" action in the Actions tab. 
+
+If not, check your settings to see if Actions or workflows is enabled: In your
+repo Settings, click Actions > General in the left side bar. Then scroll down
+to "Workflow permissions" and enable "Read and write permissions"
 
 ![Workflow permissions](settings-actions-general-permissions.png)
 
 
-To make a release, you need to push a version tag the above sections. For example:
+### Running the workflow to create a release
+
+To make a release, you first need to push a git tag that contains the plugin
+version that you want to release. For example, if you are releasing v1.0 of your
+plugin, then type these commands:
 
 ```
 git tag -a v1.0 -m "First release, yay!"
@@ -305,43 +313,74 @@ git push origin v1.0
 ```
 
 The version in the tag you create will get appended to the name of the plugin file.
-In the above, the plugin will be named `Plugin-v1.0.mmplugin`. So make sure your tag
+In the above, the plugin will be named `Plugin-v1.0.mmplugin`. Make sure your tag
 follows the rules for naming plugins.
 
-If you want release for the firmware dev-13, for example, then do this:
-
-```
-git tag -a v1.0-dev-13 -m "First release for firmware dev-13, yay!"
-git push origin v1.0-dev-13
-```
-
-This will make a plugin file named `Plugin-v1.0-dev-13.mmplugin`
-
-Then you can go to the Actions tab on the GitHub site for your repo and click
+Next, go to the Actions tab on the GitHub site for your repo and click
 on the "Build and release plugin" action. On the right, you can then select
 "Run workflow":
 
 ![Run workflow](run-workflow.png)
 
-From this menu, you will need to pick the tag you just pushed. This is important:
-you cannot pick a branch; you have to pick a tag. GitHub does not allow releases
-from branches, only from tags. If you don't see the tag you just pushed, make
-sure you really pushed it and refresh your browser. You can go ahead and run
-the workflow without a tag, but you cannot generate a release without a tag.
+From this menu, you will need to pick the tag you just pushed. This is
+important: you cannot pick a branch; you have to pick a tag. GitHub does not
+allow releases from branches, only from tags. 
 
-Then pick the SDK version you want to build with (main or v2.0-dev). Check the
-"Create release" checkbox (unless you just want to test building).
+To pick the tag, first click on "Use workflow from:" and then in the pop-up
+click "Tags". Then click the tag you just created.
 
-After it's done building, you will see the release on the Releases tab (assuming 
-you chose a tag -- not a branch -- and you clicked "Create Release").
+If you don't see the tag you just pushed, make sure you really pushed it and
+refresh your browser. You can go ahead and run the workflow without a tag, but
+you cannot generate a release without a tag.
 
-Now, send us a message to add your release.
+Check the "Create Release" checkbox (unless you just want to test building).
+
+After it's done building, you will see the release on the Releases page of your
+github repo (assuming you chose a tag -- not a branch -- and you clicked
+"Create Release").
+
+Now, download the release file and make sure it works as intended. 
+If so, send us a message to add your release.
+
+### Customizing the workflow
+
+You may need to customize this script a bit so that it builds your plugin.
+For example, if you structured your plugin files so that the MetaModule plugin
+is built from the `metamodule/` directory, then add `cd metamodule/` before the
+other build commands:
+
+```yaml
+      - name: Build
+        run: |
+          # Create directory for the plugin to be created in:
+          mkdir -p ${{ github.workspace }}/metamodule-plugins
+          # Get the SDK:
+          git clone -b ${{ inputs.SDK_branch }} https://github.com/4ms/metamodule-plugin-sdk --recursive ${{ github.workspace }}/metamodule-plugin-sdk
+          # Build the plugin:
+          cd metamodule  # <<< This line added to build from the metamodule/ directory.
+                         # The rest of the script is the same...
+          cmake -B build -G Ninja -DMETAMODULE_SDK_DIR=${{ github.workspace }}/metamodule-plugin-sdk
+```
+
+
+Or, perhaps your repository contains the SDK already as a submodule. In that case,
+you don't want the workflow script to download the SDK. Instead, do this:
+
+```yaml
+      - name: Build
+        run: |
+          # Create directory for the plugin to be created in:
+          mkdir -p ${{ github.workspace }}/metamodule-plugins
+          # Omit the line that gets the SDK.
+          # Build the plugin:
+          cmake -B build -G Ninja -DMETAMODULE_SDK_DIR=${{ github.workspace }}/metamodule-plugin-sdk
+          # You may need to adjust the path to the SDK ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          # The rest of the script is the same...
+```
+
 
 If you need different options for the SDK version, you can modify this script
-to pick a different branch or tag. Or, a more flexible approach is to include
-the SDK as a submodule (maybe your repo already does this?), in which case
-there's no need for the SDK branch selection, so you'll want to remove that
-from the workflow script.
+to pick a different branch or tag. 
 
 Another improvement is to have the workflow automatically run when you push a
 tag. You can also can run the workflow from the command line using the `gh`
