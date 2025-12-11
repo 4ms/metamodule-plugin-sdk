@@ -16,7 +16,9 @@ namespace midi
 
 struct Message {
 	std::array<uint8_t, 3> bytes{};
-	uint8_t size = 3;
+
+	uint8_t size : 4 = 3;
+	uint8_t usb_cable : 4 = 0;
 
 	Message() = default;
 
@@ -67,6 +69,10 @@ struct Message {
 
 	void setFrame(int64_t frame) {
 		// this->frame = frame;
+	}
+
+	int getUsbCable() const {
+		return usb_cable;
 	}
 };
 
