@@ -15,21 +15,64 @@ namespace midi
 {
 
 struct Message {
+	// For compatiblity with Rack, `bytes` is public, but
+	// it should not be accessed directly
 	std::array<uint8_t, 3> bytes{};
 
-	uint8_t size : 4 = 3;
 	uint8_t usb_cable : 4 = 0;
+	uint8_t usb_code : 4 = 0;
 
 	Message() = default;
 
 	int getSize() const {
-		return size;
+		// Check status byte to determine size
+		if ((bytes[0] & 0xF0) <= 0xB0 && (bytes[0] & 0xF0) >= 0x80) // Note On/Off, CC, PolyPressure
+			return 3;
+		if ((bytes[0] & 0xF0) == 0xC0) // Prog Change
+			return 1;
+		if ((bytes[0] & 0xF0) == 0xD0) // Chan Pressure
+			return 1;
+		if ((bytes[0] & 0xF0) == 0xE0) // Pitch Bend
+			return 3;
+
+		// SysEx payload
+		if (!(bytes[0] & 0x80)) {
+			if (usb_code == 0x4) // Start or continue
+				return 3;
+			if (usb_code == 0x5) // single byte
+				return 1;
+			if (usb_code == 0x6) // two byte
+				return 2;
+			if (usb_code == 0x7) // three byte
+				return 3;
+			// else invalid?
+		}
+
+		// SysEx Start: check usb CIN field
+		if (bytes[0] == 0xF0) {
+			return usb_code == 0x5 ? 1 : // Single sysex
+				   usb_code == 0x6 ? 2 : // SysEx ends after 2 bytes
+									 3;  // 0x4 or 0x7: default is 3 bytes
+		}
+
+		// MTC or SongSelect
+		if (bytes[0] == 0xF1 || bytes[0] == 0xF3)
+			return 2;
+
+		// Tune Req or End SysEx
+		if (bytes[0] == 0xF6 || bytes[0] == 0xF7)
+			return 1;
+
+		// System Real time (including undefined 0xF9 and 0xFD)
+		if (bytes[0] >= 0xF8)
+			return 1;
+
+		// 0xF2 (Song Pos), and undefined 0xF4 and 0xF5:
+		return 3;
 	}
-	void setSize(int size) {
-		if (size < 0 || size > 3) {
-			printf("Cannot resize rack::midi::Message::bytes to %d\n", size);
-		} else
-			this->size = size;
+
+	void setSize(int) {
+		// printf("Cannot resize rack::midi::Message\n");
 	}
 
 	uint8_t getChannel() const {
@@ -57,7 +100,6 @@ struct Message {
 		return bytes[2];
 	}
 	void setValue(uint8_t value) {
-		size = 3;
 		bytes[2] = value & 0x7f;
 	}
 
@@ -73,6 +115,95 @@ struct Message {
 
 	int getUsbCable() const {
 		return usb_cable;
+	}
+
+	void setUsbCable(uint8_t cable_num) {
+		usb_cable = cable_num;
+	}
+
+	int getUsbCIN() const {
+		return usb_code;
+	}
+
+	// SYSEX
+	//
+	// Examples:
+	// midi::Output midiOutput;
+	// midi::Message msg;
+	//
+	// Send 2 bytes of sysex payload:
+	// msg.startSysEx(0x01, 0x02);
+	// midiOutput.onMessage(msg); // sends [04] 0xF0 0x01 0x02
+	// msg.endSysEx(0x03);
+	// midiOutput.onMessage(msg); // sends [06] 0x03 0xF7 0x00
+	//
+	// Send 8 bytes of sysex payload over USB cable 9
+	// msg.setUsbCable(9);
+	// msg.startSysEx(0x04, 0x05);
+	// midiOutput.onMessage(msg); // sends [94] 0xF0 0x04 0x05
+	// msg.continueSysEx(0x06, 0x07, 0x08);
+	// midiOutput.onMessage(msg); // sends [94] 0x06 0x07 0x08
+	// msg.continueSysEx(0x09, 0x0a, 0x0b);
+	// midiOutput.onMessage(msg); // sends [94] 0x09 0x0a 0x0b
+	// msg.endSysEx();
+	// midiOutput.onMessage(msg); // sends [95] 0xF7 0x00 0x00
+	//
+	// 							 	 Where [p#] is the USB header (p=cable)
+
+	// Create a Start SysEx message with 2 bytes
+	void startSysEx(uint8_t payload0, uint8_t payload1) {
+		usb_code = 0x4;
+		bytes[0] = 0xF0;
+		bytes[1] = payload0;
+		bytes[2] = payload1;
+	}
+
+	// Create another packet in an ongoing SysEx stream
+	void continueSysEx(uint8_t payload0, uint8_t payload1, uint8_t payload2) {
+		usb_code = 0x4;
+		bytes[0] = payload0;
+		bytes[1] = payload1;
+		bytes[2] = payload2;
+	}
+
+	// Create an End SysEx message with no payload
+	void endSysEx() {
+		usb_code = 0x5;
+		bytes[0] = 0xF7;
+		bytes[1] = 0x00;
+		bytes[2] = 0x00;
+	}
+
+	// Create an End SysEx message with one payload byte
+	void endSysEx(uint8_t payload0) {
+		usb_code = 0x6;
+		bytes[0] = payload0;
+		bytes[1] = 0xF7;
+		bytes[2] = 0x00;
+	}
+
+	// Create an End SysEx message with two payload bytes
+	void endSysEx(uint8_t payload0, uint8_t payload1) {
+		usb_code = 0x7;
+		bytes[0] = payload0;
+		bytes[1] = payload1;
+		bytes[2] = 0xF7;
+	}
+
+	// Create a special Sysex message with no payload
+	void sysExNoPayload() {
+		usb_code = 0x6;
+		bytes[0] = 0xF0;
+		bytes[1] = 0xF7;
+		bytes[2] = 0x00;
+	}
+
+	// Create a special Sysex message with 1-byte payload
+	void sysExSingleByte(uint8_t payload) {
+		usb_code = 0x7;
+		bytes[0] = 0xF0;
+		bytes[1] = payload;
+		bytes[2] = 0xF7;
 	}
 };
 
