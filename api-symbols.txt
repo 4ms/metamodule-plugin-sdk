@@ -231,5 +231,4 @@ realloc
 rewinddir
 scandir
 seekdir
-stat
 telldir
