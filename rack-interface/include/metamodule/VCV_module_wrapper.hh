@@ -38,6 +38,10 @@ struct VCVModuleWrapper : CoreProcessor {
 
 	float get_output(int output_id) const override;
 
+	void set_input_poly(int input_id, std::span<const float> values) override;
+
+	size_t get_output_poly(int output_id, std::span<float> values) const override;
+
 	float get_led_brightness(int led_id) const override;
 
 	void mark_all_inputs_unpatched() override;
