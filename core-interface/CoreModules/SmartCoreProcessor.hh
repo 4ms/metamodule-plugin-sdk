@@ -123,6 +123,17 @@ protected:
 		}
 	}
 
+	void handle_bypass() {
+		for (auto &out : outputValues)
+			out = 0;
+
+		for (auto route : INFO::bypass_routes) {
+			if (route.output < outputValues.size() && route.input < inputValues.size()) {
+				outputValues[route.output] = inputValues[route.input].value_or(0);
+			}
+		}
+	}
+
 private:
 	float getParamRaw(Elem el, size_t local_index = 0) {
 		auto idx = index(el);
