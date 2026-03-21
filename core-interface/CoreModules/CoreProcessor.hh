@@ -5,6 +5,7 @@
 #include <string_view>
 
 typedef struct _lv_obj_t lv_obj_t;
+static constexpr size_t MAXPOLY = 4;
 
 class CoreProcessor {
 public:
@@ -16,19 +17,6 @@ public:
 	virtual void set_param(int param_id, float val) = 0;
 	virtual void set_input(int input_id, float val) = 0;
 	virtual float get_output(int output_id) const = 0;
-
-	virtual void set_input_poly(int input_id, std::span<const float> values) {
-		if (values.size() > 0)
-			set_input(input_id, values[0]);
-	}
-
-	virtual size_t get_output_poly(int output_id, std::span<float> values) const {
-		if (values.size() == 0)
-			return 0;
-
-		values[0] = get_output(output_id);
-		return 1;
-	}
 
 	virtual float get_led_brightness(int led_id) const {
 		return 0;
@@ -102,6 +90,20 @@ public:
 	// This is called in the GUI context.
 	//
 	virtual void hide_graphic_display(int display_id) {
+	}
+
+	/// Poly
+	virtual void set_input_poly(int input_id, std::span<const float> values) {
+		if (values.size() > 0)
+			set_input(input_id, values[0]);
+	}
+
+	virtual size_t get_output_poly(int output_id, std::span<float> values) const {
+		if (values.size() == 0)
+			return 0;
+
+		values[0] = get_output(output_id);
+		return 1;
 	}
 
 	// common default values, OK to override or ignore
