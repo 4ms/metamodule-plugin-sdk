@@ -4,6 +4,28 @@ project(MetaModulePluginSDK LANGUAGES C CXX ASM)
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/version.cmake)
 
+# Check ARM GCC toolchain version compatibility
+message(STATUS "DEBUG: CMAKE_CXX_COMPILER_ID = ${CMAKE_CXX_COMPILER_ID}")
+message(STATUS "DEBUG: CMAKE_CXX_COMPILER_VERSION = ${CMAKE_CXX_COMPILER_VERSION}")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER "12.3.99")
+        message(FATAL_ERROR
+            "ARM GCC ${CMAKE_CXX_COMPILER_VERSION} is not supported.\n"
+            "The MetaModule Plugin SDK requires ARM GNU Toolchain 12.2 or 12.3.\n"
+            "Newer versions have incompatibilities with the bundled libstdc++ implementation.\n"
+            "Download the correct version from:\n"
+            "  https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads\n"
+            "Or specify the toolchain path with:\n"
+            "  cmake -DTOOLCHAIN_BASE_DIR=/path/to/arm-toolchain-12.3/bin ...")
+    endif()
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "12.2.0")
+        message(WARNING
+            "ARM GCC ${CMAKE_CXX_COMPILER_VERSION} is older than the tested version.\n"
+            "The MetaModule Plugin SDK is designed for ARM GNU Toolchain 12.2 or 12.3.\n"
+            "Build may fail or produce unexpected results.")
+    endif()
+endif()
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/ccache.cmake)
