@@ -121,12 +121,13 @@ struct Port {
 			return;
 		}
 
+		// Set higher channel voltages to 0
+		for (auto i = channels; i < this->channels; i++)
+			voltages[i] = 0.f;
+
 		// Don't allow caller to set port as disconnected
 		// or out of range
 		this->channels = std::clamp(channels, 1, PORT_MAX_CHANNELS);
-
-		// VCV comment: "Set higher channel voltages to 0"
-		// TODO: do this when we enable polyphony
 	}
 
 	int getChannels() const {
@@ -155,4 +156,3 @@ struct Output : Port {};
 struct Input : Port {};
 
 } // namespace rack::engine
-
