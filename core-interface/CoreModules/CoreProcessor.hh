@@ -92,15 +92,16 @@ public:
 	}
 
 	struct PolyPortBuffer {
-		std::span<float> voltages{};
+		float *voltages = nullptr;
+		uint8_t *channels = nullptr;
 	};
 
 	virtual PolyPortBuffer get_output_poly_buffer(int output_id) {
-		return {{}};
+		return {nullptr, nullptr};
 	}
 
 	virtual PolyPortBuffer get_input_poly_buffer(int input_id) {
-		return {{}};
+		return {nullptr, nullptr};
 	}
 
 	// common default values, OK to override or ignore
