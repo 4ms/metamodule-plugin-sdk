@@ -52,6 +52,10 @@ struct VCVModuleWrapper : CoreProcessor {
 
 	void mark_output_patched(int output_id) override;
 
+	PolyPortBuffer get_output_poly_buffer(int output_id) override;
+
+	PolyPortBuffer get_input_poly_buffer(int input_id) override;
+
 	std::vector<rack::engine::Param> params;
 	std::vector<rack::engine::Input> inputs;
 	std::vector<rack::engine::Output> outputs;

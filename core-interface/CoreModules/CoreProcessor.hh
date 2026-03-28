@@ -98,6 +98,7 @@ public:
 	virtual PolyPortBuffer get_output_poly_buffer(int output_id) {
 		return {{}};
 	}
+
 	virtual PolyPortBuffer get_input_poly_buffer(int input_id) {
 		return {{}};
 	}
