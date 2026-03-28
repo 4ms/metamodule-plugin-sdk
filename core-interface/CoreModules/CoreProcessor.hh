@@ -91,6 +91,17 @@ public:
 	virtual void hide_graphic_display(int display_id) {
 	}
 
+	struct PolyPortBuffer {
+		std::span<float> voltages{};
+	};
+
+	virtual PolyPortBuffer get_output_poly_buffer(int output_id) {
+		return {{}};
+	}
+	virtual PolyPortBuffer get_input_poly_buffer(int input_id) {
+		return {{}};
+	}
+
 	// common default values, OK to override or ignore
 	static constexpr float CvRangeVolts = 5.0f;
 	static constexpr float MaxOutputVolts = 8.0f;
