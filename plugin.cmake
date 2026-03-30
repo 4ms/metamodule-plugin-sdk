@@ -8,11 +8,11 @@ include(${CMAKE_CURRENT_LIST_DIR}/cmake/version.cmake)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     if(NOT (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "12.2.0" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "12.4.0"))
         message(FATAL_ERROR
-            "ARM GCC ${CMAKE_CXX_COMPILER_VERSION} is not supported.\n"
-            "The MetaModule Plugin SDK requires ARM GNU Toolchain 12.2 or 12.3.\n"
-            "Download the correct version from:\n"
-            "  https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads\n"
-            "Specify the toolchain path with:\n"
+            "ARM GCC ${CMAKE_CXX_COMPILER_VERSION} is not supported."
+            "The MetaModule Plugin SDK requires ARM GNU Toolchain 12.2 or 12.3."
+            "Download the correct version from:"
+            "  https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads"
+            "Specify the toolchain path with:"
             "  cmake -DTOOLCHAIN_BASE_DIR=/path/to/arm-toolchain-12.3/bin ...")
     endif()
 endif()
