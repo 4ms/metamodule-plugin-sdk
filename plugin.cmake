@@ -4,6 +4,19 @@ project(MetaModulePluginSDK LANGUAGES C CXX ASM)
 
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/version.cmake)
 
+# Check ARM GCC toolchain version compatibility
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    if(NOT (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "12.2.0" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS "12.4.0"))
+        message(FATAL_ERROR
+            " ARM GCC ${CMAKE_CXX_COMPILER_VERSION} is not supported."
+            " The MetaModule Plugin SDK requires ARM GNU Toolchain 12.2 or 12.3.\n"
+            " Download the correct version from:\n"
+            "   https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads\n"
+            " Specify the toolchain path with:\n"
+            "   cmake -DTOOLCHAIN_BASE_DIR=/path/to/arm-toolchain-12.3/bin ...")
+    endif()
+endif()
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_TYPE "RelWithDebInfo")
 include(${CMAKE_CURRENT_LIST_DIR}/cmake/ccache.cmake)
