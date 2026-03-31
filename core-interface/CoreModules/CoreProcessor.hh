@@ -95,6 +95,7 @@ public:
 		float *voltages = nullptr;
 		uint8_t *channels = nullptr;
 	};
+	static constexpr unsigned MaxPolyChannels = 4;
 
 	// virtual PolyPortBuffer get_output_poly_buffer(int output_id) {
 	// 	return {nullptr, nullptr};
