@@ -96,13 +96,13 @@ public:
 		uint8_t *channels = nullptr;
 	};
 
-	virtual PolyPortBuffer get_output_poly_buffer(int output_id) {
-		return {nullptr, nullptr};
-	}
+	// virtual PolyPortBuffer get_output_poly_buffer(int output_id) {
+	// 	return {nullptr, nullptr};
+	// }
 
-	virtual PolyPortBuffer get_input_poly_buffer(int input_id) {
-		return {nullptr, nullptr};
-	}
+	// virtual PolyPortBuffer get_input_poly_buffer(int input_id) {
+	// 	return {nullptr, nullptr};
+	// }
 
 	// common default values, OK to override or ignore
 	static constexpr float CvRangeVolts = 5.0f;
