@@ -95,6 +95,7 @@ public:
 		float *voltages = nullptr;
 		uint8_t *channels = nullptr;
 	};
+	static constexpr unsigned MaxPolyChannels = 4;
 
 	// common default values, OK to override or ignore
 	static constexpr float CvRangeVolts = 5.0f;
