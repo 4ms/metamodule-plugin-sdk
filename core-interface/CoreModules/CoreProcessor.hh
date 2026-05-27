@@ -91,6 +91,11 @@ public:
 	virtual void hide_graphic_display(int display_id) {
 	}
 
+	struct PolyPortBuffer {
+		float *voltages = nullptr;
+		uint8_t *channels = nullptr;
+	};
+
 	// common default values, OK to override or ignore
 	static constexpr float CvRangeVolts = 5.0f;
 	static constexpr float MaxOutputVolts = 8.0f;
