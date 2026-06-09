@@ -22,6 +22,12 @@ class SmartCoreProcessor : public CoreProcessor, public CoreHelper<INFO> {
 	}
 
 protected:
+	//
+	// Module Interface:
+	//
+
+	// Outputs
+
 	template<Elem EL>
 	void setOutput(float val) requires(count(EL).num_outputs == 1)
 	{
@@ -46,6 +52,8 @@ protected:
 		else
 			return false;
 	}
+
+	// Inputs
 
 	template<Elem EL>
 	bool isPatched() requires(count(EL).num_inputs == 1)
@@ -75,9 +83,11 @@ protected:
 	// 	return std::visit([&raw](auto const &el) { return StateConversion::convertState(el, raw); },
 	// 					  INFO::Elements[element_num(EL)]);
 	// }
+	// Params
 
 	template<Elem EL>
 	auto getState() requires(count(EL).num_params > 0)
+
 	{
 		// get back the typed element from the list of elements
 		constexpr auto &elementRef = INFO::Elements[element_num(EL)];
@@ -102,6 +112,7 @@ protected:
 		}
 	}
 
+	// LEDs
 	// TODO: make overloads for setLED, matching on various types of LEDs or requiring NumLight values
 	// Each overload converts the values and directly writes setLEDRaw (or ledValues[])
 	// Then we don't need convertLED
@@ -123,6 +134,8 @@ protected:
 		}
 	}
 
+	// Bypass
+
 	void handle_bypass() {
 		for (auto &out : outputValues)
 			out = 0;
@@ -135,6 +148,10 @@ protected:
 	}
 
 private:
+	//
+	// Private Helpers:
+	//
+
 	float getParamRaw(Elem el, size_t local_index = 0) {
 		auto idx = index(el);
 		size_t param_id = idx.param_idx + local_index;
@@ -157,6 +174,10 @@ private:
 	}
 
 public:
+	//
+	// CoreProcessor interface:
+	//
+
 	float get_output(int output_id) const override {
 		if ((size_t)output_id < outputValues.size())
 			return outputValues[output_id];

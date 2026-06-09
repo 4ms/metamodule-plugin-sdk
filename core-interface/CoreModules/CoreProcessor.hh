@@ -91,6 +91,7 @@ public:
 	virtual void hide_graphic_display(int display_id) {
 	}
 
+	// Poly:
 	struct PolyPortBuffer {
 		float *voltages = nullptr;
 		uint8_t *channels = nullptr;
@@ -101,3 +102,20 @@ public:
 	static constexpr float CvRangeVolts = 5.0f;
 	static constexpr float MaxOutputVolts = 8.0f;
 };
+
+struct CoreProcessorPoly : public CoreProcessor {
+
+	virtual CoreProcessor::PolyPortBuffer get_poly_input_buffer(int input_id) {
+		return {};
+	}
+
+	virtual CoreProcessor::PolyPortBuffer get_poly_output_buffer(int output_id) {
+		return {};
+	}
+};
+
+// TODO for v3.0:
+// move get_poly_*_buffer() to CoreProcessor
+// [[deprecated="Use CoreProcessor instead of CoreProcessorPoly"]] using CoreProcessorPoly = CoreProcessor;
+// Create GraphicDisplay virtual base class and move *_graphic_display() virtual funcs into it.
+// Create free function "ModuleFactory::register_graphic_display(std::string_view slug, int display_id, std::function<std::unique_ptr<GraphicDisplay>(void)>);
