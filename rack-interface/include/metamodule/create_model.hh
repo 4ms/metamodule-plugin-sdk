@@ -8,9 +8,17 @@
 namespace rack
 {
 
+// Holds the Model registered for each Module/ModuleWidget type, so that
+// create_vcv_module (a captureless function pointer) can set module->model
+template<typename ModuleT, typename ModuleWidgetT>
+struct RegisteredModel {
+	static inline plugin::Model *model = nullptr;
+};
+
 template<typename ModuleT, typename ModuleWidgetT>
 std::unique_ptr<CoreProcessor> create_vcv_module() {
 	auto module = std::make_unique<ModuleT>();
+	module->model = RegisteredModel<ModuleT, ModuleWidgetT>::model;
 	module->module_widget = std::make_shared<ModuleWidgetT>(module.get());
 	return module;
 }
@@ -40,6 +48,7 @@ plugin::Model *createModel(std::string_view slug) {
 
 	plugin::Model *model = new ModelT;
 	model->slug = slug;
+	RegisteredModel<ModuleT, ModuleWidgetT>::model = model;
 	model->creation_func = create_vcv_module<ModuleT, ModuleWidgetT>;
 	return model;
 }
