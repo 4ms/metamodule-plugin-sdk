@@ -308,8 +308,6 @@ public:
 	}
 
 private:
-	// (MaxPolyChannels is inherited from CoreProcessor)
-
 	std::array<float, counts.num_params> paramValues{};
 
 	std::array<std::array<float, MaxPolyChannels>, counts.num_inputs> inputValues{};
