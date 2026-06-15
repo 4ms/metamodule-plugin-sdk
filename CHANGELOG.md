@@ -1,5 +1,20 @@
 # Change Log for SDK API
 
+### v2.2.0
+
+- New classes and types (header-only, no API change):
+   - CoreProcessor::PolyPortBuffer class (used to transfer polyphonic cable data) 
+   - CoreProcessor::MaxPolyChannels (constant value of 4: will likely be
+     updated to 8 or 16 in v3.x SDK)
+   - CoreProcessorPoly: derives from CoreProcessor, adding two virtual
+     functions for polyphony support. Will be deprecated in v3.x when these new
+     functions are merged into CoreProcessor.
+   - SmartCoreProcessorPoly: Helper for CoreProcessorPoly. Will be deprecated and merged into SmartCoreProcessor in v3.x.
+   - MidiInput (native plugin MIDI RX stream listener)
+   - MidiOutput (native plugin MIDI TX queue)
+
+- Rack modules set unused poly channels to 0 when reducing number of channels.
+
 ### v2.1.0
 
 - Expanded API documentation 
