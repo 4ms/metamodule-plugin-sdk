@@ -20,6 +20,10 @@ enum class UsbConnection : uint32_t {
 	DeviceMidiHost,	   // Device: enumerated as a USB-MIDI device by a host
 	DeviceVideoHost,   // Device: enumerated as a UVC video device by a host
 	DeviceConsoleHost, // Device: enumerated as a CDC serial console by a host
+
+	// Forced to device role and idle, but a downstream device (e.g. a USB drive)
+	// was sensed on the port -- unusable until the USB Mode is set to Auto or Host.
+	DeviceModePeripheralIgnored,
 };
 
 // Snapshot of the current USB connection.
