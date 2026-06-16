@@ -5,16 +5,14 @@
 namespace MetaModule::System
 {
 
-// The USB-C port's current data role combined with the active class. Mirrors the
-// firmware's MetaModule::UsbConnection (kept in lockstep by static_asserts in
-// coreproc_plugin/system/usb.cc).
-//
+// The USB-C port's current data role combined with the active class.
 //   "Host..."   = the MetaModule is the USB host; a peripheral is attached to it.
 //   "Device..." = the MetaModule is a USB device plugged into a host (computer).
+// TODO: rename to UsbConnectionType
 enum class UsbConnection : uint32_t {
 	None,			   // Not attached
 	HostSearching,	   // Host: powered, no device class active yet
-	HostMidiDevice,	   // Host: a USB-MIDI device is attached
+	HostMidiDevice,	   // Host: a USB MIDI device is attached
 	HostUsbDrive,	   // Host: a USB mass-storage drive is attached
 	DeviceWaiting,	   // Device: not yet enumerated by a host
 	DeviceMidiHost,	   // Device: enumerated as a USB-MIDI device by a host
@@ -45,5 +43,13 @@ struct UsbConnectionStatus {
 // Returns the current USB connection status. Cheap; safe to poll. Returns a
 // consistent snapshot (the fields never tear relative to each other).
 UsbConnectionStatus get_usb_connection_status();
+
+// WIP:
+struct UsbMidiJackInfo {
+	//TODO
+};
+
+UsbMidiJackInfo get_usb_midi_in_jack_info(unsigned num);
+UsbMidiJackInfo get_usb_midi_out_jack_info(unsigned num);
 
 } // namespace MetaModule::System
