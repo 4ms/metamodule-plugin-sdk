@@ -60,6 +60,12 @@ struct SetIndex {
 		return indices;
 	}
 
+	ElementCount::Indices operator()(const AltParamElement &) {
+		ElementCount::Indices indices = ElementCount::NoElementIndices;
+		indices.param_idx = idx;
+		return indices;
+	}
+
 	inline ElementCount::Indices operator()(const LightElement &) {
 		ElementCount::Indices indices = ElementCount::NoElementIndices;
 		indices.light_idx = idx;
