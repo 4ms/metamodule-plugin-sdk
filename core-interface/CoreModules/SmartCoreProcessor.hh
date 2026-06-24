@@ -244,7 +244,7 @@ public:
 
 private:
 	std::array<float, counts.num_params> paramValues{};
-	std::array<std::optional<float>, counts.num_inputs> inputValues{0};
+	std::array<std::optional<float>, counts.num_inputs> inputValues{};
 	std::array<float, counts.num_outputs> outputValues{};
 	std::array<float, counts.num_lights> ledValues{};
 	std::array<bool, counts.num_outputs> outputPatched{};
