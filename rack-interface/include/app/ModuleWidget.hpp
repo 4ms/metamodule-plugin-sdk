@@ -98,7 +98,9 @@ struct ModuleWidget : widget::Widget {
 		if (widget->sw && widget->sw->svg)
 			addSvgLight(widget->sw->svg->filename(), widget);
 		else
-			addChild(widget);
+			// No SVG image: fall back to the plain light path. Must cast to the base
+			// type, otherwise this call re-selects this same template -> infinite recursion.
+			addChild(static_cast<app::ModuleLightWidget *>(widget));
 	}
 	void addSvgLight(std::string_view image, app::ModuleLightWidget *widget);
 
