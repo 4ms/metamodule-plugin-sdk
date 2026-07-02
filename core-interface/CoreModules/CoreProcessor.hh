@@ -63,7 +63,8 @@ public:
 	//
 	// Parameters:
 	// display_id: the ID of the display (e.g. display_idx<MyDisplay> )
-	// pix_buffer: the buffer to which you should write the pixels when `get_canvas_pixels()` is called (RGBA8888)
+	// pix_buffer: the buffer to which you should write the pixels when draw_graphic_display() is called.
+	//             Pixel format is ARGB8888: (a<<24)|(r<<16)|(g<<8)|b, see PixelRGBA in graphics/pixels.hh
 	// width: the dimensions of the buffer, in pixels. Note: height = pixel_buffer.size() / width
 	// lvgl_canvas: an opaque pointer referring to the drawing context. Safe to ignore. Useful if you are using LVGL to draw.
 	//
@@ -73,7 +74,7 @@ public:
 
 	// Write pixel data to the display's pixel buffer.
 	// The pixel buffer will have been previously passed to the module via show_graphic_display().
-	// If you need to manually access the red, green, blue, and alpha values, use the helper class PixelRGBA in CoreModules/pixels.hh
+	// If you need to manually access the red, green, blue, and alpha values, use the helper class PixelRGBA in graphics/pixels.hh
 	//
 	// This is called in the GUI context.
 	//
