@@ -61,7 +61,7 @@ struct CoreHelper {
 	}
 
 	template<Elem EL>
-	static constexpr auto light_idx = output_index<EL>();
+	static constexpr auto light_idx = first_light_index<EL>();
 
 	template<Elem EL>
 	static constexpr auto display_index() requires(count(EL).num_lights > 0)

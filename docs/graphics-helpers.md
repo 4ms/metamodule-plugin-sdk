@@ -20,7 +20,7 @@ the Rack adaptor.
 
 ```c++
 struct MyModule : CoreProcessor {
-    StreamingWaveformDisplay waveform{100,80}; //100x80 pixel display
+    StreamingWaveformDisplay waveform{100,80}; //100mm x 80mm display
 
     MyModule() {
         waveform.set_wave_color(0x33, 0xFF, 0xBB); //teal
