@@ -318,6 +318,10 @@ That is, if the active Device throws a `rack::Exception`, it is caught and logge
 Use Input or Output subclasses in your module, not Port directly.
 */
 struct Port {
+	/** METAMODULE: a "device" is a physical MIDI port (USB, TRS, DIN5); the ids
+	are MetaModule::Midi::Port values. AllDevices means don't filter by port. */
+	static constexpr int AllDevices = -1;
+
 	/** For MIDI output, the channel to automatically set outbound messages.
 	If -1, the channel is not overwritten and must be set by MIDI generator.
 
