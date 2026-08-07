@@ -13,8 +13,10 @@
 #     version, and the gcc source tarball matching the toolchain's gcc (for
 #     libstdc++-v3 and the libgcc unwinder sources)
 #  2. Builds newlib with CFLAGS_FOR_TARGET += -fPIC and configure flags that
-#     reproduce the ARM toolchain's configuration exactly (verified by
-#     diffing the generated newlib.h against the toolchain's installed copy)
+#     reproduce the installed toolchain's configuration exactly -- the feature
+#     options are read back out of its newlib.h, since distro-packaged
+#     toolchains configure newlib differently than the ARM GNU releases do
+#     (verified by diffing the generated newlib.h against the installed copy)
 #  3. Builds libstdc++-v3 standalone (--host=arm-none-eabi) with -fPIC and
 #     --with-pic, using the installed cross compiler. Configure link-tests
 #     are impossible for bare metal (GCC_NO_EXECUTABLES), so the answers are
@@ -85,19 +87,105 @@ if [ -n "$REQUESTED_VER" ] && [ "$REQUESTED_VER" != "$GCC_MAJOR" ]; then
 fi
 
 ##############################################################################
-# Source versions: newlib matching what the ARM toolchain release ships
-# (check $SYSROOT/include/_newlib_version.h), gcc matching its gcc.
+# Where the toolchain keeps its target headers -- i.e. what the rest of this
+# script means by "$sysroot/include".
+#
+# ARM's official toolchains answer -print-sysroot with <toolchain>/arm-none-eabi
+# and put the headers in $sysroot/include. Distro packages (Debian/Ubuntu
+# gcc-arm-none-eabi, and the arm-none-eabi-gcc in most other distros) are
+# configured without a sysroot: -print-sysroot prints an empty string and the
+# same headers live in /usr/lib/arm-none-eabi/include. So ask the preprocessor
+# where it actually looks rather than assuming either layout.
+find_tc_include() {
+	local sysroot dir
+	sysroot="$("$TC/arm-none-eabi-gcc" -print-sysroot)"
+	if [ -n "$sysroot" ] && [ -f "$sysroot/include/newlib.h" ]; then
+		echo "$sysroot/include"
+		return 0
+	fi
+	# The entries of the '#include <...>' search list are the output lines
+	# indented by one space. gcc's own include/ and include-fixed/ come
+	# first but never hold newlib.h, so testing for it picks the target
+	# header dir.
+	while read -r dir; do
+		[ -f "$dir/newlib.h" ] || continue
+		(cd "$dir" && pwd)
+		return 0
+	done < <("$TC/arm-none-eabi-gcc" -E -Wp,-v -xc /dev/null -o /dev/null 2>&1 |
+	         sed -n 's/^ \([^ ].*\)$/\1/p')
+	return 1
+}
+if ! TC_INCLUDE="$(find_tc_include)"; then
+	echo "ERROR: could not find newlib.h in the include search path of" >&2
+	echo "       $TC/arm-none-eabi-gcc." >&2
+	echo "       The toolchain's newlib headers are missing -- on Debian/Ubuntu" >&2
+	echo "       install the libnewlib-arm-none-eabi package." >&2
+	exit 1
+fi
+
+##############################################################################
+# Source versions: newlib matching what the toolchain ships (its
+# $TC_INCLUDE/_newlib_version.h), gcc matching its gcc.
 case "$SRC_VARIANT" in
-	12.3) NEWLIB_VER=newlib-4.3.0.20230120; GCC_VER=gcc-12.3.0 ;;
-	13.2) NEWLIB_VER=newlib-4.3.0.20230120; GCC_VER=gcc-13.2.0 ;;
-	13.3) NEWLIB_VER=newlib-4.4.0.20231231; GCC_VER=gcc-13.3.0 ;;
-	14.2) NEWLIB_VER=newlib-4.4.0.20231231; GCC_VER=gcc-14.2.0 ;;
-	14.3) NEWLIB_VER=newlib-4.5.0.20241231; GCC_VER=gcc-14.3.0 ;;
-	15.2) NEWLIB_VER=newlib-4.5.0.20241231; GCC_VER=gcc-15.2.0 ;;
-	15.3) NEWLIB_VER=newlib-4.6.0.20260123; GCC_VER=gcc-15.3.0 ;;
+	12.3) NEWLIB_RELEASE=4.3.0; GCC_VER=gcc-12.3.0 ;;
+	13.2) NEWLIB_RELEASE=4.3.0; GCC_VER=gcc-13.2.0 ;;
+	13.3) NEWLIB_RELEASE=4.4.0; GCC_VER=gcc-13.3.0 ;;
+	14.2) NEWLIB_RELEASE=4.4.0; GCC_VER=gcc-14.2.0 ;;
+	14.3) NEWLIB_RELEASE=4.5.0; GCC_VER=gcc-14.3.0 ;;
+	15.2) NEWLIB_RELEASE=4.5.0; GCC_VER=gcc-15.2.0 ;;
+	15.3) NEWLIB_RELEASE=4.6.0; GCC_VER=gcc-15.3.0 ;;
+esac
+
+# Those are the pairings of the ARM GNU toolchain releases. Distro packages
+# pair the same gcc with a different newlib (Debian's 13.2.1 ships newlib
+# 4.4.0, not the 4.3.0 of ARM's 13.2.rel1), so believe the toolchain over the
+# table -- building against the wrong newlib sources would fail the newlib.h
+# check below at best, and silently produce a mismatched libc at worst.
+TC_NEWLIB="$(sed -n 's/^#define _NEWLIB_VERSION "\(.*\)"/\1/p' \
+	"$TC_INCLUDE/_newlib_version.h" 2>/dev/null || true)"
+if [ -n "$TC_NEWLIB" ] && [ "$TC_NEWLIB" != "$NEWLIB_RELEASE" ]; then
+	echo "==== note: this toolchain ships newlib $TC_NEWLIB (ARM's gcc $SRC_VARIANT"
+	echo "     release ships $NEWLIB_RELEASE); building newlib $TC_NEWLIB to match."
+	NEWLIB_RELEASE="$TC_NEWLIB"
+fi
+
+case "$NEWLIB_RELEASE" in
+	4.3.0) NEWLIB_VER=newlib-4.3.0.20230120 ;;
+	4.4.0) NEWLIB_VER=newlib-4.4.0.20231231 ;;
+	4.5.0) NEWLIB_VER=newlib-4.5.0.20241231 ;;
+	4.6.0) NEWLIB_VER=newlib-4.6.0.20260123 ;;
+	*) echo "ERROR: no known source tarball for newlib $NEWLIB_RELEASE (shipped by" >&2
+	   echo "       $TC/arm-none-eabi-gcc) -- add it to the table in $0" >&2
+	   exit 1 ;;
 esac
 NEWLIB_URL="https://sourceware.org/pub/newlib/${NEWLIB_VER}.tar.gz"
 GCC_URL="https://ftp.gnu.org/gnu/gcc/${GCC_VER}/${GCC_VER}.tar.xz"
+
+##############################################################################
+# Newlib's feature options, read back from the toolchain's own newlib.h.
+#
+# These are not the same across toolchains: ARM's releases enable multibyte
+# support, C99 IO formats and retargetable locking; Debian's
+# gcc-arm-none-eabi enables none of the three. Every one of them leaves its
+# fingerprint in newlib.h, so take the toolchain's answer rather than
+# hardcoding one vendor's choices -- the archive has to agree with the
+# headers plugins are compiled against. Step 2a below diffs the whole file,
+# so an option not listed here is still caught rather than silently wrong.
+newlib_opt() { # <macro in newlib.h> <configure option>
+	if grep -q "^#define $1\b" "$TC_INCLUDE/newlib.h"; then
+		echo "--enable-$2"
+	else
+		echo "--disable-$2"
+	fi
+}
+NEWLIB_OPTS=(
+	"$(newlib_opt _WANT_IO_LONG_LONG    newlib-io-long-long)"
+	"$(newlib_opt _WANT_IO_C99_FORMATS  newlib-io-c99-formats)"
+	"$(newlib_opt _MB_CAPABLE           newlib-mb)"
+	"$(newlib_opt _REENT_CHECK_VERIFY   newlib-reent-check-verify)"
+	"$(newlib_opt _WANT_REGISTER_FINI   newlib-register-fini)"
+	"$(newlib_opt _RETARGETABLE_LOCKING newlib-retargetable-locking)"
+)
 
 # Tarballs and extracted source trees are shared (version-named) in $BASE;
 # everything built lives in a per-gcc-version work dir so archives for
@@ -106,8 +194,12 @@ GCC_URL="https://ftp.gnu.org/gnu/gcc/${GCC_VER}/${GCC_VER}.tar.xz"
 # archive was generated with, and plugin.cmake selects by major version.
 WORK="$BASE/gcc$SRC_VARIANT"
 OUT_NAME="libmetamodule-plugin-libc-gcc$GCC_MAJOR.a"
+# The newlib version is not implied by the gcc version (distro toolchains
+# pair them differently), so the newlib build dir is named after its sources:
+# switching toolchains must not silently reuse a tree configured from another
+# newlib release.
+NEWLIB_BUILD="build-$NEWLIB_VER"
 
-TC_SYSROOT="$("$TC/arm-none-eabi-gcc" -print-sysroot)"
 ARCH_FLAGS="-mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -mthumb-interwork -mno-unaligned-access -mtune=cortex-a7"
 PIC_FLAGS="-fPIC -ffunction-sections -fdata-sections -O2 -g"
 
@@ -154,7 +246,8 @@ cd "$BASE"
 	${GCC_VER}/libbacktrace \
 	${GCC_VER}/gcc/BASE-VER ${GCC_VER}/gcc/DATESTAMP \
 	${GCC_VER}/config.guess ${GCC_VER}/config.sub ${GCC_VER}/install-sh \
-	${GCC_VER}/ltmain.sh ${GCC_VER}/missing ${GCC_VER}/config-ml.in \
+	${GCC_VER}/ltmain.sh ${GCC_VER}/libtool-ldflags ${GCC_VER}/missing \
+	${GCC_VER}/config-ml.in \
 	${GCC_VER}/depcomp ${GCC_VER}/mkinstalldirs
 
 BUILD_TRIPLET=$(${GCC_VER}/config.guess)
@@ -162,41 +255,49 @@ cd "$WORK"
 
 ##############################################################################
 echo "==== 2. newlib"
-# Configure flags reproduce the ARM GNU toolchain newlib configuration
+# Configure flags reproduce the installed toolchain's newlib configuration
 # (validated below by diffing the generated newlib.h).
-mkdir -p build-newlib && cd build-newlib
+mkdir -p "$NEWLIB_BUILD" && cd "$NEWLIB_BUILD"
+# $NEWLIB_OPTS depends on the toolchain, not just on the newlib version in the
+# dir name, so a tree left over from a differently-configured toolchain must be
+# reconfigured rather than reused.
+if [ -f Makefile ] && [ "$(cat .newlib-opts 2>/dev/null || true)" != "${NEWLIB_OPTS[*]}" ]; then
+	echo "==== newlib configure options changed since this tree was configured; rebuilding it"
+	cd .. && rm -rf "$NEWLIB_BUILD" && mkdir -p "$NEWLIB_BUILD" && cd "$NEWLIB_BUILD"
+fi
 if [ ! -f Makefile ]; then
 "$BASE"/${NEWLIB_VER}/configure \
 	--build=$BUILD_TRIPLET --host=$BUILD_TRIPLET --target=arm-none-eabi \
 	--prefix="$WORK/install" \
 	--disable-multilib --disable-nls \
 	--disable-newlib-supplied-syscalls \
-	--enable-newlib-io-long-long \
-	--enable-newlib-io-c99-formats \
-	--enable-newlib-mb \
-	--enable-newlib-reent-check-verify \
-	--enable-newlib-register-fini \
-	--enable-newlib-retargetable-locking \
+	"${NEWLIB_OPTS[@]}" \
 	CC_FOR_TARGET="$TC/arm-none-eabi-gcc" \
 	GCC_FOR_TARGET="$TC/arm-none-eabi-gcc" \
 	CXX_FOR_TARGET="$TC/arm-none-eabi-g++" \
 	AR_FOR_TARGET="$TC/arm-none-eabi-gcc-ar" \
 	RANLIB_FOR_TARGET="$TC/arm-none-eabi-gcc-ranlib" \
 	CFLAGS_FOR_TARGET="$ARCH_FLAGS $PIC_FLAGS"
+echo "${NEWLIB_OPTS[*]}" > .newlib-opts
 fi
 run_make
 cd "$WORK"
 
 echo "==== 2a. verify newlib.h matches the toolchain's"
-GEN_NEWLIB_H=$(find build-newlib -name newlib.h -path "*targ-include*" | head -1)
+GEN_NEWLIB_H=$(find "$NEWLIB_BUILD" -name newlib.h -path "*targ-include*" | head -1)
 # _EXECL_USE_MALLOC and _HAVE_HW_MISALIGNED_ACCESS are ignored: ARM's 14.3
 # toolchain ships a newlib snapshot slightly newer than the 4.5.0 release
 # tarball, whose newlib.h template mentions these two (disabled) options that
 # the release's template does not. Both configurations leave them undefined,
 # so the resulting library is identical.
-if ! diff <(grep -E "^#define|^/\* #undef" "$TC_SYSROOT/include/newlib.h" | grep -v "VERSION\|PATCHLEVEL\|_EXECL_USE_MALLOC\|_HAVE_HW_MISALIGNED_ACCESS" | sort) \
+if ! diff <(grep -E "^#define|^/\* #undef" "$TC_INCLUDE/newlib.h" | grep -v "VERSION\|PATCHLEVEL\|_EXECL_USE_MALLOC\|_HAVE_HW_MISALIGNED_ACCESS" | sort) \
           <(grep -E "^#define|^/\* #undef" "$GEN_NEWLIB_H"              | grep -v "VERSION\|PATCHLEVEL\|_EXECL_USE_MALLOC\|_HAVE_HW_MISALIGNED_ACCESS" | sort); then
-	echo "ERROR: generated newlib.h differs from the toolchain's -- configure flags need updating" >&2
+	echo "ERROR: generated newlib.h differs from the toolchain's (left column is" >&2
+	echo "       $TC_INCLUDE/newlib.h, right is what this build produced)." >&2
+	echo "       The feature options in \$NEWLIB_OPTS are taken from the toolchain" >&2
+	echo "       automatically; a difference here is an option this script does not" >&2
+	echo "       know about yet -- map the macro above to its --enable-newlib-* flag" >&2
+	echo "       and add it to \$NEWLIB_OPTS." >&2
 	exit 1
 fi
 echo "newlib.h: OK (identical configuration)"
@@ -278,11 +379,32 @@ echo "==== 3a. verify c++config.h matches the toolchain's"
 # lacks. The macro is never referenced anywhere in libstdc++ (headers or
 # src), so the difference is cosmetic.
 MULTIDIR=$("$TC/arm-none-eabi-gcc" $ARCH_FLAGS -print-multi-directory)
-TC_CXXCONF="$TC_SYSROOT/include/c++/$("$TC/arm-none-eabi-gcc" -dumpversion)/arm-none-eabi/$MULTIDIR/bits/c++config.h"
+TC_CXXCONF="$TC_INCLUDE/c++/$("$TC/arm-none-eabi-gcc" -dumpversion)/arm-none-eabi/$MULTIDIR/bits/c++config.h"
+if [ ! -f "$TC_CXXCONF" ]; then
+	echo "ERROR: the toolchain's c++config.h is not at $TC_CXXCONF" >&2
+	echo "       (on Debian/Ubuntu it comes from libstdc++-arm-none-eabi-dev)" >&2
+	exit 1
+fi
 GEN_CXXCONF="build-libstdcxx/include/arm-none-eabi/bits/c++config.h"
 if ! diff <(grep -E "^#define _GLIBCXX|^/\* #undef _GLIBCXX" "$GEN_CXXCONF" | grep -v "__GLIBCXX__\|_GLIBCXX_HAVE_O_NONBLOCK" | sort) \
           <(grep -E "^#define _GLIBCXX|^/\* #undef _GLIBCXX" "$TC_CXXCONF" | grep -v "__GLIBCXX__\|_GLIBCXX_HAVE_O_NONBLOCK" | sort); then
-	echo "ERROR: generated c++config.h differs from the toolchain's -- seeds need updating" >&2
+	echo "ERROR: generated c++config.h differs from the toolchain's (left column is" >&2
+	echo "       what this build produced, right is $TC_CXXCONF)." >&2
+	echo "       Usually this means the ac_cv_*/glibcxx_cv_* seeds above need" >&2
+	echo "       updating for a new libstdc++ probe." >&2
+	echo "" >&2
+	echo "       But if the toolchain's column claims POSIX facilities that bare" >&2
+	echo "       metal cannot have (_GLIBCXX_HAVE_GETENTROPY, _GLIBCXX_HAVE_ARC4RANDOM," >&2
+	echo "       _GLIBCXX_USE_FCHMOD, _GLIBCXX_HAVE_SYMLINK, ...), the toolchain's own" >&2
+	echo "       libstdc++ was configured with host probe results leaking in -- check" >&2
+	echo "       with:" >&2
+	echo "         arm-none-eabi-nm -u \$($TC/arm-none-eabi-gcc $ARCH_FLAGS -print-file-name=libstdc++.a) | sort -u" >&2
+	echo "       and if that lists getentropy/arc4random/symlink/..., the toolchain's" >&2
+	echo "       libstdc++ is already unusable for plugins and matching it would only" >&2
+	echo "       reproduce the breakage. Debian/Ubuntu's libstdc++-arm-none-eabi-dev" >&2
+	echo "       is known to be built this way; use an ARM GNU toolchain release" >&2
+	echo "       (https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads)" >&2
+	echo "       instead." >&2
 	exit 1
 fi
 echo "c++config.h: OK (identical configuration)"
@@ -316,8 +438,8 @@ echo "==== 5. archive surgery"
 AR="$TC/arm-none-eabi-ar"
 RANLIB="$TC/arm-none-eabi-gcc-ranlib"
 
-cp build-newlib/arm-none-eabi/newlib/libc.a libc-plugin.a
-cp build-newlib/arm-none-eabi/newlib/libm.a libm-plugin.a
+cp "$NEWLIB_BUILD/arm-none-eabi/newlib/libc.a" libc-plugin.a
+cp "$NEWLIB_BUILD/arm-none-eabi/newlib/libm.a" libm-plugin.a
 cp build-libstdcxx/src/.libs/libstdc++.a libstdc++-plugin.a
 
 # Delete archive members by name, erroring if any expected member is absent
