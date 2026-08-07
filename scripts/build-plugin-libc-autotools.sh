@@ -13,8 +13,10 @@
 #     version, and the gcc source tarball matching the toolchain's gcc (for
 #     libstdc++-v3 and the libgcc unwinder sources)
 #  2. Builds newlib with CFLAGS_FOR_TARGET += -fPIC and configure flags that
-#     reproduce the ARM toolchain's configuration exactly (verified by
-#     diffing the generated newlib.h against the toolchain's installed copy)
+#     reproduce the installed toolchain's configuration exactly -- the feature
+#     options are read back out of its newlib.h, since distro-packaged
+#     toolchains configure newlib differently than the ARM GNU releases do
+#     (verified by diffing the generated newlib.h against the installed copy)
 #  3. Builds libstdc++-v3 standalone (--host=arm-none-eabi) with -fPIC and
 #     --with-pic, using the installed cross compiler. Configure link-tests
 #     are impossible for bare metal (GCC_NO_EXECUTABLES), so the answers are
@@ -85,8 +87,42 @@ if [ -n "$REQUESTED_VER" ] && [ "$REQUESTED_VER" != "$GCC_MAJOR" ]; then
 fi
 
 ##############################################################################
-# Source versions: newlib matching what the ARM toolchain release ships
-# (check $SYSROOT/include/_newlib_version.h), gcc matching its gcc.
+# Where the toolchain keeps its target headers -- i.e. what the rest of this
+# script means by "$sysroot/include".
+#
+# ARM's official toolchains answer -print-sysroot with <toolchain>/arm-none-eabi
+# and put the headers in $sysroot/include. Distro packages (Debian/Ubuntu
+# gcc-arm-none-eabi, and the arm-none-eabi-gcc in most other distros) are
+# configured without a sysroot: -print-sysroot prints an empty string and the
+# same headers live in /usr/lib/arm-none-eabi/include. So ask the preprocessor
+# where it actually looks rather than assuming either layout.
+find_tc_include() {
+	local sysroot dir
+	sysroot="$("$TC/arm-none-eabi-gcc" -print-sysroot)"
+	if [ -n "$sysroot" ] && [ -f "$sysroot/include/newlib.h" ]; then
+		echo "$sysroot/include"
+		return 0
+	fi
+	# The entries of the '#include <...>' search list are the output lines
+	# indented by one space. gcc's own include/ and include-fixed/ come
+	# first but never hold newlib.h, so testing for it picks the target
+	# header dir.
+	while read -r dir; do
+		[ -f "$dir/newlib.h" ] || continue
+		(cd "$dir" && pwd)
+		return 0
+	done < <("$TC/arm-none-eabi-gcc" -E -Wp,-v -xc /dev/null -o /dev/null 2>&1 |
+	         sed -n 's/^ \([^ ].*\)$/\1/p')
+	return 1
+}
+if ! TC_INCLUDE="$(find_tc_include)"; then
+	echo "ERROR: could not find newlib.h in the include search path of" >&2
+	echo "       $TC/arm-none-eabi-gcc." >&2
+	echo "       The toolchain's newlib headers are missing -- on Debian/Ubuntu" >&2
+	echo "       install the libnewlib-arm-none-eabi package." >&2
+	exit 1
+fi
+
 case "$SRC_VARIANT" in
 	12.3) NEWLIB_VER=newlib-4.3.0.20230120; GCC_VER=gcc-12.3.0 ;;
 	13.2) NEWLIB_VER=newlib-4.3.0.20230120; GCC_VER=gcc-13.2.0 ;;
