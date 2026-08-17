@@ -16,6 +16,13 @@ namespace MetaModule::Midi
 std::string toPrettyString(std::span<uint8_t, 3> bytes);
 std::string toPrettyMultilineString(std::span<uint8_t, 3> bytes);
 
+// The physical port a MIDI message arrived on.
+enum Port : uint8_t {
+	USB = 0,
+	TRS = 1,
+	DIN5 = 2,
+};
+
 } // namespace MetaModule::Midi
 
 namespace MetaModule
