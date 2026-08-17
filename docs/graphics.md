@@ -1,21 +1,31 @@
 # Graphics
 
 MetaModule uses PNG files for all graphics.
-Module faceplates should be 240 pixels high (128.5mm or 5.059" = 240px, so effective DPI is 47.44).
+
+Module faceplates must be 240 pixels high (128.5mm or 5.059" = 240px, so
+effective DPI is 47.44), and they must have a non-transparent background. PNGs
+for knobs, jacks, etc can use transparency, but the faceplate PNG must not.
 
 The screen is 240px x 320px, about 144 ppi. We use 16-bit color (RGB565).
-Modules are displayed 240px high when viewed full-screen and 180px high when zoomed-out.
-We may add future options to zoom out to 120px when zoomed-out.
+Modules are displayed 240px high when viewed full-screen and 180px high when
+zoomed-out. We may add future options to zoom out to 120px when zoomed-out.
 
-All graphics for a plugin live in the `assets/` dir in the plugin base directory.
+If you are porting from VCV, then don't change anything -- the VCV coordinates
+will be automatically converted to the right scale by the VCV adaptor layer.
+When making a native module (not porting from VCV), typically the units is in
+millimeters, with 128.5mm being the full height of the panel (so, `y_mm=64.25` would
+mean the vertical center of the panel). 
 
-When a plugin is built, the contents of the assets directory is copied into the 
-plugin directory. Notice that the assets directory itself is not copied, 
-just the contents. So if you put a file in `MyPlugin/assets/mypic.png`, then your plugin
-will reference as `MyPlugin/mypic.png`.
+All graphics for a plugin live in the `assets/` dir in the plugin base
+directory.
 
-Certain special effects like shadows, subtle gradients, thin lines will not look
-good on the MetaModule screen, so keep that in mind as you create artwork.
+When a plugin is built, the contents of the assets directory is copied into the
+plugin directory. Notice that the assets directory itself is not copied, just
+the contents. So if you put a file in `MyPlugin/assets/mypic.png`, then your
+plugin will reference as `MyPlugin/mypic.png`.
+
+Certain special effects like shadows, subtle gradients, thin lines will not
+look good on the MetaModule screen, so keep that in mind as you create artwork.
 
 
 ## Converting SVGs from a VCV Rack plugin
@@ -36,8 +46,9 @@ So, if you have this:
 panel = APP->window->loadSvg(asset::plugin(pluginInstance, "res/faceplates/MyModulePanel.svg"));
 ```
 
-...then the MetaModule will automatically convert that to load a file called
+...then the MetaModule will automatically convert that path and load a file called
 `faceplates/MyModulePanel.png` from your plugin's internal directory.
+
 
 ### Conversion helper tool
 

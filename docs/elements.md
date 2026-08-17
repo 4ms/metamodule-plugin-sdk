@@ -31,16 +31,18 @@ struct BaseElement {
 };
 ```
 
-- `x_mm`, `y_mm`: This specifies the x,y position of where to draw the element.
+- `x_mm`, `y_mm`: This specifies the x,y position in millimeters of where to draw the element.
+  The `mm` units is scaled such that 128.5mm is the full panel height.
 - `coords` This can be Coords::Center to indicate x,y is the center of the
   element; or it can be Coords::TopLeft to indicate x,y is the top-left of the
   element.
 - `short_name`: The display name of the element.
 - `long_name`: not used currently.
-- `width_mm`, `height_mm`: Not always used since the image itself determines
-  the dimensions, but in case the image file cannot be found then these are
-  used. Also used for DynamicTextDisplay and DynamicGraphicDisplay to know what
-  size buffer to allocate.
+- `width_mm`, `height_mm`: Width and height of the element in millimeters.
+  Not always used since the image itself determines the dimensions, but in case
+  the image file cannot be found then these are used. Also used for
+  DynamicTextDisplay and DynamicGraphicDisplay to know what size buffer to
+  allocate.
 
 ## Other element types
 

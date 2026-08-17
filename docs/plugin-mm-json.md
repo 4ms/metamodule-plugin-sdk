@@ -47,25 +47,25 @@ plugins website. Order does not matter:
   plugin file name stem will be used (e.g. `CoolModular-v1.2.mmplugin` =>
   `CoolModular`). Required for website listing.
 
-- `MetaModuleBrandSlug`: This is the brand slug that uniquely identifies your
-  plugin brand. The brand slug is used when opening a patch file to determine
-  which plugins to find the modules. It's also used when saving a patch file.
-  If present, this must match the brand slug used in patch files. For VCV
-  Rack ports this must be the same as the VCV Rack slug. Putting a value here
-  will override the `slug` value found in the `plugin.json` file, and if that's
-  not found then the brand slug will default to the file name stem (as
-  described above). For VCV Rack ports, this is usually not populated. Required for 
-  native plugins.
+- `MetaModuleBrandSlug`: **If your plugin also has a VCV Rack version, then 
+  do not use this field.** For native plugins, this is where you set your
+  brand slug, and it's required.
+  *Note: If you populate this field for a non-native plugins, then we will ask
+  for an explanation before releasing it because it can cause confusion and
+  incompatibility with VCV Rack if used improperly.* 
 
-- `MetaModuleBrandAliases`: This is a list of slugs that should be considered
-  as the same plugin when opening a patch file. In the example json file above,
+- `MetaModuleBrandAliases`: **This is a rarely used field, and should not be used
+  unless you have a specific reason** (usually involving some legacy plugin or 3rd
+  party author's work). If you're not sure, just leave this field out of your
+  `plugin-mm.json`. This field is a list of slugs that should be considered as
+  the same plugin when opening a patch file. In the example json file above,
   there are three aliases: "4ms-company", "4MS" and "4msVCV". If we open a
   patch file that asks for a module named "4msVCV:SuperVCO" then the MetaModule
-  will first look for a plugin called "4msVCV", and if it doesn' find that then it
-  will scan the aliases of all plugins until it finds one that has "4msVCV" for an alias.
-  If two plugins happen to have the same alias, then either one might get used
-  depending on the order that the plugins were loaded. So make sure to choose
-  aliases that will definitely be used only by your brand.
+  will first look for a plugin called "4msVCV", and if it doesn' find that then
+  it will scan the aliases of all plugins until it finds one that has "4msVCV"
+  for an alias. If two plugins happen to have the same alias, then either one
+  might get used depending on the order that the plugins were loaded. So make
+  sure to choose aliases that will definitely be used only by your brand.
 
 - `MetaModulePluginMaintainer`
 - `MetaModulePluginMaintainerEmail`
