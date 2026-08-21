@@ -1370,6 +1370,7 @@ _isatty_r
 _kill_r
 _lseek_r
 _malloc_r
+_memalign_r
 _open_r
 _read_r
 _realloc_r
