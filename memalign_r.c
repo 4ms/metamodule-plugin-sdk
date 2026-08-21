@@ -9,7 +9,7 @@ struct _reent;
 
 extern void *memalign(size_t align, size_t size);
 
-void *_memalign_r(struct _reent *reent, size_t align, size_t size) {
+__attribute__((weak)) void *_memalign_r(struct _reent *reent, size_t align, size_t size) {
 	(void)reent;
 	return memalign(align, size);
 }
