@@ -12,13 +12,14 @@
 
 #include <array>
 #include <cstdio>
+#include <cstdint>
 #include <cstdlib>
-#include <libgen.h>
-#include <sys/stat.h>
+#include <cstring>
 #include <exception>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <libgen.h>
 #include <memory>
 #include <new>
 #include <random>
@@ -26,6 +27,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <sys/stat.h>
 #include <vector>
 
 namespace
@@ -283,8 +285,7 @@ int run_oom_tests() {
 			p[chunk_size - 1] = 2;
 			ok = (p[0] == 1 && p[chunk_size - 1] == 2);
 			delete[] p;
-		} catch (std::bad_alloc &) {
-		}
+		} catch (std::bad_alloc &) {}
 		check(ok, "heap usable after exhaustion");
 	}
 
@@ -348,8 +349,7 @@ int run_stream_tests() {
 			iss >> i;
 		} catch (std::ios_base::failure &) {
 			ok = true;
-		} catch (...) {
-		}
+		} catch (...) {}
 		check(ok, "stream throws ios_base::failure");
 	}
 
@@ -392,9 +392,7 @@ int run_stream_tests() {
 		}
 	}
 
-	{
-		check(std::to_string(42) == "42" && std::stoi("-7") == -7, "to_string/stoi");
-	}
+	{ check(std::to_string(42) == "42" && std::stoi("-7") == -7, "to_string/stoi"); }
 
 	{
 		// std::random_device is widely used by ported VCV modules. On this
@@ -438,6 +436,18 @@ int run_libc_tests() {
 		// rebuild, breaking linking for any plugin that calls stat().)
 		struct stat st{};
 		check(stat("nonexistent-file-xyz.txt", &st) != 0, "stat missing file returns error");
+	}
+
+	{
+		// aligned_alloc calls newlib's _memalign_r, which the SDK forwards to
+		// the firmware's memalign (the firmware does not export _memalign_r)
+		void *x = aligned_alloc(64, 128);
+		check(x != nullptr, "aligned_alloc returns non-null");
+		check((reinterpret_cast<uintptr_t>(x) & 63) == 0, "aligned_alloc result is aligned");
+		if (x) {
+			memset(x, 0xA5, 128);
+			free(x);
+		}
 	}
 
 	printf("[libc-test] %d passed, %d failed\n", passed, failed);
