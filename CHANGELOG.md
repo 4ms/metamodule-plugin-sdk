@@ -1,5 +1,11 @@
 # Change Log for SDK API
 
+### In progress
+- Fixed `aligned_alloc()` failing to link with a missing
+  `_memalign_r` symbol. The SDK now forwards it to `memalign`, which is already
+  an API symbol in firmware.
+  
+
 ### v2.3.0
 - Support for exceptions crossing the plugin-host boundary: throwing an
   exception in a plugin can be caught in firmware, and vice-versa. This allows

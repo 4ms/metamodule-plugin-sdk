@@ -117,6 +117,8 @@ function(create_plugin)
     # lookup, so exceptions can unwind across the plugin/host boundary
     target_sources(${LIB_NAME} PRIVATE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/unwind_exidx.c)
 
+    target_sources(${LIB_NAME} PRIVATE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/memalign_r.c)
+
     target_compile_definitions(${LIB_NAME} PRIVATE METAMODULE)
     target_compile_options(${LIB_NAME} PRIVATE 
         -fvisibility=hidden
