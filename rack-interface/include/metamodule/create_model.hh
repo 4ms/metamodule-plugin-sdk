@@ -18,7 +18,8 @@ struct RegisteredModel {
 template<typename ModuleT, typename ModuleWidgetT>
 std::unique_ptr<CoreProcessor> create_vcv_module() {
 	auto module = std::make_unique<ModuleT>();
-	module->model = RegisteredModel<ModuleT, ModuleWidgetT>::model;
+	// Qualified so it still resolves to Module::model if ModuleT declares its own `model`
+	module->rack::engine::Module::model = RegisteredModel<ModuleT, ModuleWidgetT>::model;
 	module->module_widget = std::make_shared<ModuleWidgetT>(module.get());
 	return module;
 }
