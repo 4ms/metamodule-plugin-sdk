@@ -16,6 +16,13 @@ namespace MetaModule::Midi
 std::string toPrettyString(std::span<uint8_t, 3> bytes);
 std::string toPrettyMultilineString(std::span<uint8_t, 3> bytes);
 
+// The physical port a MIDI message arrived on.
+enum Port : uint8_t {
+	USB = 0,
+	TRS = 1,
+	DIN5 = 2,
+};
+
 } // namespace MetaModule::Midi
 
 namespace MetaModule
@@ -195,6 +202,12 @@ struct MidiMessage {
 		bytes[3] = data.byte[1];
 	}
 
+	void make_bytes(std::array<uint8_t, 3> &bytes) {
+		bytes[0] = status;
+		bytes[1] = data.byte[0];
+		bytes[2] = data.byte[1];
+	}
+
 	uint8_t note() const {
 		return data.byte[0];
 	}
@@ -229,9 +242,13 @@ struct MidiMessage {
 	}
 
 	unsigned message_size() const {
-		if (is_timing_transport()) {
+		if (status >= 0xF4) {
 			return 1;
+		} else if (status == TimeCodeQuarterFrame || status == SongSelect) {
+			return 2;
 		} else if (status.command == MidiCommand::ChannelPressure) {
+			return 2;
+		} else if (status.command == MidiCommand::ProgramChange) {
 			return 2;
 		} else if (usb_hdr.cin == 0x5) {
 			return 1;

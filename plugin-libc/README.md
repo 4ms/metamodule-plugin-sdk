@@ -1,11 +1,12 @@
 ## plugin-libc
 
-This directory contains the pre-compiled library for libc, libstdc++, newlib, etc that your
-plugin needs to be linked with. There's a separate .a file for each arm gcc version in the `lib/` dir.
-There's also a header needed for compilation (in `include/`).
+This directory contains the pre-compiled library for libc, libstdc++, newlib,
+etc that your plugin needs to be linked with. There's a separate .a file for
+each arm gcc version in the `lib/` dir. There's also a header needed for
+compilation (in `include/`).
 
-There are also some headers in `glue/` and a source file (`dso_handle.c`) needed to
-rebuild the libraries.
+There are also some headers in `glue/` and a source file (`dso_handle.c`)
+needed to rebuild the libraries.
 
 
 ## Reason for custom-built standard libraries
@@ -35,7 +36,30 @@ and gcc sources and builds all required libraries with the -fPIC flag so that
 dynamic loading will work. This is the same script we use for building the 
 included pre-built v12.3 and v15.3 libraries.
 
-Only arm gcc toolchains versions 12.2, 12.3, 13.2, 13.2, 14.2, 14.3, 15.2, and 15.3 are supported.
+Only arm gcc toolchains versions 12.2, 12.3, 13.2, 13.2, 14.2, 14.3, 15.2, and
+15.3 are supported.
+
+The script matches whatever newlib version and configuration the toolchain you
+point it at was built with, because the archive has to agree with the headers
+your plugin is compiled against. That works for distro-packaged toolchains as
+well as for the [ARM GNU toolchain](https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads)
+releases, with one caveat:
+
+> **Distro-packaged toolchains**
+>
+> Debian/Ubuntu's `libstdc++.a` has undefined references to `getentropy`,
+> `arc4random`, `symlink`, `fchmod` and friends, which newlib does not provide.
+> You can check any toolchain with:
+>
+> ```bash
+> arm-none-eabi-nm -u $(arm-none-eabi-gcc -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -print-file-name=libstdc++.a) | grep getentropy
+> ```
+>
+> This command lists undefined symbols, so if you see `U getentropy`, that toolchain's 
+> libstdc++ will not work with modules that use `std::random_device`.
+>
+> The script refuses to reproduce such a configuration, so use an ARM GNU
+> toolchain release instead.
 
 To have the script automatically detect the arm gcc version on your PATH and
 build for that, just invoke the script with no arguments:
@@ -44,14 +68,16 @@ build for that, just invoke the script with no arguments:
 scripts/build-plugin-libc-autotools.sh
 ```
 
-To specify a path to the toolchain you wish to use, put the path to the bin/ directory as the argument:
+To specify a path to the toolchain you wish to use, put the path to the bin/
+directory as the argument:
 
 ```bash
 scripts/build-plugin-libc-autotools.sh /path/to/bin/arm-gnu-toolchain-14.2.rel1-darwin-arm64-arm-none-eabi/bin
 ```
 
-To ensure that a particular version is built, specify the major version (minor version .3 will be assumed).
-If the version on your PATH is not the same, then the script will return an error.
+To ensure that a particular version is built, specify the major version (minor
+version .3 will be assumed). If the version on your PATH is not the same, then
+the script will return an error.
 
 ```bash
 scripts/build-plugin-libc-autotools.sh 14

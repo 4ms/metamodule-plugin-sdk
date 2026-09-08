@@ -88,17 +88,21 @@ function(create_plugin)
         message(FATAL_ERROR "plugin-mm.json must be in the root dir of the plugin: ${CMAKE_CURRENT_SOURCE_DIR}.")
     endif()
 
-    find_program(JQ_EXECUTABLE jq)
-    if(NOT JQ_EXECUTABLE)
-        message(WARNING "Cannot find jq program. You must manually validate plugin-mm.json")
-    else()
-        add_custom_target(VALIDATE_PLUGIN_MM_JSON ALL
-            COMMAND ${JQ_EXECUTABLE} -e . ${PLUGIN_MM_JSON_SOURCE} > /dev/null || echo "**** Error: JSON syntax error in ${PLUGIN_MM_JSON_SOURCE}"
-            VERBATIM
-            USES_TERMINAL
-            COMMENT "Validating plugin-mm.json"
-        )
-    endif()
+    # Validate plugin-mm.json: JSON syntax, and that each module slug it lists
+    # also exists in plugin.json
+    cmake_path(ABSOLUTE_PATH PLUGIN_JSON_SOURCE
+        BASE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        NORMALIZE
+        OUTPUT_VARIABLE PLUGIN_JSON_SOURCE_ABS)
+
+    add_custom_target(VALIDATE_PLUGIN_MM_JSON ALL
+        COMMAND ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/scripts/check_plugin_mm_json.py
+            --plugin-mm-json ${PLUGIN_MM_JSON_SOURCE}
+            --plugin-json ${PLUGIN_JSON_SOURCE_ABS}
+        VERBATIM
+        USES_TERMINAL
+        COMMENT "Validating plugin-mm.json"
+    )
 
     ###############
 
@@ -112,6 +116,8 @@ function(create_plugin)
     # Route the plugin's exception unwinder to the host's unified exidx
     # lookup, so exceptions can unwind across the plugin/host boundary
     target_sources(${LIB_NAME} PRIVATE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/unwind_exidx.c)
+
+    target_sources(${LIB_NAME} PRIVATE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/memalign_r.c)
 
     target_compile_definitions(${LIB_NAME} PRIVATE METAMODULE)
     target_compile_options(${LIB_NAME} PRIVATE 
