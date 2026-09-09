@@ -124,18 +124,18 @@ Usage examples:
 	42_f32
 	4.2e-4_f64
 */
-inline int8_t operator"" _i8(unsigned long long x) {return x;}
-inline int16_t operator"" _i16(unsigned long long x) {return x;}
-inline int32_t operator"" _i32(unsigned long long x) {return x;}
-inline int64_t operator"" _i64(unsigned long long x) {return x;}
-inline uint8_t operator"" _u8(unsigned long long x) {return x;}
-inline uint16_t operator"" _u16(unsigned long long x) {return x;}
-inline uint32_t operator"" _u32(unsigned long long x) {return x;}
-inline uint64_t operator"" _u64(unsigned long long x) {return x;}
-inline float operator"" _f32(long double x) {return x;}
-inline float operator"" _f32(unsigned long long x) {return x;}
-inline double operator"" _f64(long double x) {return x;}
-inline double operator"" _f64(unsigned long long x) {return x;}
+inline int8_t operator""_i8(unsigned long long x) {return x;}
+inline int16_t operator""_i16(unsigned long long x) {return x;}
+inline int32_t operator""_i32(unsigned long long x) {return x;}
+inline int64_t operator""_i64(unsigned long long x) {return x;}
+inline uint8_t operator""_u8(unsigned long long x) {return x;}
+inline uint16_t operator""_u16(unsigned long long x) {return x;}
+inline uint32_t operator""_u32(unsigned long long x) {return x;}
+inline uint64_t operator""_u64(unsigned long long x) {return x;}
+inline float operator""_f32(long double x) {return x;}
+inline float operator""_f32(unsigned long long x) {return x;}
+inline double operator""_f64(long double x) {return x;}
+inline double operator""_f64(unsigned long long x) {return x;}
 
 
 #if defined ARCH_WIN
