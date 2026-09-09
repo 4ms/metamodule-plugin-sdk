@@ -197,3 +197,54 @@ not have real-time requirements:
 - For VCV-ported modules, context menus are called by the GUI thread and thus
   are safe to make filesystem calls or memory allocations.
 
+
+## Context menus (native modules)
+
+Native modules can provide a context menu, shown under an "Options" entry at the
+bottom of the module's parameter list in the GUI (the same place a VCV-ported
+module's `appendContextMenu()` items appear). Override three functions:
+
+```c++
+std::vector<ContextMenuItem> get_context_menu_items() override;
+void context_menu_action(unsigned index) override;
+void context_menu_set_value(unsigned index, float value) override;
+```
+
+`get_context_menu_items()` returns the rows to show. Each `ContextMenuItem` has a
+`type`:
+
+- `Action` — a clickable row. Clicking it calls `context_menu_action(index)`.
+- `Checkbox` — shows a checkmark when its `checked` field is true. Clicking it
+  also calls `context_menu_action(index)`; your handler should toggle the
+  module's own state, which is reflected the next time
+  `get_context_menu_items()` is called.
+- `Slider` — a continuous value in the range 0..1 (its `value` field). Clicking it
+  opens a value editor; while the user adjusts it, `context_menu_set_value(index,
+  value)` is called. Use `value_text` to display the current value (e.g. "50%").
+- `Label` — non-interactive text, e.g. a heading.
+- `Divider` — a horizontal separator line.
+
+`index` is the row's position in the vector you returned. These functions are all
+called in the GUI context, so it's safe to allocate memory. Menu-driven state
+changes are a good fit for `save_state()`/`load_state()` if you want them to
+persist with the patch.
+
+A minimal example:
+
+```c++
+std::vector<ContextMenuItem> MyModule::get_context_menu_items() {
+    using Type = ContextMenuItem::Type;
+    return {
+        {.type = Type::Label, .name = "Options"},
+        {.type = Type::Checkbox, .name = "Invert", .checked = inverted},
+    };
+}
+
+void MyModule::context_menu_action(unsigned index) {
+    if (index == 1)
+        inverted = !inverted;
+}
+```
+
+Note: the "Options" entry only appears while the patch is playing.
+

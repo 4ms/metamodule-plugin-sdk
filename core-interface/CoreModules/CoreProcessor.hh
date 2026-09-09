@@ -3,6 +3,7 @@
 #include <span>
 #include <string>
 #include <string_view>
+#include <vector>
 
 typedef struct _lv_obj_t lv_obj_t;
 
@@ -90,6 +91,49 @@ public:
 	// This is called in the GUI context.
 	//
 	virtual void hide_graphic_display(int display_id) {
+	}
+
+	// Context menu:
+	//
+	// Override get_context_menu_items() to give your module a context menu, shown in
+	// the GUI when the user opens the module's options. This is the native-module
+	// equivalent of a VCV Rack module's appendContextMenu(). Return an empty vector
+	// (the default) for no menu.
+	//
+	// A single row in the module's context menu.
+	struct ContextMenuItem {
+		enum class Type {
+			Action,	  // Clickable row; invokes context_menu_action(index)
+			Checkbox, // Toggle; shows a checkmark when `checked`; invokes context_menu_action(index)
+			Slider,	  // Continuous 0..1 value; edited via a popup; invokes context_menu_set_value(index, value)
+			Label,	  // Non-interactive text (e.g. a heading)
+			Divider,  // Horizontal separator line
+		};
+
+		Type type = Type::Action;
+		std::string name;		// The row's label
+		bool checked = false;	// Checkbox only: whether the checkmark is shown
+		float value = 0.f;		// Slider only: current value, range 0..1
+		std::string value_text; // Optional text shown after the name (e.g. a Slider's current value)
+	};
+
+	// Return the rows to show in this module's context menu.
+	// Called in the GUI context each time the menu is opened or refreshed, so it is
+	// fine to allocate and to reflect current state (e.g. a Checkbox's `checked`).
+	virtual std::vector<ContextMenuItem> get_context_menu_items() {
+		return {};
+	}
+
+	// Called when the user clicks an Action or Checkbox row. `index` is the row's
+	// position in the vector returned by get_context_menu_items(). A Checkbox handler
+	// should toggle the module's own state; the new state is reflected the next time
+	// get_context_menu_items() is called. Called in the GUI context.
+	virtual void context_menu_action(unsigned index) {
+	}
+
+	// Called repeatedly while the user adjusts a Slider row, with `value` in 0..1.
+	// `index` is the row's position in the vector. Called in the GUI context.
+	virtual void context_menu_set_value(unsigned index, float value) {
 	}
 
 	// Poly:
