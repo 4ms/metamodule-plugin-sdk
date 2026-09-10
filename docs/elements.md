@@ -335,3 +335,28 @@ If your Elements use any dynamically generated strings, then you will also need 
 static storage duration. The Airwindows example does this by having a `std::list<std::string>`, and
 all element names are placed in there. Then the `image` and `short_name` fields of each element are
 set to point to these std::strings in the std::list. See the Airwindows example if you need to do this.
+
+
+## Grouping controls into submenus
+
+Every element has an optional `group_name` field (a `std::string_view` on
+`BaseElement`). Elements that share the same non-empty `group_name` are collapsed
+into a single selectable row in the module view's parameter list; selecting that
+row opens a submenu showing just that group's controls, with a "< Back" row to
+return. This helps organize modules with many parameters. Ungrouped elements
+(the default, empty `group_name`) appear at the top level as before.
+
+```c++
+MetaModule::Knob cutoff;
+cutoff.short_name = "Cutoff";
+cutoff.group_name = "Filter";   // Cutoff and Resonance collapse under a "Filter" submenu
+
+MetaModule::Knob resonance;
+resonance.short_name = "Resonance";
+resonance.group_name = "Filter";
+```
+
+Groups are formed by matching `group_name` strings in element declaration order;
+the group's row appears at the position of its first member. Grouping is purely a
+GUI-organization aid — it does not change param/jack/light indices or the module's
+DSP. Grouping is suspended while the user is patching a cable.

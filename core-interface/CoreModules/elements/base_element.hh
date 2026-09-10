@@ -44,6 +44,12 @@ struct BaseElement {
 	float width_mm = 0;
 	float height_mm = 0;
 
+	// Optional: elements that share the same non-empty group_name are collapsed
+	// into a submenu in the module view's parameter list, to help organize
+	// modules with many controls. Leave empty (the default) for no grouping.
+	// Declared last so existing positional aggregate initializers are unaffected.
+	std::string_view group_name;
+
 	static constexpr size_t NumParams = 0;
 	static constexpr size_t NumLights = 0;
 	static constexpr size_t NumInputs = 0;
