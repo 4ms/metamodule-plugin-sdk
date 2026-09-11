@@ -1,6 +1,9 @@
 # Change Log for SDK API
 
 ### In progress (v2.4.0)
+- Native (CoreProcessor) modules can have context menus, using new symbols.
+  See `CoreModules/context_menu.hh` and [Context menus](docs/context-menus.md).
+  - Added test plugin: `tests/context-menu-test`.
 - Fixed `aligned_alloc()` failing to link with a missing
   `_memalign_r` symbol. The SDK now forwards it to `memalign`, which is already
   an API symbol in firmware.
