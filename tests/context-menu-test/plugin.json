@@ -1,0 +1,21 @@
+{
+	"slug": "ContextMenuTest",
+	"name": "Context Menu Test",
+	"version": "2.0.0",
+	"license": "GPL-3.0-or-later",
+	"brand": "ContextMenuTest",
+	"author": "4ms Company",
+	"description": "Test plugin for the MetaModule native context menu API",
+	"modules": [
+		{
+			"slug": "MenuLFO",
+			"name": "Menu LFO",
+			"description": "LFO configured from its context menu (member-function registration)"
+		},
+		{
+			"slug": "MenuGain",
+			"name": "Menu Gain",
+			"description": "Gain configured from its context menu (ContextMenuHandlers registration)"
+		}
+	]
+}
