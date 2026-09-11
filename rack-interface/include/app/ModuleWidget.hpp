@@ -122,8 +122,16 @@ struct ModuleWidget : widget::Widget {
 		unsigned element_idx;
 		rack::widget::Widget *widget;
 	};
-	__attribute__((visibility("hidden"))) std::vector<WidgetElement> &get_drawable_widgets();
-	__attribute__((visibility("hidden"))) void populate_elements_indices(rack::plugin::Model *model);
+	// Internal to the firmware, not for plugins. Windows (PE/COFF) has no symbol
+	// visibility, and GCC warns if the attribute is used there.
+#if defined(_WIN32) || defined(__CYGWIN__)
+#define MM_VISIBILITY_HIDDEN
+#else
+#define MM_VISIBILITY_HIDDEN __attribute__((visibility("hidden")))
+#endif
+	MM_VISIBILITY_HIDDEN std::vector<WidgetElement> &get_drawable_widgets();
+	MM_VISIBILITY_HIDDEN void populate_elements_indices(rack::plugin::Model *model);
+#undef MM_VISIBILITY_HIDDEN
 
 	///////////////////////
 
