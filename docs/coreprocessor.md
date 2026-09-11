@@ -197,3 +197,6 @@ not have real-time requirements:
 - For VCV-ported modules, context menus are called by the GUI thread and thus
   are safe to make filesystem calls or memory allocations.
 
+- For native modules, context menu callbacks are also called by the GUI
+  thread. See [Context menus](./context-menus.md).
+
