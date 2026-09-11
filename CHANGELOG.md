@@ -1,9 +1,13 @@
 # Change Log for SDK API
 
-### In progress
+### In progress (v2.4.0)
 - Fixed `aligned_alloc()` failing to link with a missing
   `_memalign_r` symbol. The SDK now forwards it to `memalign`, which is already
   an API symbol in firmware.
+- VCV rack-interface `rack::create_vcv_model()` now sets the `model` pointer to the
+  pointer previously created and returned by `rack::createModel()`. This allows
+  for expanders to work because a common pattern is to query your neighboring 
+  module's `model` pointer to determine if it's compatible.
   
 
 ### v2.3.0
