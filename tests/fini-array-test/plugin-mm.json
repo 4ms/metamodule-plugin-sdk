@@ -1,0 +1,12 @@
+{
+	"MetaModuleBrandName": "Fini Array Test",
+	"MetaModuleBrandSlug": "FiniArrayTest",
+	"MetaModulePluginMaintainer": "4ms Company",
+	"MetaModuleDescription": "Test plugin for .init_array and .fini_array support in the MetaModule plugin loader",
+	"MetaModuleIncludedModules": [
+		{
+			"slug": "FiniTest",
+			"name": "Init/Fini Array Test"
+		}
+	]
+}
