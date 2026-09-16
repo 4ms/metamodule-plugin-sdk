@@ -1,0 +1,16 @@
+{
+	"MetaModuleBrandName": "Context Menu Test",
+	"MetaModuleBrandSlug": "ContextMenuTest",
+	"MetaModulePluginMaintainer": "4ms Company",
+	"MetaModuleDescription": "Test plugin for the MetaModule native context menu API",
+	"MetaModuleIncludedModules": [
+		{
+			"slug": "MenuLFO",
+			"name": "Menu LFO"
+		},
+		{
+			"slug": "MenuGain",
+			"name": "Menu Gain"
+		}
+	]
+}
