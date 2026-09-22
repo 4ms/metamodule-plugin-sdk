@@ -1,0 +1,26 @@
+{
+	"slug": "ElementGroupTest",
+	"name": "Element Group Test",
+	"version": "2.0.0",
+	"license": "GPL-3.0-or-later",
+	"brand": "ElementGroupTest",
+	"author": "4ms Company",
+	"description": "Test plugin for the MetaModule element group API",
+	"modules": [
+		{
+			"slug": "GroupFilter",
+			"name": "Group Filter",
+			"description": "Element groups referring to elements by element index"
+		},
+		{
+			"slug": "GroupRefs",
+			"name": "Group Refs",
+			"description": "Element groups referring to elements by param and jack id"
+		},
+		{
+			"slug": "GroupDecl",
+			"name": "Group Decl",
+			"description": "Element groups declared in the module's info struct"
+		}
+	]
+}

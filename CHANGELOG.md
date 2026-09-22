@@ -5,8 +5,9 @@
   See `CoreModules/context_menu.hh` and [Context menus](docs/context-menus.md).
   - Added test plugin: `tests/context-menu-test`.
 - Modules can group their elements. The module view lists a group as a single row
-  that opens a submenu. Groups are declared in the plugin's `plugin-mm.json`.
-  See [Element groups](docs/element-groups.md).
+  that opens a submenu. Groups are declared in the plugin's `plugin-mm.json` --
+  there is no code to write -- and work for native modules and for modules ported
+  from VCV Rack. See [Element groups](docs/element-groups.md).
   - Added test plugin: `tests/element-group-test`.
 - Fixed `aligned_alloc()` failing to link with a missing
   `_memalign_r` symbol. The SDK now forwards it to `memalign`, which is already

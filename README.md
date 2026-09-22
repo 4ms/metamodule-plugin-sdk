@@ -24,6 +24,7 @@ For example projects using this SDK, see [metamodule-plugin-examples](https://gi
      - [Elements](docs/elements.md)
      - [Registering a module](docs/module-registry.md)
      - [Context menus](docs/context-menus.md)
+     - [Element groups](docs/element-groups.md)
  - [Text Screens/Displays](docs/text-displays.md)
  - [Graphical Screens/Displays](docs/graphic-displays.md)
  - [System API](docs/system-api.md)

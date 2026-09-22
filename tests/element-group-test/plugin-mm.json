@@ -1,0 +1,36 @@
+{
+	"MetaModuleBrandName": "Element Group Test",
+	"MetaModuleBrandSlug": "ElementGroupTest",
+	"MetaModulePluginMaintainer": "4ms Company",
+	"MetaModuleDescription": "Test plugin for MetaModule element groups",
+	"MetaModuleIncludedModules": [
+		{
+			"slug": "GroupFilter",
+			"name": "Group Filter",
+			"groups": {
+				"Filter": ["Cutoff", "Resonance", "Filter Mode"],
+				"Envelope": ["Attack", "Decay", "Sustain", "Release"],
+				"Mod": ["LFO Rate", "LFO Depth", "Gate"]
+			}
+		},
+		{
+			"slug": "GroupRefs",
+			"name": "Group Refs",
+			"groups": {
+				"Shape": ["param:1", "param:2", "param:3", "in:1", "in:2"],
+				"Drive": ["param:4", "param:5"],
+				"Duplicate": ["param:4", "param:0"],
+				"Broken": ["param:99", "in:99", "out:0"]
+			}
+		},
+		{
+			"slug": "GroupDecl",
+			"name": "Group Decl",
+			"class": "GroupDeclInfo",
+			"groups": {
+				"Delay": ["DelayTimeKnob", "FeedbackKnob", "DelayMixKnob"],
+				"Reverb": ["ReverbSizeKnob", "ReverbMixKnob"]
+			}
+		}
+	]
+}

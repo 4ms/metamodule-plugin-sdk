@@ -1,0 +1,155 @@
+# Element groups
+
+You can group related elements together to make the Module View element roller
+easier for users to navigate. This is completely a GUI feature, it doesn't change
+the way params or signals are processed. 
+
+When groups are present, the user sees just the group name a the top level. Clicking
+it will show all the group's elements, with "< Back" above them. 
+Elements can only belong to one group, and elements that aren't in a group are
+listed exactly as before.
+
+Groups are declared in your plugin's `plugin-mm.json`.
+They work the same for native (`CoreProcessor`) modules and for modules ported
+from VCV Rack.
+
+## Declaring groups
+
+Add a `groups` object to a module's entry in `MetaModuleIncludedModules`. Each key
+is a group name, and its value is the list of elements in that group:
+
+```json
+{
+	"MetaModuleBrandName": "My Brand",
+	"MetaModuleIncludedModules": [
+		{
+			"slug": "MyModule",
+			"name": "My Module",
+			"groups": {
+				"Filter": ["Cutoff", "Resonance", "Cutoff CV"],
+				"Envelope": ["Attack", "Decay", "Sustain", "Release"]
+			}
+		}
+	]
+}
+```
+
+Groups appear in the module view in the order they're written, each at the
+position of its first member. A group can mix element types — knobs, switches,
+jacks and lights can all be in the same group.
+
+## Naming elements
+
+A group member can be written three ways:
+
+### By name
+
+You can specify the string display name of the element, as it appears on the
+MetaModule screen (e.g. `"Cutoff"`). Matching ignores case.
+
+For a module ported from VCV Rack, the name is the one you passed to
+`configParam()` / `configInput()` / `configOutput()`. MetaModule appends " In" or
+" Out" to a jack's name when it doesn't already contain that word, so a jack you
+configured as "Cutoff CV" shows as "Cutoff CV In" — either spelling matches, so
+write whichever reads better.
+
+An exact match always wins over one that needed the " In"/" Out" allowance. So if
+a module has both a "Pitch" knob and a "Pitch" input (shown as "Pitch In"),
+`"Pitch"` finds the knob and `"Pitch In"` finds the jack.
+
+### By enumerator name
+
+Or, you can specify the name of an enum of the module's class: `"CUTOFF_PARAM"`. 
+For some modules, the string display name is long or ambigious, so this method
+might be a good choice.
+If you use this method, then you must also inlucde the `class` field like this:
+
+```json
+{
+	"slug": "Rad-Mod1",
+    "name": "My Rad Module",
+	"class": "MyModule",
+	"groups": {
+		"Filter": ["CUTOFF_PARAM", "RESO_PARAM", "CUTOFF_CV_INPUT"]
+	}
+}
+```
+
+The `class` field's value should be the exact C++ class name of your Module (that is,
+the name of the class that derives from `rack::Module`). e.g.:
+```
+class MyModule1 : rack::Module {  // <<<< "MyModule1" is the class name
+
+// or you might see:
+class MyModule2 : Module {  // <<<< "MyModule2" is the class name
+```
+
+These are resolved when the plugin is built and packaged by the SDK.
+A script reads the plugin's debug info, and converts the enum names to
+the integer value of the enum.
+If an enumerator name can't be resolved, it's a **build error**, which makes 
+this the most robust method: unlike using the display name, you'll know right away
+if you made a typo.
+
+The enum determines what the enumerator refers to:
+
+| enum | refers to |
+|---|---|
+| `ParamIds` / `ParamId` | a param |
+| `InputIds` / `InputId` | an input jack |
+| `OutputIds` / `OutputId` | an output jack |
+| `LightIds` / `LightId` | a light |
+| `Elem` | an element of a native module's info struct |
+
+
+Two things to keep in mind: 
+  - The `class` field is required (as explained above)
+  - The enum must actually be *used* somewhere in the module's code or else the
+    compiler drops it.
+
+### By index
+
+The final way is not recommended unless the other two methods won't work:
+specify by a typed index: `"param:3"`, `"in:1"`, `"out:0"`, `"light:2"`, or `"elem:5"`.
+
+`param:`/`in:`/`out:`/`light:` are the ids the module uses at runtime — the same
+numbers as its `ParamIds`/`InputIds`/`OutputIds`/`LightIds` enumerators. 
+
+`elem:` is an index into a native info struct's `Elements` array.
+
+This is what the other two methods resolve to, and it's the fallback method if the other
+methods don't work (duplicate display names, no enum classes, etc.). Generally,
+you won't ever need to use this, which is a good thing because it's not very legible.
+
+## Using groups in the simulator with external plugins
+
+When simulating a plugin as an external built-in (that is, using `ext-plugin.cmake`
+with the simulator), the enum method of groups is not supported. Use either the display 
+name, or the typed index (`param:3`)
+
+## Built-in brands
+If you're using the SDK then you're NOT making a built-in brand, so this section is 
+for curious minds only and is only tangentially relevant.
+
+Brands built into the firmware read the same `groups` key from their
+`firmware/assets/<brand>/plugin-mm.json`. Enumerator names work there: the firmware build 
+resolves them against its own debug info, the same way the SDK resolves them
+for a plugin. Names and typed indices work as usual.
+
+When building firmware, the arm-none-eabi-gcc toolchain is used, which geneartes the debug info
+used to scan and resolve enum names. On the other hand, the simulator is built by
+your computer's native toolchain and so its binaries cannot reliably be scanned to resolve the enums.
+So, in order to see groups specified by enum names in built-in brands, 
+tell the simulator to use the firmware's assets image, not the simulator's assets:
+`./build/simulator -s ../firmware/build/assets.uimg`.
+
+## Details
+
+- An element listed in more than one group stays in the first group that claims it.
+- A member that doesn't resolve is dropped, with a warning on the console, and the
+  rest of the group still works. A bad member never hides an element: it just stays
+  ungrouped.
+- A group with no name or no valid members is dropped.
+- Names and indices are resolved the first time a module's element list is shown,
+  not when the plugin loads, because a VCV-ported module's element names and
+  indices aren't final until the module has been created.
