@@ -4,10 +4,14 @@
 #  - syntactically valid JSON
 #  - every slug in MetaModuleIncludedModules exists in the modules list
 #    of the corresponding plugin.json
+#  - element groups, if any, are shaped correctly
 
 import json
 import argparse
+import re
 import sys
+
+TYPED_INDEX = re.compile(r"^(elem|param|in|out|light):\d+$")
 
 
 def load_json(path):
@@ -30,6 +34,43 @@ def module_slugs(plugin_json):
     return slugs
 
 
+def check_groups(plugin_mm_json_path, slug, module):
+    groups = module.get("groups")
+    if groups is None:
+        return
+
+    def warn(*lines):
+        print("************************WARNING******************")
+        print(f"Module `{slug}` in {plugin_mm_json_path}:")
+        for line in lines:
+            print(line)
+        print("*************************************************")
+
+    if not isinstance(groups, dict):
+        warn("`groups` must be an object of group name => list of elements.")
+        return
+
+    for group_name, members in groups.items():
+        if not isinstance(members, list) or not members:
+            warn(f"element group `{group_name}` must be a non-empty list of elements.")
+            continue
+
+        for member in members:
+            if not isinstance(member, str) or not member:
+                warn(f"element group `{group_name}` has a member that is not a string.")
+            elif ":" in member and not TYPED_INDEX.match(member):
+                warn(
+                    f"element group `{group_name}` member `{member}` looks like a typed",
+                    "index but is not one. Use param:N, in:N, out:N, light:N or elem:N.",
+                )
+
+    if module.get("class") is None:
+        return
+
+    if not isinstance(module.get("class"), str):
+        warn("`class` must be the name of the class that declares the module's enums.")
+
+
 def check(plugin_mm_json_path, plugin_json_path):
     plugin_mm = load_json(plugin_mm_json_path)
     plugin = load_json(plugin_json_path)
@@ -49,6 +90,8 @@ def check(plugin_mm_json_path, plugin_json_path):
             print("has no `slug` field.")
             print("*************************************************")
             continue
+
+        check_groups(plugin_mm_json_path, slug, module)
 
         if slug not in known_slugs:
             print("************************WARNING******************")

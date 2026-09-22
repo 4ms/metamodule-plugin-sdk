@@ -211,7 +211,12 @@ function(create_plugin)
         COMMAND ${CMAKE_COMMAND} -E make_directory ${PLUGIN_DEST_TMP_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy ${PLUGIN_FILE_TMP} ${PLUGIN_FILE}
         COMMAND ${CMAKE_COMMAND} -E copy ${PLUGIN_JSON_SOURCE} ${PLUGIN_JSON_DEST}
-        COMMAND ${CMAKE_COMMAND} -E copy ${PLUGIN_MM_JSON_SOURCE} ${PLUGIN_MM_JSON_DEST}
+        # Rewrites any element-group members written as enumerator names into typed
+        # indices, using the plugin's DWARF info. Everything else is copied as-is.
+        COMMAND ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/scripts/resolve_element_groups.py
+            --in ${PLUGIN_MM_JSON_SOURCE}
+            --out ${PLUGIN_MM_JSON_DEST}
+            --elf ${PLUGIN_FILE_FULL}
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${PLUGIN_OPTIONS_SOURCE_ASSETS} ${PLUGIN_DEST_TMP_DIR}
         COMMAND ${CMAKE_COMMAND} -E touch ${PLUGIN_DEST_TMP_DIR}/SDK-${SDK_MAJOR_VERSION}.${SDK_MINOR_VERSION}
         COMMAND ${CMAKE_COMMAND} -E make_directory ${PLUGIN_OPTIONS_PRESET_DIR}
