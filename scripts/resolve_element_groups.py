@@ -25,6 +25,7 @@ Usage: resolve_element_groups.py --in plugin-mm.json --out plugin-mm.json --elf 
 import argparse
 import json
 import re
+import shutil
 import sys
 
 sys.path.insert(0, __file__.rsplit('/', 1)[0])
@@ -139,8 +140,15 @@ def main():
     parser.add_argument('-v', '--verbose', action='store_true')
     args = parser.parse_args()
 
-    with open(args.infile) as f:
-        mm_json = json.load(f)
+    try:
+        with open(args.infile) as f:
+            mm_json = json.load(f)
+    except json.JSONDecodeError as e:
+        # The firmware's yaml parser is more forgiving than python's json module
+        # (trailing commas, for one). Leave a file we can't parse exactly as it is
+        # rather than failing a build over a manifest we may have nothing to do to.
+        print(f'Note: {args.infile} is not strict JSON ({e}); element groups left as written')
+        return 0
 
     needs_enums = any(
         isinstance(m, dict) and m.get('class') and m.get('groups')
@@ -175,12 +183,18 @@ def main():
     if unresolved:
         return 1
 
+    # Nothing to rewrite: leave the destination alone rather than reformatting a file
+    # we didn't change. When --in and --out are the same path this matters even more.
+    if not rewritten:
+        if args.infile != args.outfile:
+            shutil.copyfile(args.infile, args.outfile)
+        return 0
+
     with open(args.outfile, 'w') as f:
         json.dump(mm_json, f, indent=2)
         f.write('\n')
 
-    if rewritten:
-        print(f'Resolved {rewritten} element group member(s) to typed indices')
+    print(f'Resolved {rewritten} element group member(s) to typed indices')
 
     return 0
 
