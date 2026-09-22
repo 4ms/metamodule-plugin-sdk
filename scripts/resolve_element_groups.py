@@ -95,6 +95,7 @@ def resolve(mm_json, enums, verbose=False):
     """Rewrite enumerator names in place. Returns (rewritten, unresolved) counts."""
     rewritten = 0
     unresolved = []
+    by_name = []
 
     for module in mm_json.get('MetaModuleIncludedModules', []):
         if not isinstance(module, dict):
@@ -121,11 +122,17 @@ def resolve(mm_json, enums, verbose=False):
                     if verbose:
                         print(f'  {module.get("slug")}/{group_name}: {member} -> {members[i]}')
 
-                elif class_name and members_by_name and member.isupper() and '_' in member:
-                    # Looks like an enumerator but isn't one of this class's
-                    unresolved.append(f'{module.get("slug")}/{group_name}: {member}')
+                elif class_name and members_by_name:
+                    # The module opted into enumerator names, so a member that isn't one
+                    # is either an element named on screen or a typo. An ALL_CAPS name is
+                    # a VCV-style id and is probably a typo. Anything else is reported as
+                    # a note, since it's matched by name on the device.
+                    if member.isupper() and '_' in member:
+                        unresolved.append(f'{module.get("slug")}/{group_name}: {member}')
+                    else:
+                        by_name.append(f'{module.get("slug")}/{group_name}: {member}')
 
-    return rewritten, unresolved
+    return rewritten, unresolved, by_name
 
 
 def main():
@@ -176,7 +183,10 @@ def main():
             print(f'Note: element group enumerator names left unresolved: {problem}')
             enums = {}
 
-    rewritten, unresolved = resolve(mm_json, enums, args.verbose)
+    rewritten, unresolved, by_name = resolve(mm_json, enums, args.verbose)
+
+    for item in by_name:
+        print(f'Note: element group member is not an enumerator, matched by name instead: {item}')
 
     for item in unresolved:
         print(f'**** Error: element group member is not an enumerator of its module class: {item}')
