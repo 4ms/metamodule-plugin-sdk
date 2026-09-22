@@ -4,7 +4,7 @@
 #  - syntactically valid JSON
 #  - every slug in MetaModuleIncludedModules exists in the modules list
 #    of the corresponding plugin.json
-#  - element groups, if any, are shaped correctly
+#  - element groups and order, if any, are shaped correctly
 
 import json
 import argparse
@@ -71,6 +71,39 @@ def check_groups(plugin_mm_json_path, slug, module):
         warn("`class` must be the name of the class that declares the module's enums.")
 
 
+def check_order(plugin_mm_json_path, slug, module):
+    order = module.get("order")
+    if order is None:
+        return
+
+    def warn(*lines):
+        print("************************WARNING******************")
+        print(f"Module `{slug}` in {plugin_mm_json_path}:")
+        for line in lines:
+            print(line)
+        print("*************************************************")
+
+    if not isinstance(order, list):
+        warn("`order` must be a list of group names and elements.")
+        return
+
+    seen = set()
+    for item in order:
+        if not isinstance(item, str) or not item:
+            warn("`order` has an item that is not a string.")
+            continue
+
+        if ":" in item and not TYPED_INDEX.match(item):
+            warn(
+                f"`order` item `{item}` looks like a typed index but is not one.",
+                "Use param:N, in:N, out:N, light:N or elem:N.",
+            )
+
+        if item.casefold() in seen:
+            warn(f"`order` lists `{item}` more than once: only the first counts.")
+        seen.add(item.casefold())
+
+
 def check(plugin_mm_json_path, plugin_json_path):
     plugin_mm = load_json(plugin_mm_json_path)
     plugin = load_json(plugin_json_path)
@@ -92,6 +125,7 @@ def check(plugin_mm_json_path, plugin_json_path):
             continue
 
         check_groups(plugin_mm_json_path, slug, module)
+        check_order(plugin_mm_json_path, slug, module)
 
         if slug not in known_slugs:
             print("************************WARNING******************")

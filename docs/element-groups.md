@@ -34,9 +34,42 @@ is a group name, and its value is the list of elements in that group:
 }
 ```
 
-Groups appear in the module view in the order they're written, each at the
-position of its first member. A group can mix element types — knobs, switches,
-jacks and lights can all be in the same group.
+A group lists its elements in the order they're written. A group can mix element
+types — knobs, switches, jacks and lights can all be in the same group.
+
+Unless the module has an `order` (below), each group appears at the position of its
+first element.
+
+## Ordering
+
+Add an `order` list to set the order of the top level of the list. Each item is a
+group's name or an element, written any of the ways described under
+[Naming elements](#naming-elements):
+
+
+```json
+{
+	"slug": "QCD",
+	"class": "QCDInfo",
+	"groups": {
+		"Channel 1": ["DivMult1Knob", "DivMultCv1Knob", "GatePw1Knob"],
+		"Channel 2": ["DivMult2Knob", "DivMultCv2Knob", "GatePw2Knob"]
+	},
+	"order": ["Tap Tempo", "Tap Out", "Channel 1", "Channel 2"]
+}
+```
+
+`order` can be partial: anything you don't list appears in its default position.
+
+- A name in `order` is matched against the module's group names first, and then
+  against its elements. If a group and an element share a name, the group wins.
+- An element that belongs to a group can't be listed at the top level: it's shown
+  inside its group, and the `order` entry is skipped with a warning.
+- The element list separates element types with headers ("Params:", "Jacks:"). A
+  new header appears whenever the type changes, so keep elements of the same type
+  together unless you want the headers to repeat.
+- While you're patching a cable, the list shows jacks only, in panel order,
+  ignoring groups and `order`.
 
 ## Naming elements
 

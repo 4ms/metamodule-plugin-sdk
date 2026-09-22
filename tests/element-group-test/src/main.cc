@@ -1,15 +1,21 @@
-// Test plugin for element groups.
+// Test plugin for element groups and ordering.
 //
-// The modules here have no group code at all: their groups are declared in this
-// plugin's plugin-mm.json, and each module exercises one way of naming elements.
+// The modules here have no group code at all: their groups and order are declared in
+// this plugin's plugin-mm.json, and each module exercises one way of naming elements.
 //
-// Group Filter:  members named by the element name shown on screen.
+// Group Filter:  members named by the element name shown on screen. The Filter group
+//                lists its members out of panel order, and a partial "order" puts
+//                Output Gain and three groups first, with the rest following in
+//                panel order.
 // Group Refs:    members named by typed index (param:N, in:N, out:N), the form a
 //                module ported from VCV Rack ends up with. Its "Broken" group
 //                deliberately names two ids that don't exist: the group should still
-//                work, with the bad members dropped and a warning logged.
+//                work, with the bad members dropped and a warning logged. Its order
+//                names an element that's in a group, and one that doesn't exist: both
+//                are skipped with a warning.
 // Group Decl:    members named by the info struct's Elem enumerators, which the SDK
 //                rewrites to elem:N at package time using the module's DWARF info.
+//                Its order mixes group names with an enumerator.
 
 #include "CoreModules/CoreProcessor.hh"
 #include "CoreModules/elements/element_counter.hh"

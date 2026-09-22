@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Resolve enumerator names in a plugin-mm.json's element groups to typed indices.
+"""Resolve enumerator names in a plugin-mm.json's element groups and order to typed indices.
 
 A module's "groups" list members either by the element's name as shown on screen,
 by a typed index ("param:3", "in:1", "out:0", "light:2", "elem:5"), or by the name
@@ -92,7 +92,11 @@ def collect_enums(elf_path):
 
 
 def resolve(mm_json, enums, verbose=False):
-    """Rewrite enumerator names in place. Returns (rewritten, unresolved) counts."""
+    """Rewrite enumerator names in place, in each module's "groups" and "order".
+
+    Returns (number rewritten, unresolved enumerator-like names, names left to be
+    matched by name on the device).
+    """
     rewritten = 0
     unresolved = []
     by_name = []
@@ -101,36 +105,47 @@ def resolve(mm_json, enums, verbose=False):
         if not isinstance(module, dict):
             continue
 
-        groups = module.get('groups')
-        if not isinstance(groups, dict):
-            continue
-
+        slug = module.get('slug')
         class_name = module.get('class')
         members_by_name = enums.get(class_name, {}) if class_name else {}
 
-        for group_name, members in groups.items():
-            if not isinstance(members, list):
-                continue
+        groups = module.get('groups')
+        if not isinstance(groups, dict):
+            groups = {}
 
-            for i, member in enumerate(members):
-                if not isinstance(member, str) or TYPED_INDEX.match(member):
+        # The firmware matches a name in "order" against group names first, ignoring case
+        group_names = {name.casefold() for name in groups}
+
+        def rewrite(items, where, skip=lambda item: False):
+            nonlocal rewritten
+            for i, item in enumerate(items):
+                if not isinstance(item, str) or TYPED_INDEX.match(item) or skip(item):
                     continue
 
-                if member in members_by_name:
-                    members[i] = members_by_name[member]
+                if item in members_by_name:
+                    items[i] = members_by_name[item]
                     rewritten += 1
                     if verbose:
-                        print(f'  {module.get("slug")}/{group_name}: {member} -> {members[i]}')
+                        print(f'  {slug}/{where}: {item} -> {items[i]}')
 
                 elif class_name and members_by_name:
-                    # The module opted into enumerator names, so a member that isn't one
+                    # The module opted into enumerator names, so an item that isn't one
                     # is either an element named on screen or a typo. An ALL_CAPS name is
-                    # a VCV-style id and is probably a typo. Anything else is reported as
-                    # a note, since it's matched by name on the device.
-                    if member.isupper() and '_' in member:
-                        unresolved.append(f'{module.get("slug")}/{group_name}: {member}')
-                    else:
-                        by_name.append(f'{module.get("slug")}/{group_name}: {member}')
+                    # a VCV-style id and is probably a typo. A single word might be a
+                    # mistyped enumerator, so it's reported as a note; a name with a space
+                    # in it can't be an enumerator, so it's plainly a display name.
+                    if item.isupper() and '_' in item:
+                        unresolved.append(f'{slug}/{where}: {item}')
+                    elif not any(c.isspace() for c in item):
+                        by_name.append(f'{slug}/{where}: {item}')
+
+        for group_name, members in groups.items():
+            if isinstance(members, list):
+                rewrite(members, group_name)
+
+        order = module.get('order')
+        if isinstance(order, list):
+            rewrite(order, 'order', skip=lambda item: item.casefold() in group_names)
 
     return rewritten, unresolved, by_name
 
@@ -158,7 +173,7 @@ def main():
         return 0
 
     needs_enums = any(
-        isinstance(m, dict) and m.get('class') and m.get('groups')
+        isinstance(m, dict) and m.get('class') and (m.get('groups') or m.get('order'))
         for m in mm_json.get('MetaModuleIncludedModules', [])
     )
 
@@ -186,10 +201,10 @@ def main():
     rewritten, unresolved, by_name = resolve(mm_json, enums, args.verbose)
 
     for item in by_name:
-        print(f'Note: element group member is not an enumerator, matched by name instead: {item}')
+        print(f'Note: not an enumerator, matched by name instead: {item}')
 
     for item in unresolved:
-        print(f'**** Error: element group member is not an enumerator of its module class: {item}')
+        print(f'**** Error: not an enumerator of its module class: {item}')
     if unresolved:
         return 1
 

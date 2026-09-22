@@ -24,7 +24,7 @@ For example projects using this SDK, see [metamodule-plugin-examples](https://gi
      - [Elements](docs/elements.md)
      - [Registering a module](docs/module-registry.md)
      - [Context menus](docs/context-menus.md)
-     - [Element groups](docs/element-groups.md)
+     - [Element groups and order](docs/element-groups.md)
  - [Text Screens/Displays](docs/text-displays.md)
  - [Graphical Screens/Displays](docs/graphic-displays.md)
  - [System API](docs/system-api.md)
@@ -48,6 +48,7 @@ For example projects using this SDK, see [metamodule-plugin-examples](https://gi
  - [Licensing and Permissions](docs/licensing_permissions.md)
  - [Releasing a plugin](docs/release.md)
  - [Plugin file format](docs/plugin-file-format.md)
+ - [plugin-mm.json file](docs/plugin-mm-json.md)
  - [Tips](docs/tips.md)
 
 ## Basic Example for Converting a Rack Plugin
