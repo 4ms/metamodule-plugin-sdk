@@ -90,11 +90,16 @@ An exact match always wins over one that needed the " In"/" Out" allowance. So i
 a module has both a "Pitch" knob and a "Pitch" input (shown as "Pitch In"),
 `"Pitch"` finds the knob and `"Pitch In"` finds the jack.
 
-### By enumerator name
+### By enum name
 
-Or, you can specify the name of an enum of the module's class: `"CUTOFF_PARAM"`. 
+You can specify the name of an enum of the module's class, like `"CUTOFF_PARAM"`. 
 For some modules, the string display name is long or ambigious, so this method
 might be a good choice.
+
+This way is compile-time checked, and you'll see typos and errors immediately, so
+that's a big help if you have a lot of modules. It's fragile, however, and it won't work in 
+some cases. So if it doesn't work, use the display name method.
+
 If you use this method, then you must also include the `class` field like this:
 
 ```json
@@ -133,11 +138,11 @@ If the enums come from different classes, then you'll need to use one of the oth
 The enums are resolved when the plugin is built and packaged by the SDK.
 A script reads the plugin's debug info, and converts the enum names to
 the integer value of the enum.
-If an enumerator name can't be resolved, it's a **build error**, which makes 
+If an enum name can't be resolved, it's a **build error**, which makes 
 this the most robust method: unlike using the display name, you'll know right away
 if you made a typo.
 
-The enum determines what the enumerator refers to:
+The enum determines what it refers to:
 
 | enum | refers to |
 |---|---|
@@ -163,7 +168,7 @@ The final way is not recommended unless the other two methods won't work:
 specify by a typed index: `"param:3"`, `"in:1"`, `"out:0"`, `"light:2"`, or `"elem:5"`.
 
 `param:`/`in:`/`out:`/`light:` are the ids the module uses at runtime — the same
-numbers as its `ParamIds`/`InputIds`/`OutputIds`/`LightIds` enumerators. 
+numbers as its `ParamIds`/`InputIds`/`OutputIds`/`LightIds` enums. 
 
 `elem:` is an index into a native info struct's `Elements` array.
 
