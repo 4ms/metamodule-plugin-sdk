@@ -95,7 +95,7 @@ a module has both a "Pitch" knob and a "Pitch" input (shown as "Pitch In"),
 Or, you can specify the name of an enum of the module's class: `"CUTOFF_PARAM"`. 
 For some modules, the string display name is long or ambigious, so this method
 might be a good choice.
-If you use this method, then you must also inlucde the `class` field like this:
+If you use this method, then you must also include the `class` field like this:
 
 ```json
 {
@@ -108,16 +108,29 @@ If you use this method, then you must also inlucde the `class` field like this:
 }
 ```
 
-The `class` field's value should be the exact C++ class name of your Module (that is,
-the name of the class that derives from `rack::Module`). e.g.:
+The `class` field's value should be the exact C++ name of the class that **defines**
+the enums. Usually that's your Module (the class that derives from `rack::Module`), e.g.:
 ```
-class MyModule1 : rack::Module {  // <<<< "MyModule1" is the class name
+class MyModule1 : rack::Module {  // <<<< "class": "MyModule1"
 
 // or you might see:
-class MyModule2 : Module {  // <<<< "MyModule2" is the class name
+class MyModule2 : Module {  // <<<< "class": "MyModule2"
 ```
 
-These are resolved when the plugin is built and packaged by the SDK.
+But if the enums are defined in a different class than the one that uses them, such
+as a base class shared by several modules, then `class` must name the class that
+defines them:
+```
+struct MixModule : Module {       // <<<< enums are defined here, so use "class": "MixModule"
+	enum FadeParamId { FADE_TIME_PARAM, ... };
+};
+struct MixFade : MixModule { ... };  // <<<< using "class": "MixFade" will not work
+```
+Just use the class's actual name, without any namespace: for `bogaudio::Mix4`, write `"class": "Mix4"`.
+
+If the enums come from different classes, then you'll need to use one of the other two methods.
+
+The enums are resolved when the plugin is built and packaged by the SDK.
 A script reads the plugin's debug info, and converts the enum names to
 the integer value of the enum.
 If an enumerator name can't be resolved, it's a **build error**, which makes 
@@ -134,7 +147,9 @@ The enum determines what the enumerator refers to:
 | `LightIds` / `LightId` | a light |
 | `Elem` | an element of a native module's info struct |
 
-Plural-first spellings such as `ParamsIds` or `InputsIds` work too.
+The enum's name only has to *end* with one of these, so prefixed names such as
+`FadeParamId` or `ExpLightIds` work too. So do plural-first spellings such as
+`ParamsIds` or `InputsIds`. `Elem` must be matched exactly.
 
 
 Two things to keep in mind: 
