@@ -16,7 +16,8 @@ Enum name -> index kind:
     ParamIds/ParamId   -> param:     InputIds/InputId   -> in:
     OutputIds/OutputId -> out:       LightIds/LightId   -> light:
     Elem               -> elem:      (a native module's info struct)
-The plural-first spellings (ParamsIds, InputsIds, ...) are accepted too.
+A prefixed name is accepted too (FadeParamId, ExpLightIds), as are plural-first
+spellings (ParamsIds, InputsIds).
 
 A member that isn't a typed index and doesn't match an enumerator is left alone,
 and is matched by name on the device.
@@ -32,13 +33,12 @@ import sys
 sys.path.insert(0, __file__.rsplit('/', 1)[0])
 from elftools.elf.elffile import ELFFile
 
-# Enum type name (lowercased, plural 's' stripped) -> typed index prefix
-ENUM_KINDS = {
+# Enum type name suffix (lowercased, plural 's' stripped) -> typed index prefix
+ID_ENUM_KINDS = {
     'paramid': 'param',
     'inputid': 'in',
     'outputid': 'out',
     'lightid': 'light',
-    'elem': 'elem',
 }
 
 TYPED_INDEX = re.compile(r'^(elem|param|in|out|light):\d+$')
@@ -54,7 +54,14 @@ def enum_kind(enum_name):
     # "ParamsIds" -> "paramid"
     if key.endswith('sid'):
         key = key[:-3] + 'id'
-    return ENUM_KINDS.get(key)
+    # Elem is matched exactly: it's a native info struct's name, never prefixed
+    if key == 'elem':
+        return 'elem'
+    # Otherwise match the suffix, so a prefixed name like "FadeParamId" works
+    for suffix, kind in ID_ENUM_KINDS.items():
+        if key.endswith(suffix):
+            return kind
+    return None
 
 
 def collect_enums(elf_path):
