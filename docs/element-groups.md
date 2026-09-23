@@ -134,6 +134,8 @@ The enum determines what the enumerator refers to:
 | `LightIds` / `LightId` | a light |
 | `Elem` | an element of a native module's info struct |
 
+Plural-first spellings such as `ParamsIds` or `InputsIds` work too.
+
 
 Two things to keep in mind: 
   - The `class` field is required (as explained above)

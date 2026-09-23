@@ -16,6 +16,7 @@ Enum name -> index kind:
     ParamIds/ParamId   -> param:     InputIds/InputId   -> in:
     OutputIds/OutputId -> out:       LightIds/LightId   -> light:
     Elem               -> elem:      (a native module's info struct)
+The plural-first spellings (ParamsIds, InputsIds, ...) are accepted too.
 
 A member that isn't a typed index and doesn't match an enumerator is left alone,
 and is matched by name on the device.
@@ -31,7 +32,7 @@ import sys
 sys.path.insert(0, __file__.rsplit('/', 1)[0])
 from elftools.elf.elffile import ELFFile
 
-# Enum type name (lowercased, trailing 's' stripped) -> typed index prefix
+# Enum type name (lowercased, plural 's' stripped) -> typed index prefix
 ENUM_KINDS = {
     'paramid': 'param',
     'inputid': 'in',
@@ -50,6 +51,9 @@ def die_name(die):
 
 def enum_kind(enum_name):
     key = enum_name.lower().rstrip('s')
+    # "ParamsIds" -> "paramid"
+    if key.endswith('sid'):
+        key = key[:-3] + 'id'
     return ENUM_KINDS.get(key)
 
 
