@@ -30,13 +30,24 @@ Here is an example:
     {
       "slug": "Module2",
       "name": "Module Number Two"
+    },
+    {
+      "slug": "DualLFO",
+      "name": "Dual LFO",
+      "groups": {
+        "LFO 1": ["Rate 1", "Wave 1", "Out 1"],
+        "LFO 2": ["Rate 2", "Wave 2", "Out 2"],
+      },
+      "order": ["LFO 1", "LFO 2", "Mix Out"]
     }
   ]
 }
 ```
 
-All fields all are optional, but some are required for being visible on the
-plugins website. Order does not matter:
+All fields all are optional, but some are recommnded, and strictly required for
+being visible on the plugins website.
+
+#### Recommended fields (required for website listing):
 
 - `MetaModuleBrandName`: This is the display name for your plugin. When adding
   a new module to a patch, modules are sorted by brand names. This field sets
@@ -47,9 +58,12 @@ plugins website. Order does not matter:
 
 - `MetaModulePluginMaintainer`
 - `MetaModulePluginMaintainerEmail`
-- `MetaModulePluginMaintainerUrl`
-- `MetaModuleDescription`: These four fields are used for the plugin website at https://metamodule.info
+- `MetaModulePluginMaintainerUrl`: These four fields are used for the plugin website at https://metamodule.info
    At least one method of contact is required for website listing.
+
+- `MetaModuleDescription`: This is a short bit of text (1-2 lines) describing the plugin.  On
+  the plugin website, it's the blurb of text you see right after the plugin name.
+  Required for website listing.
 
 - `MetaModuleIncludedModules`: This is a list of the modules in the MetaModule
   plugin (as opposed to the modules in the VCV plugin). 
@@ -61,6 +75,8 @@ plugins website. Order does not matter:
       - `slug`: This must match the slug used by patch files (i.e. must match the slug in the VCV plugin.json file)
       - `name`: This is a short name of the module to be displayed on the website.
       - `displayName`: This is a short name to be displayed on the MetaModule hardware.
+
+#### Optional fields
 
 #### Optional fields (not commonly used):
 - `MetaModuleBrandSlug`: **If your plugin also has a VCV Rack version, then 

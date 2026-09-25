@@ -4,14 +4,23 @@ You can group related elements together to make the Module View element roller
 easier for users to navigate. This is completely a GUI feature, it doesn't change
 the way params or signals are processed. 
 
-When groups are present, the user sees just the group name a the top level. Clicking
-it will show all the group's elements, with "< Back" above them. 
-Elements can only belong to one group, and elements that aren't in a group are
-listed exactly as before.
+When groups are present, the user sees just the group name at the top level, like `Filter >`.
+Clicking it will show all the group's elements, with "< Back" above them. 
+
+Groups are a good way to organize components so that the user can find something quickly.
+They're also useful for reducing the amount of scrolling if the module has lots of elements.
+Groups are particularly suited for modules with multiple channels or several discrete 
+sub-sections. For modules will only a small number of jacks and params (e.g. a
+two channel attenuator with just one knob and two jacks per channel), groups
+are probably not necessary because they cause the user to have to click one
+extra time to reach an element.
 
 Groups are declared in your plugin's `plugin-mm.json`.
 They work the same for native (`CoreProcessor`) modules and for modules ported
 from VCV Rack.
+
+Elements can only belong to one group, and you can't nest groups inside each other.
+Elements that aren't in a group are listed the same as before.
 
 ## Declaring groups
 
@@ -23,8 +32,8 @@ is a group name, and its value is the list of elements in that group:
 	"MetaModuleBrandName": "My Brand",
 	"MetaModuleIncludedModules": [
 		{
-			"slug": "MyModule",
-			"name": "My Module",
+			"slug": "SimpleVoice",
+			"name": "Simple Voice",
 			"groups": {
 				"Filter": ["Cutoff", "Resonance", "Cutoff CV"],
 				"Envelope": ["Attack", "Decay", "Sustain", "Release"]
@@ -35,7 +44,9 @@ is a group name, and its value is the list of elements in that group:
 ```
 
 A group lists its elements in the order they're written. A group can mix element
-types — knobs, switches, jacks and lights can all be in the same group.
+types — knobs, switches, and jacks can all be in the same group.
+The element can be specified using any of the ways described below (see 
+[Naming elements](#naming-elements))
 
 Unless the module has an `order` (below), each group appears at the position of its
 first element.
@@ -73,7 +84,7 @@ group's name or an element, written any of the ways described under
 
 ## Naming elements
 
-A group member can be written three ways:
+An element can be specified in one of three ways:
 
 ### By name
 
@@ -83,10 +94,10 @@ MetaModule screen (e.g. `"Cutoff"`). Matching ignores case.
 For a module ported from VCV Rack, the name is the one you passed to
 `configParam()` / `configInput()` / `configOutput()`. MetaModule appends " In" or
 " Out" to a jack's name when it doesn't already contain that word, so a jack you
-configured as "Cutoff CV" shows as "Cutoff CV In" — either spelling matches, so
+configured as "Cutoff CV" shows as "Cutoff CV In". Either way matches, so
 write whichever reads better.
 
-An exact match always wins over one that needed the " In"/" Out" allowance. So if
+An exact match always wins over one that needed the " In"/" Out" appended. So if
 a module has both a "Pitch" knob and a "Pitch" input (shown as "Pitch In"),
 `"Pitch"` finds the knob and `"Pitch In"` finds the jack.
 
@@ -160,15 +171,15 @@ The enum's name only has to *end* with one of these, so prefixed names such as
 Two things to keep in mind: 
   - The `class` field is required (as explained above)
   - The enum must actually be *used* somewhere in the module's code or else the
-    compiler drops it.
+    compiler drops it and so the script won't find it.
 
 ### By index
 
-The final way is not recommended unless the other two methods won't work:
-specify by a typed index: `"param:3"`, `"in:1"`, `"out:0"`, `"light:2"`, or `"elem:5"`.
+The final way is not recommended unless the other two methods won't work.
+You can specify by a typed index: `"param:3"`, `"in:1"`, `"out:0"`, `"light:2"`, or `"elem:5"`.
 
-`param:`/`in:`/`out:`/`light:` are the ids the module uses at runtime — the same
-numbers as its `ParamIds`/`InputIds`/`OutputIds`/`LightIds` enums. 
+`param:`/`in:`/`out:`/`light:` are the ids the module uses at runtime, that is,
+the integer values of the `ParamIds`/`InputIds`/`OutputIds`/`LightIds` enum members.
 
 `elem:` is an index into a native info struct's `Elements` array.
 
@@ -180,7 +191,7 @@ you won't ever need to use this, which is a good thing because it's not very leg
 
 When simulating a plugin as an external built-in (that is, using `ext-plugin.cmake`
 with the simulator), the enum method of groups is not supported. Use either the display 
-name, or the typed index (`param:3`)
+name, or the typed index (`param:3`), or just test groups on hardware.
 
 ## Built-in brands
 If you're using the SDK then you're NOT making a built-in brand, so this section is 
@@ -191,19 +202,19 @@ Brands built into the firmware read the same `groups` key from their
 resolves them against its own debug info, the same way the SDK resolves them
 for a plugin. Names and typed indices work as usual.
 
-When building firmware, the arm-none-eabi-gcc toolchain is used, which geneartes the debug info
-used to scan and resolve enum names. On the other hand, the simulator is built by
-your computer's native toolchain and so its binaries cannot reliably be scanned to resolve the enums.
-So, in order to see groups specified by enum names in built-in brands, 
-tell the simulator to use the firmware's assets image, not the simulator's assets:
-`./build/simulator -s ../firmware/build/assets.uimg`.
+When building firmware, the arm-none-eabi-gcc toolchain is used, which
+generates the debug info used to scan and resolve enum names. On the other
+hand, the simulator is built by your computer's native toolchain and so its
+binaries cannot reliably be scanned to resolve the enums. So, in order to see
+groups specified by enum names in built-in brands, tell the simulator to use
+the firmware's assets image, not the simulator's assets: `./build/simulator -s
+../firmware/build/assets.uimg`.
 
 ## Details
 
-- An element listed in more than one group stays in the first group that claims it.
-- A member that doesn't resolve is dropped, with a warning on the console, and the
-  rest of the group still works. A bad member never hides an element: it just stays
-  ungrouped.
+- An element listed in more than one group stays in the first group that used it.
+- A member that doesn't resolve (e.g. typo in the display name) is dropped and
+  there is a a warning printed on the console.
 - A group with no name or no valid members is dropped.
 - Names and indices are resolved the first time a module's element list is shown,
   not when the plugin loads, because a VCV-ported module's element names and
