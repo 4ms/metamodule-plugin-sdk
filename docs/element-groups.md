@@ -131,27 +131,31 @@ class MyModule1 : rack::Module {  // <<<< "class": "MyModule1"
 
 // or you might see:
 class MyModule2 : Module {  // <<<< "class": "MyModule2"
+
+// For native modules:
+class MyModule3 : CoreProcessor {  // <<<< "class": "MyModule3"
 ```
 
 But if the enums are defined in a different class than the one that uses them, such
 as a base class shared by several modules, then `class` must name the class that
 defines them:
 ```
-struct MixModule : Module {       // <<<< enums are defined here, so use "class": "MixModule"
+class MixModule : Module {       // <<<< enums are defined here, so use "class": "MixModule"
 	enum FadeParamId { FADE_TIME_PARAM, ... };
 };
-struct MixFade : MixModule { ... };  // <<<< using "class": "MixFade" will not work
+
+class MixFade : MixModule { ... };  // <<<< using "class": "MixFade" will not work
 ```
 Just use the class's actual name, without any namespace: for `bogaudio::Mix4`, write `"class": "Mix4"`.
 
-If the enums come from different classes, then you'll need to use one of the other two methods.
+If the enums come from different classes, then you'll need to use one of the
+other two methods.
 
-The enums are resolved when the plugin is built and packaged by the SDK.
-A script reads the plugin's debug info, and converts the enum names to
-the integer value of the enum.
-If an enum name can't be resolved, it's a **build error**, which makes 
-this the most robust method: unlike using the display name, you'll know right away
-if you made a typo.
+The enums are resolved when the plugin is built and packaged by the SDK. A
+script reads the plugin's debug info, and converts the enum names to the
+integer value of the enum. If an enum name can't be resolved, it's a **build
+error**, which makes this the most robust method: unlike using the display
+name, you'll know right away if you made a typo.
 
 The enum determines what it refers to:
 
@@ -160,7 +164,7 @@ The enum determines what it refers to:
 | `ParamIds` / `ParamId` | a param |
 | `InputIds` / `InputId` | an input jack |
 | `OutputIds` / `OutputId` | an output jack |
-| `LightIds` / `LightId` | a light |
+| `LightIds` / `LightId` | a light or display |
 | `Elem` | an element of a native module's info struct |
 
 The enum's name only has to *end* with one of these, so prefixed names such as
@@ -198,7 +202,7 @@ If you're using the SDK then you're NOT making a built-in brand, so this section
 for curious minds only and is only tangentially relevant.
 
 Brands built into the firmware read the same `groups` key from their
-`firmware/assets/<brand>/plugin-mm.json`. Enumerator names work there: the firmware build 
+`firmware/assets/<brand>/plugin-mm.json`. Enum names work there: the firmware build 
 resolves them against its own debug info, the same way the SDK resolves them
 for a plugin. Names and typed indices work as usual.
 
