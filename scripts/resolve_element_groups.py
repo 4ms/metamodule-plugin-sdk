@@ -76,7 +76,8 @@ def collect_enums(elf_path, class_names):
 
     Only namespaces and the named classes are descended into. Everything else (function
     bodies and the members of every other class, which are nearly all of the DWARF) is
-    skipped via DW_AT_sibling without being parsed, which is what makes this fast.
+    skipped via DW_AT_sibling without being parsed, which is what makes this fast. A
+    class nested in another class or in a function is found by a slower fallback.
     """
     by_class = {}
 
@@ -118,6 +119,25 @@ def collect_enums(elf_path, class_names):
         for cu in dwarf.iter_CUs():
             if mentions(cu):
                 walk(cu.get_top_DIE(), None)
+
+        # A class that wasn't found is nested somewhere the walk above doesn't go: in
+        # another class, or in a function. Search every DIE of just the CUs that mention it.
+        missing = set(class_names) - by_class.keys()
+        if missing:
+            names = ', '.join(sorted(missing))
+            print(f'Warning: {names} not found at namespace level (or has no Param/Input/'
+                  f'Output/LightId enums). Searching nested classes and functions. '
+                  f'This might take a while...', flush=True)
+            mentions = cu_name_filter(dwarf, missing, elf.little_endian)
+            for cu in dwarf.iter_CUs():
+                if not mentions(cu):
+                    continue
+                for die in cu.iter_DIEs():
+                    if die.tag != 'DW_TAG_enumeration_type' or not die.has_children:
+                        continue
+                    scope = die_name(die.get_parent())
+                    if scope in missing:
+                        add_enum(die, scope)
 
     return by_class
 
