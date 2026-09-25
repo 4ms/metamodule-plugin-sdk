@@ -68,7 +68,7 @@ being visible on the plugins website.
 - `MetaModuleIncludedModules`: This is a list of the modules in the MetaModule
   plugin (as opposed to the modules in the VCV plugin). 
   Each entry should contain `slug` and `name`. Optionally, each entry can have
-  the `displayName` and `groups` and `order` fields
+  the `displayName`, `groups`, `order`, and `names` fields
   If this is a ported plugin, the list of modules might be different than what's
   included in the original plugin, so remove any modules that aren't present in
   the MetaModule version. Required for website listing.
@@ -78,6 +78,8 @@ being visible on the plugins website.
       - `groups`: Group together jacks/params of the module so that they'll be displayed
         together. See [Element Groups](element-groups.md)
       - `order`: Specify the order of jacks and params. See [Element Groups](element-groups.md)
+      - `names`: Give jacks/params a custom name in the Module View element list.
+        See [Element Groups](element-groups.md#custom-names)
 
 #### Optional fields (not recommended unless necessary):
 - `MetaModuleBrandSlug`: **If your plugin also has a VCV Rack version, then 

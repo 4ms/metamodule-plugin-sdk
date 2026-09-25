@@ -5,7 +5,7 @@ easier for users to navigate. This is completely a GUI feature, it doesn't chang
 the way params or signals are processed. 
 
 When groups are present, the user sees just the group name at the top level, like `Filter >`.
-Clicking it will show all the group's elements, with "< Back" above them. 
+Clicking it will show all the group's elements, with the group's name and "< Back" above them. 
 
 Groups are a good way to organize components so that the user can find something quickly.
 They're also useful for reducing the amount of scrolling if the module has lots of elements.
@@ -109,7 +109,31 @@ method, always check your groups on hardware after making changes.
 ### By enum 
 
 A robust way is to use the enums from the module's class, like `CUTOFF_PARAM`
-or `AUDIO_INPUT`.
+or `AUDIO_INPUT`, where these two names are from the module class:
+
+```
+class MyModule : rack::Module {
+    enum ParamIds {
+        CUTOFF_PARAM,
+        //...
+    };
+
+    enum InputIds {
+        AUDIO_INPUT,
+        //...
+    };
+```
+
+For native modules, use the enums like `CutoffKnob` or `AudioIn` from the `Elems` enum:
+
+```
+struct MyModuleInfo : ModuleInfoBase {
+    enum class Elem {
+        CutoffKnob,
+        AudioIn,
+        //...
+    };
+```
 
 This way is compile-time checked, and you'll see typos and errors immediately, so
 that's a big help if you have a lot of modules. The downside is that it won't work
@@ -140,7 +164,9 @@ class MyModule2 : Module {  // <<<< "class": "MyModule2"
 class MyModule3 : CoreProcessor {  // <<<< "class": "MyModule3"
 ```
 
-But if the enums are defined in a different class than the one that uses them, such
+#### Rules and special cases for using enums
+
+If the enums are defined in a different class than the one that uses them, such
 as a base class shared by several modules, then `class` must name the class that
 defines them:
 ```
@@ -150,15 +176,16 @@ class MixModule : Module {       // <<<< enums are defined here, so use "class":
 
 class MixFade : MixModule { ... };  // <<<< using "class": "MixFade" will not work
 ```
-Just use the class's actual name, without any namespace: for `bogaudio::Mix4`, write `"class": "Mix4"`.
+
+Don't include any namespaces, just use the class's actual name. For `myaudio::Mix4`, write `"class": "Mix4"`.
 
 You can only specify one class, so if the enums come from different classes,
 then you'll need to use one of the other two methods.
 
 The enums are resolved when the plugin is built and packaged by the SDK. A
 script reads the plugin's debug info, and converts the enum names to the
-integer value of the enum. If an enum name can't be resolved, it's a **build
-error**, which makes this the most robust method: unlike using the display
+integer value of the enum. If an enum name can't be resolved, it's a build
+error, which makes this the most robust method. Unlike using the display
 name, you'll know right away if you made a typo.
 
 The enum determines what it refers to:
@@ -171,14 +198,14 @@ The enum determines what it refers to:
 | `LightIds` / `LightId` | a light or display |
 | `Elem` | an element of a native module's info struct |
 
-The enum's name only has to *end* with one of these, so prefixed names such as
+The enum's name only has to end with one of these, so prefixed names such as
 `FadeParamId` or `ExpLightIds` work too. So do plural-first spellings such as
 `ParamsIds` or `InputsIds`. `Elem` must be matched exactly.
 
 
 Two things to keep in mind: 
   - The `class` field is required (as explained above)
-  - The enum must actually be *used* somewhere in the module's code or else the
+  - The enum must actually be used somewhere in the module's code or else the
     compiler drops it and so the script won't find it.
 
 ### By index
@@ -194,6 +221,113 @@ the integer values of the `ParamIds`/`InputIds`/`OutputIds`/`LightIds` enum memb
 This is what the enum method resolves to, and it's the fallback method if the other
 methods don't work (duplicate display names, no enum classes, etc.). Generally,
 you won't ever need to use this, which is a good thing because it's not very legible.
+
+## Shortened names inside a group
+
+Inside a group, members often have a common prefix or suffix such as "Channel 1 Speed", "Channel 1 Waveform", etc.
+Usually these common words are the same as the group name.
+
+To automatically clean up the display, any word from the group's
+name is removed from each member's name. This saves space on the screen, and makes it 
+easier to find what you're looking for. For example:
+
+```json
+"groups": {
+	"Red": ["Red Speed", "Red Size", "Red Jitter", "Cross Moduation"],
+	"Channel A": ["Time A", "Channel Level A", "Send A to B"]
+}
+```
+
+The group name is "Red", which is gets removed from three of the members. The element list 
+will look like this:
+
+```
+[Red]
+< Back
+Speed
+Size
+Jitter
+Cross Modulation 
+```
+
+
+The second group has two words "Channel" and "A". Both get removed, resulting in this:
+```
+[Channel A]
+< Back
+Time
+Level
+Send to B
+```
+
+The rules:
+
+- Words are separated by spaces only. A word is removed only if it appears as a whole
+  word in both the group's name and the element's name.
+- Matching is case-sensitive.
+- If every word in the element's name would be removed, the name is shown unchanged.
+
+So in a group named "Channel A", "Gain a", "Add a voice", and "A:Level" are unchanged.
+
+This only changes how names are shown in the group's list. Everywhere else (e.g. the
+mapping pane, or other pages), the full name is used. Also, it doesn't change how
+members are specified in `groups` or `order` -- still use the full name there.
+
+If you don't want words removed, you can write the group's name so none of its words match,
+e.g. "Chan.A", "(A)", "Channel A:", "ChannelA", "Channel-A" would not change "Feedback A".
+Likewise, a group name of "Lfo", "LFO:" or "lfo" would not change "LFO Rate".
+
+Alternatively, you can specify custom names, as described below.
+
+
+## Custom names
+
+To choose exactly how an element is shown in the element list, add a `names` object
+to the module. Each key is an element, and its value is the name to show:
+
+```json
+{
+	"slug": "Swirl",
+    "class": "SwirlModule",
+	"groups": {
+		"Red": ["Red Size", "Red Speed", "RED_JITTER_PARAM", "Red Loop"]
+	},
+	"names": {
+		"Red Speed": "Rate",
+		"RED_JITTER_PARAM": "Wobble",
+		"Mix Level CV In": "Mix CV"
+	}
+}
+```
+
+The "Red" group will be displayed as:
+```
+[Red]
+< Back
+Size
+Rate
+Wobble
+Loop
+```
+
+and the "Mix Level CV In" jack will be shown as "Mix CV" in the top-level.
+
+- Any element can be given a name, whether or not it's in a group.
+- The key names the element, written any of the ways described under
+  [Naming elements](#naming-elements). If you use enum names, the module needs a `class`,
+  the same as for `groups`.
+- The name is shown exactly as written: no group words are removed from it.
+- Keys in `groups` and `order` still refer to the element's own name, not the name you
+  give it here.
+- Like shortened names, a custom name is only used in the element list on the
+  Module View page. Everywhere else (e.g. the mapping pane, or other pages),
+  the element's own name is used.
+
+This is useful when the automatic removal of words doesn't give the result you want,
+or if you want to give an element a shorter or clearer name on the MetaModule than it
+has in VCV Rack. For just removing a common prefix or suffix, naming the group is less
+typing.
+
 
 ## Using groups in the simulator with external plugins
 
