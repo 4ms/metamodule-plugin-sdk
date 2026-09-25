@@ -28,6 +28,7 @@ import argparse
 import json
 import re
 import shutil
+import struct
 import sys
 
 sys.path.insert(0, __file__.rsplit('/', 1)[0])
@@ -64,42 +65,98 @@ def enum_kind(enum_name):
     return None
 
 
-def collect_enums(elf_path):
-    """{class name: {enumerator name: "kind:value"}} for every enum we understand."""
+# Namespaces from standard/toolchain headers, which are included by every file and are
+# large, but never hold a module's class
+SKIP_NAMESPACES = {'std', '__gnu_cxx', '__cxxabiv1', '__gnu_debug'}
+
+
+def collect_enums(elf_path, class_names):
+    """{class name: {enumerator name: "kind:value"}} for every enum we understand that's
+    declared in one of the named classes.
+
+    Only namespaces and the named classes are descended into. Everything else (function
+    bodies and the members of every other class, which are nearly all of the DWARF) is
+    skipped via DW_AT_sibling without being parsed, which is what makes this fast.
+    """
     by_class = {}
+
+    def add_enum(die, scope):
+        kind = enum_kind(die_name(die) or '')
+        if kind is None:
+            return
+        members = by_class.setdefault(scope, {})
+        for child in die.iter_children():
+            if child.tag != 'DW_TAG_enumerator':
+                continue
+            value = child.attributes['DW_AT_const_value'].value
+            members[die_name(child)] = f'{kind}:{value}'
+
+    def walk(die, scope):
+        # scope is the name of the enclosing class, which is what "class" in the json names
+        for child in die.iter_children():
+            tag = child.tag
+            if not child.has_children:
+                continue
+            if tag == 'DW_TAG_enumeration_type':
+                if scope is not None:
+                    add_enum(child, scope)
+            elif tag == 'DW_TAG_namespace':
+                if die_name(child) not in SKIP_NAMESPACES:
+                    walk(child, None)
+            elif tag in ('DW_TAG_structure_type', 'DW_TAG_class_type'):
+                name = die_name(child)
+                if name in class_names:
+                    walk(child, name)
 
     with open(elf_path, 'rb') as f:
         elf = ELFFile(f)
         if not elf.has_dwarf_info():
             return by_class
 
-        for cu in elf.get_dwarf_info().iter_CUs():
-            for die in cu.iter_DIEs():
-                if die.tag != 'DW_TAG_enumeration_type':
-                    continue
-
-                name = die_name(die)
-                if name is None:
-                    continue
-
-                kind = enum_kind(name)
-                if kind is None:
-                    continue
-
-                # The enclosing struct/class, which is what "class" in the json names
-                parent = die.get_parent()
-                scope = die_name(parent) if parent is not None else None
-                if scope is None:
-                    continue
-
-                members = by_class.setdefault(scope, {})
-                for child in die.iter_children():
-                    if child.tag != 'DW_TAG_enumerator':
-                        continue
-                    value = child.attributes['DW_AT_const_value'].value
-                    members[die_name(child)] = f'{kind}:{value}'
+        dwarf = elf.get_dwarf_info()
+        mentions = cu_name_filter(dwarf, class_names, elf.little_endian)
+        for cu in dwarf.iter_CUs():
+            if mentions(cu):
+                walk(cu.get_top_DIE(), None)
 
     return by_class
+
+
+def cu_name_filter(dwarf, class_names, little_endian):
+    """Returns a quick test of whether a CU might declare one of the named classes.
+
+    Most CUs just include the headers of a few other modules, and even the top level of
+    each CU is a lot of DIEs to parse. A CU that declares a class has its name in its
+    raw bytes, either inline (DW_FORM_string) or as an offset into .debug_str
+    (DW_FORM_strp), so a byte search rules out most CUs cheaply. It can give false
+    positives (which just get walked), but never false negatives.
+    """
+    if dwarf.debug_str_offsets_sec is not None:
+        # DW_FORM_strx names are indices we can't cheaply search for
+        return lambda cu: True
+
+    info = dwarf.debug_info_sec.stream.getvalue()
+    strs = dwarf.debug_str_sec.stream.getvalue() if dwarf.debug_str_sec else b''
+    endian = '<' if little_endian else '>'
+
+    needles = []
+    for name in class_names:
+        cstr = name.encode() + b'\0'
+        needles.append(cstr)
+        # The linker merges strings, so the name may also be the tail of a longer one
+        pos = strs.find(cstr)
+        while pos != -1:
+            # 32-bit or 64-bit DWARF offset
+            if pos <= 0xFFFFFFFF:
+                needles.append(struct.pack(endian + 'I', pos))
+            needles.append(struct.pack(endian + 'Q', pos))
+            pos = strs.find(cstr, pos + 1)
+
+    def mentions(cu):
+        raw = info[cu.cu_offset:cu.cu_offset + cu.size]
+        return any(needle in raw for needle in needles)
+
+    return mentions
 
 
 def resolve(mm_json, enums, verbose=False):
@@ -183,10 +240,11 @@ def main():
         print(f'Note: {args.infile} is not strict JSON ({e}); element groups left as written')
         return 0
 
-    needs_enums = any(
-        isinstance(m, dict) and m.get('class') and (m.get('groups') or m.get('order'))
-        for m in mm_json.get('MetaModuleIncludedModules', [])
-    )
+    class_names = {
+        m['class'] for m in mm_json.get('MetaModuleIncludedModules', [])
+        if isinstance(m, dict) and m.get('class') and (m.get('groups') or m.get('order'))
+    }
+    needs_enums = bool(class_names)
 
     enums = {}
     if needs_enums:
@@ -195,7 +253,7 @@ def main():
             problem = 'a module names a `class` for its element groups, but no ELF was given'
         else:
             try:
-                enums = collect_enums(args.elf)
+                enums = collect_enums(args.elf, class_names)
             except Exception as e:
                 problem = f'cannot read DWARF from {args.elf}: {e}'
             if not problem and not enums:
