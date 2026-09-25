@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Resolve enumerator names in a plugin-mm.json's element groups and order to typed indices.
+"""Resolve enumerator names in a plugin-mm.json's element groups, order, and names to typed indices.
 
 A module's "groups" list members either by the element's name as shown on screen,
 by a typed index ("param:3", "in:1", "out:0", "light:2", "elem:5"), or by the name
@@ -21,6 +21,9 @@ spellings (ParamsIds, InputsIds).
 
 A member that isn't a typed index and doesn't match an enumerator is left alone,
 and is matched by name on the device.
+
+The keys of a module's "names" (element => name to show for it) are resolved the
+same way: {"PWM_PARAM": "Width"}.
 
 Usage: resolve_element_groups.py --in plugin-mm.json --out plugin-mm.json --elf file.so
 """
@@ -235,6 +238,17 @@ def resolve(mm_json, enums, verbose=False):
         if isinstance(order, list):
             rewrite(order, 'order', skip=lambda item: item.casefold() in group_names)
 
+        # "names" is keyed by element: rewrite the keys, keeping their order
+        names = module.get('names')
+        if isinstance(names, dict):
+            keys = list(names)
+            rewrite(keys, 'names')
+            # If two keys now name the same element, keep the first, like the firmware does
+            resolved = {}
+            for key, name in zip(keys, names.values()):
+                resolved.setdefault(key, name)
+            module['names'] = resolved
+
     return rewritten, unresolved, by_name
 
 
@@ -262,7 +276,7 @@ def main():
 
     class_names = {
         m['class'] for m in mm_json.get('MetaModuleIncludedModules', [])
-        if isinstance(m, dict) and m.get('class') and (m.get('groups') or m.get('order'))
+        if isinstance(m, dict) and m.get('class') and (m.get('groups') or m.get('order') or m.get('names'))
     }
     needs_enums = bool(class_names)
 

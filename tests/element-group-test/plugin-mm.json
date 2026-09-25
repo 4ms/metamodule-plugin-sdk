@@ -12,7 +12,8 @@
 				"Envelope": ["Attack", "Decay", "Sustain", "Release"],
 				"Mod": ["LFO Rate", "LFO Depth", "Gate"]
 			},
-			"order": ["Output Gain", "Mod", "Filter", "Envelope"]
+			"order": ["Output Gain", "Mod", "Filter", "Envelope"],
+			"names": {"LFO Rate": "Speed", "Output Gain": "Volume"}
 		},
 		{
 			"slug": "GroupRefs",
@@ -33,7 +34,8 @@
 				"Delay": ["DelayTimeKnob", "FeedbackKnob", "DelayMixKnob"],
 				"Reverb": ["ReverbSizeKnob", "ReverbMixKnob"]
 			},
-			"order": ["Reverb", "LevelKnob", "Delay"]
+			"order": ["Reverb", "LevelKnob", "Delay"],
+			"names": {"ReverbSizeKnob": "Room"}
 		}
 	]
 }
