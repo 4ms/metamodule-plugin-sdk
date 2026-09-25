@@ -79,14 +79,13 @@ group's name or an element, written any of the ways described under
 - The element list separates element types with headers ("Params:", "Jacks:"). A
   new header appears whenever the type changes, so keep elements of the same type
   together unless you want the headers to repeat.
-- While you're patching a cable, the list shows jacks only, in panel order,
-  ignoring groups and `order`.
 
 ## Naming elements
 
-An element can be specified in one of three ways:
+An element can be specified in one of three ways: by display name, by enum, or by ID.
+You can mix-and-match methods even within the same group.
 
-### By name
+### By display name
 
 You can specify the string display name of the element, as it appears on the
 MetaModule screen (e.g. `"Cutoff"`). Matching ignores case.
@@ -101,15 +100,20 @@ An exact match always wins over one that needed the " In"/" Out" appended. So if
 a module has both a "Pitch" knob and a "Pitch" input (shown as "Pitch In"),
 `"Pitch"` finds the knob and `"Pitch In"` finds the jack.
 
-### By enum name
+This is sometimes the most natual and easiest way to make groups. But, the
+downside is that if you make a typo or don't write the name exactly, your
+plugin will still compile. When you run the plugin on hardware, you'll see a
+warning printed in the console, but no other indicators. So, if you use this
+method, always check your groups on hardware after making changes.
 
-You can specify the name of an enum of the module's class, like `"CUTOFF_PARAM"`. 
-For some modules, the string display name is long or ambigious, so this method
-might be a good choice.
+### By enum 
+
+A robust way is to use the enums from the module's class, like `CUTOFF_PARAM`
+or `AUDIO_INPUT`.
 
 This way is compile-time checked, and you'll see typos and errors immediately, so
-that's a big help if you have a lot of modules. It's fragile, however, and it won't work in 
-some cases. So if it doesn't work, use the display name method.
+that's a big help if you have a lot of modules. The downside is that it won't work
+for modules that don't use the typical VCV or CoreProcess enum patterns.
 
 If you use this method, then you must also include the `class` field like this:
 
@@ -148,8 +152,8 @@ class MixFade : MixModule { ... };  // <<<< using "class": "MixFade" will not wo
 ```
 Just use the class's actual name, without any namespace: for `bogaudio::Mix4`, write `"class": "Mix4"`.
 
-If the enums come from different classes, then you'll need to use one of the
-other two methods.
+You can only specify one class, so if the enums come from different classes,
+then you'll need to use one of the other two methods.
 
 The enums are resolved when the plugin is built and packaged by the SDK. A
 script reads the plugin's debug info, and converts the enum names to the
@@ -187,7 +191,7 @@ the integer values of the `ParamIds`/`InputIds`/`OutputIds`/`LightIds` enum memb
 
 `elem:` is an index into a native info struct's `Elements` array.
 
-This is what the other two methods resolve to, and it's the fallback method if the other
+This is what the enum method resolves to, and it's the fallback method if the other
 methods don't work (duplicate display names, no enum classes, etc.). Generally,
 you won't ever need to use this, which is a good thing because it's not very legible.
 
@@ -218,7 +222,7 @@ the firmware's assets image, not the simulator's assets: `./build/simulator -s
 
 - An element listed in more than one group stays in the first group that used it.
 - A member that doesn't resolve (e.g. typo in the display name) is dropped and
-  there is a a warning printed on the console.
+  there is a warning printed on the console.
 - A group with no name or no valid members is dropped.
 - Names and indices are resolved the first time a module's element list is shown,
   not when the plugin loads, because a VCV-ported module's element names and
