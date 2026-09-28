@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 # Validates a plugin's plugin-mm.json file:
-#  - syntactically valid JSON (an error fails the build; everything else only warns)
+#  - syntactically valid JSON, with no key repeated in an object
+#    (these fail the build; everything else only warns)
 #  - every slug in MetaModuleIncludedModules exists in the modules list
 #    of the corresponding plugin.json
 #  - element groups, order, and names, if any, are shaped correctly
@@ -14,10 +15,38 @@ import sys
 TYPED_INDEX = re.compile(r"^(elem|param|in|out|light):\d+$")
 
 
+class JsonObject(dict):
+    """A JSON object that remembers any keys that were repeated in it"""
+
+    def __init__(self, pairs):
+        super().__init__(pairs)
+        seen = set()
+        self.duplicate_keys = []
+        for key, _ in pairs:
+            if key in seen and key not in self.duplicate_keys:
+                self.duplicate_keys.append(key)
+            seen.add(key)
+
+
+def duplicate_keys(node, where="top level"):
+    """Every repeated key in the JSON, with where it is: [(where, key)]"""
+    found = []
+    if isinstance(node, JsonObject):
+        found += [(where, key) for key in node.duplicate_keys]
+        for key, value in node.items():
+            found += duplicate_keys(value, key if where == "top level" else f"{where} > {key}")
+    elif isinstance(node, list):
+        for i, item in enumerate(node):
+            # Name a module by its slug, rather than its index
+            label = item.get("slug") if isinstance(item, dict) and isinstance(item.get("slug"), str) else None
+            found += duplicate_keys(item, f"{where}[{label or i}]")
+    return found
+
+
 def load_json(path):
     try:
         with open(path, "r") as f:
-            return json.load(f)
+            return json.load(f, object_pairs_hook=JsonObject)
     except FileNotFoundError:
         print(f"**** Error: cannot find {path}")
         return None
@@ -138,6 +167,14 @@ def check(plugin_mm_json_path, plugin_json_path):
     # A file that's missing or isn't valid JSON fails the build: the firmware can't
     # read it either, so the plugin would silently lose its metadata
     if plugin_mm is None or plugin is None:
+        return 1
+
+    # So does a repeated key: only one of the values is used (and parsers don't agree on
+    # which one), so the file doesn't do what it looks like it does
+    duplicates = duplicate_keys(plugin_mm)
+    for where, key in duplicates:
+        print(f"**** Error: in {plugin_mm_json_path}: {where}: `{key}` appears more than once")
+    if duplicates:
         return 1
 
     known_slugs = module_slugs(plugin)
