@@ -49,6 +49,8 @@ For example projects using this SDK, see [metamodule-plugin-examples](https://gi
  - [Plugin file format](docs/plugin-file-format.md)
  - [plugin-mm.json file](docs/plugin-mm-json.md)
      - [Element groups and order](docs/element-groups.md)
+ - [Developer Console: printing and commands over USB](docs/developer-console.md)
+ - [Developer Drive: installing plugins over USB](docs/developer-drive.md)
  - [Tips](docs/tips.md)
 
 ## Basic Example for Converting a Rack Plugin

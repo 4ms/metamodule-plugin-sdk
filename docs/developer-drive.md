@@ -47,6 +47,7 @@ The volume label is what makes the drive findable at a known path
 ### Console
 
 Typically you will also want to use the console at the same time as the Developer Drive.
+See [Developer Console](developer-console.md) for more about using it.
 
 The console is where firmware log output goes, and where the commands below are
 typed. Any terminal program works, any of the following:
