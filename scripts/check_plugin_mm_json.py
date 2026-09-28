@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # Validates a plugin's plugin-mm.json file:
-#  - syntactically valid JSON
+#  - syntactically valid JSON (an error fails the build; everything else only warns)
 #  - every slug in MetaModuleIncludedModules exists in the modules list
 #    of the corresponding plugin.json
 #  - element groups, order, and names, if any, are shaped correctly
@@ -134,8 +134,11 @@ def check_names(plugin_mm_json_path, slug, module):
 def check(plugin_mm_json_path, plugin_json_path):
     plugin_mm = load_json(plugin_mm_json_path)
     plugin = load_json(plugin_json_path)
+
+    # A file that's missing or isn't valid JSON fails the build: the firmware can't
+    # read it either, so the plugin would silently lose its metadata
     if plugin_mm is None or plugin is None:
-        return 0
+        return 1
 
     known_slugs = module_slugs(plugin)
 

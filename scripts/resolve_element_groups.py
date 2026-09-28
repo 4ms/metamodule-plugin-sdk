@@ -268,11 +268,9 @@ def main():
         with open(args.infile) as f:
             mm_json = json.load(f)
     except json.JSONDecodeError as e:
-        # The firmware's yaml parser is more forgiving than python's json module
-        # (trailing commas, for one). Leave a file we can't parse exactly as it is
-        # rather than failing a build over a manifest we may have nothing to do to.
-        print(f'Note: {args.infile} is not strict JSON ({e}); element groups left as written')
-        return 0
+        # Fail rather than passing along a file that the firmware may not be able to read
+        print(f'**** Error: JSON syntax error in {args.infile}: {e}')
+        return 1
 
     class_names = {
         m['class'] for m in mm_json.get('MetaModuleIncludedModules', [])

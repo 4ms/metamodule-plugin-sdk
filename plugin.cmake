@@ -95,7 +95,11 @@ function(create_plugin)
         NORMALIZE
         OUTPUT_VARIABLE PLUGIN_JSON_SOURCE_ABS)
 
+    # If this fails, the plugin isn't packaged (see below). Remove the previous build's
+    # .mmplugin first, so a failed build doesn't leave an old one looking current.
+    # Packaging runs on every build, so a good build always recreates it.
     add_custom_target(VALIDATE_PLUGIN_MM_JSON ALL
+        COMMAND ${CMAKE_COMMAND} -E rm -f ${PLUGIN_DEST_FILE}
         COMMAND ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/scripts/check_plugin_mm_json.py
             --plugin-mm-json ${PLUGIN_MM_JSON_SOURCE}
             --plugin-json ${PLUGIN_JSON_SOURCE_ABS}
@@ -190,6 +194,9 @@ function(create_plugin)
     )
     add_custom_target(plugin ALL DEPENDS ${PLUGIN_FILE_TMP})
 
+    # A plugin-mm.json with a syntax error fails validation, so don't package the plugin
+    add_dependencies(plugin VALIDATE_PLUGIN_MM_JSON)
+
     # Verify symbols will be resolved
     set(FIRMWARE_SYMTAB_PATH ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/api-symbols.txt)
     add_custom_command(
@@ -207,6 +214,8 @@ function(create_plugin)
         TARGET plugin
         POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E echo "Creating plugin at ${PLUGIN_DEST_FILE}"
+        # If any step below fails, don't leave the previous build's .mmplugin behind
+        COMMAND ${CMAKE_COMMAND} -E rm -f ${PLUGIN_DEST_FILE}
         COMMAND ${CMAKE_COMMAND} -E rm -rf ${PLUGIN_DEST_TMP_DIR}
         COMMAND ${CMAKE_COMMAND} -E make_directory ${PLUGIN_DEST_TMP_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy ${PLUGIN_FILE_TMP} ${PLUGIN_FILE}
