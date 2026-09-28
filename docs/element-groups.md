@@ -1,28 +1,40 @@
-# Element groups
+# Element Layout: Groups, Names, and Ordering
 
-You can group related elements together to make the Module View element roller
-easier for users to navigate. This is completely a GUI feature, it doesn't change
-the way params or signals are processed. 
+The way elements (knobs, buttons, jacks, etc) appear in the list of elements in the ModuleView page
+can be customized starting in firmware v2.4.0.
 
-When groups are present, the user sees just the group name at the top level, like `Filter >`.
-Clicking it will show all the group's elements, with the group's name and "< Back" above them. 
+The three ways of customization are Groups (grouping related elements together
+into a submenu), Names (giving elements a custom display name), and Ordering
+(specifying the order of elements and groups).
 
-Groups are a good way to organize components so that the user can find something quickly.
-They're also useful for reducing the amount of scrolling if the module has lots of elements.
-Groups are particularly suited for modules with multiple channels or several discrete 
-sub-sections. For modules will only a small number of jacks and params (e.g. a
-two channel attenuator with just one knob and two jacks per channel), groups
-are probably not necessary because they cause the user to have to click one
-extra time to reach an element.
+The goal is to make the Module View element roller easier for users to navigate
+and find what they are looking for. These are completely GUI features, they
+doesn't change the way params or signals are processed. They also only effect
+the ModuleView page, so anywhere else that param or jack names appear will not
+be effected.
 
-Groups are declared in your plugin's `plugin-mm.json`.
+All of these layout features are specified in the plugin-mm.json file.
 They work the same for native (`CoreProcessor`) modules and for modules ported
 from VCV Rack.
 
-Elements can only belong to one group, and you can't nest groups inside each other.
-Elements that aren't in a group are listed the same as before.
+## Groups
 
-## Declaring groups
+You can group related elements together into a submenu.
+
+When groups are present, the user sees just the group name at the top level,
+like `Filter >`. Clicking it will show all the group's elements, with "< Back"
+above them. 
+
+Groups are a good way to organize components so that the user can find
+something quickly. They're also useful for reducing the amount of scrolling if
+the module has lots of elements. Groups are particularly suited for modules
+with multiple channels or several discrete sub-sections. For modules will only
+a small number of jacks and params (e.g. a two channel attenuator with just one
+knob and two jacks per channel), groups are probably not necessary because they
+cause the user to have to click one extra time to reach an element.
+
+Elements can only belong to one group, and you can't nest groups inside each
+other. Elements that aren't in a group are listed the same as before.
 
 Add a `groups` object to a module's entry in `MetaModuleIncludedModules`. Each key
 is a group name, and its value is the list of elements in that group:
@@ -43,10 +55,11 @@ is a group name, and its value is the list of elements in that group:
 }
 ```
 
-A group lists its elements in the order they're written. A group can mix element
-types — knobs, switches, and jacks can all be in the same group.
-The element can be specified using any of the ways described below (see 
-[Naming elements](#naming-elements))
+The elements will be displyaed in the order they're written. A group can mix
+element types — knobs, switches, and jacks can all be in the same group. 
+
+Each element can be specified using any of the ways described below in the
+[Specifying elements](#specifying-elements) section.
 
 Unless the module has an `order` (below), each group appears at the position of its
 first element.
@@ -55,7 +68,7 @@ first element.
 
 Add an `order` list to set the order of the top level of the list. Each item is a
 group's name or an element, written any of the ways described under
-[Naming elements](#naming-elements):
+[Specifying elements](#specifying-elements):
 
 
 ```json
@@ -70,17 +83,67 @@ group's name or an element, written any of the ways described under
 }
 ```
 
-`order` can be partial: anything you don't list appears in its default position.
+Anything you don't list in `order` appears in the default position after all
+the ordered elements.
 
 - A name in `order` is matched against the module's group names first, and then
   against its elements. If a group and an element share a name, the group wins.
-- An element that belongs to a group can't be listed at the top level: it's shown
-  inside its group, and the `order` entry is skipped with a warning.
-- The element list separates element types with headers ("Params:", "Jacks:"). A
-  new header appears whenever the type changes, so keep elements of the same type
-  together unless you want the headers to repeat.
+- An element that belongs to a group can't be listed at the top level. The
+  `order` entry is skipped with a warning.
+- The element list separates element types with headers ("Params:", "Jacks:").
+  A new header appears whenever the type changes, so keep elements of the same
+  type together unless you want the headers to repeat.
 
-## Naming elements
+## Names
+
+To choose exactly how an element is shown in the element list, add a `names` object
+to the module. Each key is an element, and its value is the name to show:
+
+```json
+{
+	"slug": "Swirl",
+    "class": "SwirlModule",
+	"groups": {
+		"Red": ["Red Size", "Red Speed", "RED_JITTER_PARAM", "Red Loop"]
+	},
+	"names": {
+		"Red Speed": "Rate",
+		"RED_JITTER_PARAM": "Wobble",
+		"Mix Level CV In": "Mix CV"
+	}
+}
+```
+
+The "Red" group will be displayed as:
+```
+[Red]
+< Back
+Size
+Rate
+Wobble
+Loop
+```
+
+and the "Mix Level CV In" jack will be shown as "Mix CV" in the top-level.
+
+- Any element can be given a name, whether or not it's in a group.
+- The key names the element, written any of the ways described under
+  [Specifying elements](#specifying-elements). If you use enum names, the module needs a `class`,
+  the same as for `groups`.
+- The name is shown exactly as written: no group words are removed from it.
+- Keys in `groups` and `order` still refer to the element's own name, not the name you
+  give it here.
+- Like shortened names, a custom name is only used in the element list on the
+  Module View page. Everywhere else (e.g. the mapping pane, or other pages),
+  the element's own name is used.
+
+This is useful when the automatic removal of words doesn't give the result you want,
+or if you want to give an element a shorter or clearer name on the MetaModule than it
+has in VCV Rack. For just removing a common prefix or suffix, naming the group is less
+typing.
+
+
+## Specifying elements
 
 An element can be specified in one of three ways: by display name, by enum, or by ID.
 You can mix-and-match methods even within the same group.
@@ -104,7 +167,8 @@ This is sometimes the most natual and easiest way to make groups. But, the
 downside is that if you make a typo or don't write the name exactly, your
 plugin will still compile. When you run the plugin on hardware, you'll see a
 warning printed in the console, but no other indicators. So, if you use this
-method, always check your groups on hardware after making changes.
+method, always check your groups after making changes: on hardware, or with
+`scripts/check_element_layout.py` (see [Checking groups, order, and names](#checking-groups-order-and-names)).
 
 ### By enum 
 
@@ -222,14 +286,14 @@ This is what the enum method resolves to, and it's the fallback method if the ot
 methods don't work (duplicate display names, no enum classes, etc.). Generally,
 you won't ever need to use this, which is a good thing because it's not very legible.
 
-## Shortened names inside a group
+## Automatic name shortening inside a group
 
-Inside a group, members often have a common prefix or suffix such as "Channel 1 Speed", "Channel 1 Waveform", etc.
-Usually these common words are the same as the group name.
+Inside a group, members often have a common prefix or suffix such as "Channel 1
+Speed", "Channel 1 Waveform", etc. Usually these common words are the same as
+the group name.
 
-To automatically clean up the display, any word from the group's
-name is removed from each member's name. This saves space on the screen, and makes it 
-easier to find what you're looking for. For example:
+To automatically clean up the display, any word from the group's name is
+removed from each member's name. This saves space on the screen. For example:
 
 ```json
 "groups": {
@@ -273,61 +337,91 @@ This only changes how names are shown in the group's list. Everywhere else (e.g.
 mapping pane, or other pages), the full name is used. Also, it doesn't change how
 members are specified in `groups` or `order` -- still use the full name there.
 
-If you don't want words removed, you can write the group's name so none of its words match,
+If you don't want words removed, you can specify a custom name, as described in [Naming](#naming).
+
+You also can write the group's name so none of its words match,
 e.g. "Chan.A", "(A)", "Channel A:", "ChannelA", "Channel-A" would not change "Feedback A".
 Likewise, a group name of "Lfo", "LFO:" or "lfo" would not change "LFO Rate".
 
 Alternatively, you can specify custom names, as described below.
 
 
-## Custom names
 
-To choose exactly how an element is shown in the element list, add a `names` object
-to the module. Each key is an element, and its value is the name to show:
+## Checking for mistakes
 
-```json
-{
-	"slug": "Swirl",
-    "class": "SwirlModule",
-	"groups": {
-		"Red": ["Red Size", "Red Speed", "RED_JITTER_PARAM", "Red Loop"]
-	},
-	"names": {
-		"Red Speed": "Rate",
-		"RED_JITTER_PARAM": "Wobble",
-		"Mix Level CV In": "Mix CV"
-	}
-}
+Mistakes in enum names will show up immediately when you try to build the
+plugin as a compile error, but mistakes in display names are only found at
+runtime. There's a script to make it easy to catch errors, but you also can
+do it manually on hardware or in the simulator.
+
+### Using the script
+
+To find errors automatically, use `scripts/check_element_layout.py`. It builds
+the MetaModule headless simulator with your plugin as an external plugin,
+and automatically checks the modules you specify, reporting any errors.
+
+You'll need the [MetaModule firmware repo](https://github.com/4ms/metamodule)
+(with its submodules), already cloned and on your computer. You can get it like this:
+
+```
+git clone --recurse-submodules https://github.com/4ms/metamodule
 ```
 
-The "Red" group will be displayed as:
+
+Then, run the script, passing the path that you just cloned into:
+
 ```
-[Red]
-< Back
-Size
-Rate
-Wobble
-Loop
+metamodule-plugin-sdk/scripts/check_element_layout.py \
+    --firmware-repo path/to/metamodule \
+    --plugin path/to/MyPlugin \
+    --all-modules
 ```
 
-and the "Mix Level CV In" jack will be shown as "Mix CV" in the top-level.
+- `--plugin` is the dir with your plugin's `CMakeLists.txt` and `plugin-mm.json`.
+- `--all-modules` checks every module. Or, check just some with `--module Slug`
+  (repeat it for more).
+- If your `plugin-mm.json` uses enum names, then you must build your plugin
+  with the SDK first: the script resolves against that build, so they're
+  checked too. For example, it catches an element named once by enum and once
+  by display name. The script looks for the build in `path/to/MyPlugin/build`:
+  use
+  `--plugin-build-dir` if it's somewhere else.
+- The simulator is built in `simulator/build-layout-check/` in the firmware repo (use
+  `--build-dir` to change that). The first run takes a while but subsequent runs are fast.
 
-- Any element can be given a name, whether or not it's in a group.
-- The key names the element, written any of the ways described under
-  [Naming elements](#naming-elements). If you use enum names, the module needs a `class`,
-  the same as for `groups`.
-- The name is shown exactly as written: no group words are removed from it.
-- Keys in `groups` and `order` still refer to the element's own name, not the name you
-  give it here.
-- Like shortened names, a custom name is only used in the element list on the
-  Module View page. Everywhere else (e.g. the mapping pane, or other pages),
-  the element's own name is used.
+The output lists each module with `OK`, or its errors:
 
-This is useful when the automatic removal of words doesn't give the result you want,
-or if you want to give an element a shorter or clearer name on the MetaModule than it
-has in VCV Rack. For just removing a common prefix or suffix, naming the group is less
-typing.
+```
+Filter: OK
+Mixer: Error: group 'Channel 1' has no element 'Chanel 1 Level'
+Mixer: Error: order: 'Main Out' is unknown
+Checked 2 module(s) of MyBrand: 2 error(s) in 1 module(s)
+```
 
+### Using hardware MetaModule
+
+When you run your plugin on MetaModule hardware, if you have Developer Mode
+enabled in the Settings, then you'll see a GUI drop-down notification when you
+go to the ModuleView page of any module that has errors in its groups, names,
+or order fields. 
+
+You'll also see these errors (and more) printed to the console if you connect the MetaModule to
+a computer with a USB cable and open a console terminal (see [developer
+console](developer-console.md)). It's recommended to have a console window open on your
+computer when testing plugins on hardware.
+
+Note that the module must be added to a patch, and then clicked on so the element roller
+is displayed on screen. Errors will not show up when the plugin is loaded, only when the
+roller is rendered.
+
+### Using the simulator
+
+Many plugin developers choose to run their plugins in the simulator before testing on
+hardware, which is a great workflow. If you do this, you'll see most of the same error 
+messages that you would see on hardware when you open your module in the ModuleView page.
+See [external plugins](https://github.com/4ms/metamodule/blob/main/docs/simulator-ext-plugins.md)
+in the Simulator docs for instructions on how to run your plugin in the simulator.
+You do not need Developer mode enabled to see the errors when running on the simalator.
 
 ## Using groups in the simulator with external plugins
 
