@@ -50,35 +50,51 @@ def load_json(path):
         fail(f'JSON syntax error in {path}: {e}')
 
 
-def create_plugin_arg(cmakelists, name):
-    """The value of an argument to create_plugin() in the plugin's CMakeLists.txt,
-    if it's written as a literal (not a variable)"""
-    text = cmakelists.read_text()
-    call = re.search(r'create_plugin\s*\((.*?)\)', text, re.DOTALL)
+def create_plugin_args(plugin_dir, cmakelists):
+    """The arguments to create_plugin() in the plugin's CMakeLists.txt: {name: value}.
+
+    Comments are removed, and simple variables are expanded: ${CMAKE_CURRENT_LIST_DIR},
+    ${CMAKE_CURRENT_SOURCE_DIR}, and any set in the file like `set(SOURCE_DIR ${...}/src)`.
+    A value that still refers to a variable after that is left out.
+    """
+    text = re.sub(r'#.*', '', cmakelists.read_text())
+
+    variables = {
+        'CMAKE_CURRENT_LIST_DIR': str(plugin_dir),
+        'CMAKE_CURRENT_SOURCE_DIR': str(plugin_dir),
+    }
+
+    def expand(value):
+        for _ in range(10):  # nested variables
+            expanded = re.sub(r'\$\{(\w+)\}', lambda m: variables.get(m.group(1), m.group(0)), value)
+            if expanded == value:
+                break
+            value = expanded
+        return value
+
+    for name, value in re.findall(r'\bset\s*\(\s*(\w+)\s+("[^"]*"|[^\s)]+)\s*\)', text):
+        variables[name] = expand(value.strip('"'))
+
+    call = re.search(r'\bcreate_plugin\s*\(([^)]*)\)', text)
     if not call:
-        return None
-    arg = re.search(rf'\b{name}\s+("[^"]*"|\S+)', call.group(1))
-    if not arg:
-        return None
-    value = arg.group(1).strip('"')
-    return None if '${' in value else value
+        return {}
+
+    tokens = [t.strip('"') for t in re.findall(r'"[^"]*"|\S+', call.group(1))]
+    args = {}
+    for name, value in zip(tokens[::2], tokens[1::2]):
+        value = expand(value)
+        if '${' not in value:
+            args[name] = value
+    return args
 
 
-def find_plugin_json(plugin_dir, cmakelists):
+def find_plugin_json(plugin_dir, plugin_args):
     """plugin.json: as given to create_plugin(), or next to CMakeLists.txt, or in its parent dir"""
-    text = cmakelists.read_text()
-    call = re.search(r'create_plugin\s*\((.*?)\)', text, re.DOTALL)
-    if call:
-        arg = re.search(r'\bPLUGIN_JSON\s+("[^"]*"|\S+)', call.group(1))
-        if arg:
-            value = arg.group(1).strip('"')
-            value = value.replace('${CMAKE_CURRENT_LIST_DIR}', str(plugin_dir))
-            value = value.replace('${CMAKE_CURRENT_SOURCE_DIR}', str(plugin_dir))
-            if '${' not in value:
-                path = Path(value)
-                path = path if path.is_absolute() else plugin_dir / path
-                if path.exists():
-                    return path
+    if 'PLUGIN_JSON' in plugin_args:
+        path = Path(plugin_args['PLUGIN_JSON'])
+        path = path if path.is_absolute() else plugin_dir / path
+        if path.exists():
+            return path
 
     for path in (plugin_dir / 'plugin.json', plugin_dir.parent / 'plugin.json'):
         if path.exists():
@@ -141,14 +157,18 @@ def main():
     mm_json_path = plugin_dir / 'plugin-mm.json'
     mm_json = load_json(mm_json_path)
 
-    plugin_json_path = find_plugin_json(plugin_dir, cmakelists)
+    plugin_args = create_plugin_args(plugin_dir, cmakelists)
+
+    plugin_json_path = find_plugin_json(plugin_dir, plugin_args)
     plugin_json = load_json(plugin_json_path) if plugin_json_path else {}
 
-    lib_name = args.lib_name or create_plugin_arg(cmakelists, 'SOURCE_LIB')
+    lib_name = args.lib_name or plugin_args.get('SOURCE_LIB')
     if not lib_name:
         fail('cannot find SOURCE_LIB in create_plugin() in CMakeLists.txt: use --lib-name')
 
-    plugin_name = args.plugin_name or create_plugin_arg(cmakelists, 'PLUGIN_NAME') or lib_name
+    plugin_name = args.plugin_name or plugin_args.get('PLUGIN_NAME')
+    if not plugin_name:
+        fail('cannot find PLUGIN_NAME in create_plugin() in CMakeLists.txt: use --plugin-name')
 
     brand_slug = mm_json.get('MetaModuleBrandSlug') or plugin_json.get('slug')
     if not brand_slug:
