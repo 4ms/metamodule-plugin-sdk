@@ -3,9 +3,10 @@
 The way elements (knobs, buttons, jacks, etc) appear in the list of elements in the ModuleView page
 can be customized starting in firmware v2.4.0.
 
-The three ways of customization are Groups (grouping related elements together
-into a submenu), Names (giving elements a custom display name), and Ordering
-(specifying the order of elements and groups).
+The three ways of customization are:
+  - **Groups**: group related elements together into a submenu
+  - **Names**: give elements a custom display name
+  - **Ordering**: specify the order of elements and groups
 
 The goal is to make the Module View element roller easier for users to navigate
 and find what they are looking for. These are completely GUI features, they
@@ -13,7 +14,7 @@ doesn't change the way params or signals are processed. They also only effect
 the ModuleView page, so anywhere else that param or jack names appear will not
 be effected.
 
-All of these layout features are specified in the plugin-mm.json file.
+All of these layout features are specified in the `plugin-mm.json` file.
 They work the same for native (`CoreProcessor`) modules and for modules ported
 from VCV Rack.
 
@@ -22,19 +23,18 @@ from VCV Rack.
 You can group related elements together into a submenu.
 
 When groups are present, the user sees just the group name at the top level,
-like `Filter >`. Clicking it will show all the group's elements, with "< Back"
+like `Channel 1 >`. Clicking it will show all the group's elements, with `< Back`
 above them. 
+
 
 Groups are a good way to organize components so that the user can find
 something quickly. They're also useful for reducing the amount of scrolling if
 the module has lots of elements. Groups are particularly suited for modules
-with multiple channels or several discrete sub-sections. For modules will only
+with multiple channels or several discrete sub-sections. For modules with only
 a small number of jacks and params (e.g. a two channel attenuator with just one
 knob and two jacks per channel), groups are probably not necessary because they
-cause the user to have to click one extra time to reach an element.
+cause the user to click extra times to reach an element.
 
-Elements can only belong to one group, and you can't nest groups inside each
-other. Elements that aren't in a group are listed the same as before.
 
 Add a `groups` object to a module's entry in `MetaModuleIncludedModules`. Each key
 is a group name, and its value is the list of elements in that group:
@@ -61,15 +61,22 @@ element types — knobs, switches, and jacks can all be in the same group.
 Each element can be specified using any of the ways described below in the
 [Specifying elements](#specifying-elements) section.
 
-Unless the module has an `order` (below), each group appears at the position of its
-first element.
+Unless the module has an `order` field (see below), each group appears at the
+position of its first element. Other elements in your module that aren't in a
+group are listed on the top level alongside the groups.
+
+Elements can only belong to one group, and you can't nest groups inside each
+other. You can't have an empty group. 
+
 
 ## Ordering
 
-Add an `order` list to set the order of the top level of the list. Each item is a
-group's name or an element, written any of the ways described under
-[Specifying elements](#specifying-elements):
+Add an `order` list in `plugin-mm.json` to specify the order of the top level.
+Each item in the list should be a group's name or an element's name, written
+any of the ways described under [Specifying elements](#specifying-elements):
 
+
+Example:
 
 ```json
 {
@@ -88,11 +95,63 @@ the ordered elements.
 
 - A name in `order` is matched against the module's group names first, and then
   against its elements. If a group and an element share a name, the group wins.
-- An element that belongs to a group can't be listed at the top level. The
-  `order` entry is skipped with a warning.
-- The element list separates element types with headers ("Params:", "Jacks:").
-  A new header appears whenever the type changes, so keep elements of the same
-  type together unless you want the headers to repeat.
+- An element that belongs to a group can't be listed in the `order` list
+  (you'll see a warning if this happens). 
+- When run on hardware or the simulator, the element list separates element
+  types with headers ("Params:", "Jacks:"). A new header appears whenever the
+  type changes, so keep elements of the same type in order together unless you
+  want the headers to repeat.
+
+## Automatic name shortening inside a group
+
+Inside a group, members often have a common prefix or suffix such as "Channel 1
+Speed", "Channel 1 Waveform", etc. Usually these common words are the same as
+the group name.
+
+To automatically clean up the display, any word from the group's name is
+removed from each member's name. This saves space on the screen. For example:
+
+```json
+"groups": {
+	"Red": ["Red Speed", "Red Size", "Red Jitter", "Cross Moduation"],
+	"Channel A": ["Time A", "Channel Level A", "Send A to B"]
+}
+```
+
+The group name is "Red", which will be removed from three of the members. The element list 
+will look like this:
+
+```
+[Red]
+< Back
+Speed
+Size
+Jitter
+Cross Modulation 
+```
+
+The second group has two words "Channel" and "A". Both get removed, resulting in this:
+```
+[Channel A]
+< Back
+Time
+Level
+Send to B
+```
+
+The rules:
+
+- Words are separated by spaces only. A word is removed only if it appears as a whole
+  word in both the group's name and the element's name.
+- Matching is case-sensitive.
+- If every word in the element's name would be removed, the name is shown unchanged.
+
+If you don't want words removed, you can specify a custom name, as described below in [Naming](#naming).
+
+You also can write the group's name so none of its words match. For example,
+"Chan.A", "(A)", "Channel A:", "ChannelA", "Channel-A" would not change "Feedback A".
+Likewise, a group name of "Lfo", "LFO:" or "lfo" would not change "LFO Rate".
+
 
 ## Names
 
@@ -114,7 +173,9 @@ to the module. Each key is an element, and its value is the name to show:
 }
 ```
 
-The "Red" group will be displayed as:
+Keeping in mind the automatic renaming from groups (see previous section), the
+"Red" group will be displayed as:
+
 ```
 [Red]
 < Back
@@ -286,65 +347,6 @@ This is what the enum method resolves to, and it's the fallback method if the ot
 methods don't work (duplicate display names, no enum classes, etc.). Generally,
 you won't ever need to use this, which is a good thing because it's not very legible.
 
-## Automatic name shortening inside a group
-
-Inside a group, members often have a common prefix or suffix such as "Channel 1
-Speed", "Channel 1 Waveform", etc. Usually these common words are the same as
-the group name.
-
-To automatically clean up the display, any word from the group's name is
-removed from each member's name. This saves space on the screen. For example:
-
-```json
-"groups": {
-	"Red": ["Red Speed", "Red Size", "Red Jitter", "Cross Moduation"],
-	"Channel A": ["Time A", "Channel Level A", "Send A to B"]
-}
-```
-
-The group name is "Red", which is gets removed from three of the members. The element list 
-will look like this:
-
-```
-[Red]
-< Back
-Speed
-Size
-Jitter
-Cross Modulation 
-```
-
-
-The second group has two words "Channel" and "A". Both get removed, resulting in this:
-```
-[Channel A]
-< Back
-Time
-Level
-Send to B
-```
-
-The rules:
-
-- Words are separated by spaces only. A word is removed only if it appears as a whole
-  word in both the group's name and the element's name.
-- Matching is case-sensitive.
-- If every word in the element's name would be removed, the name is shown unchanged.
-
-So in a group named "Channel A", "Gain a", "Add a voice", and "A:Level" are unchanged.
-
-This only changes how names are shown in the group's list. Everywhere else (e.g. the
-mapping pane, or other pages), the full name is used. Also, it doesn't change how
-members are specified in `groups` or `order` -- still use the full name there.
-
-If you don't want words removed, you can specify a custom name, as described in [Naming](#naming).
-
-You also can write the group's name so none of its words match,
-e.g. "Chan.A", "(A)", "Channel A:", "ChannelA", "Channel-A" would not change "Feedback A".
-Likewise, a group name of "Lfo", "LFO:" or "lfo" would not change "LFO Rate".
-
-Alternatively, you can specify custom names, as described below.
-
 
 
 ## Checking for mistakes
@@ -412,7 +414,9 @@ computer when testing plugins on hardware.
 
 Note that the module must be added to a patch, and then clicked on so the element roller
 is displayed on screen. Errors will not show up when the plugin is loaded, only when the
-roller is rendered.
+roller is rendered. In firmware and the simulator, the names of elements are not 
+finalized until the module is actually loaded into a patch, and the element layout is
+not performed until the element roller is rendered.
 
 ### Using the simulator
 
@@ -445,13 +449,3 @@ binaries cannot reliably be scanned to resolve the enums. So, in order to see
 groups specified by enum names in built-in brands, tell the simulator to use
 the firmware's assets image, not the simulator's assets: `./build/simulator -s
 ../firmware/build/assets.uimg`.
-
-## Details
-
-- An element listed in more than one group stays in the first group that used it.
-- A member that doesn't resolve (e.g. typo in the display name) is dropped and
-  there is a warning printed on the console.
-- A group with no name or no valid members is dropped.
-- Names and indices are resolved the first time a module's element list is shown,
-  not when the plugin loads, because a VCV-ported module's element names and
-  indices aren't final until the module has been created.
