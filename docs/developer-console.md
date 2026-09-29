@@ -80,11 +80,35 @@ thousand samples. And remember to remove the printf() before you release your pl
 The MetaModule prints messages about what it's doing: loading plugins, installing
 from the developer drive, and so on.
 
-How much it prints depends on the firmware: normal firmware releases leave out most
-of the MetaModule's own diagnostic messages (warnings, and info), to save
-space and time. Your plugin's `printf()` output always appears. Firmware built with
-logging enabled (`LOG_LEVEL`, see the firmware's `docs/firmware-debugging.md`) prints
-much more.
+When you open a module whose `plugin-mm.json` has mistakes in its element `groups`,
+`order`, or `names`, each mistake is printed, like this (see
+[Element groups](element-groups.md)):
+
+```
+Module MyBrand:Mixer: plugin-mm.json: group 'Channel 1' has no element 'Chanel 1 Level'
+```
+
+## Building firmware with logging enabled 
+
+Normal firmware releases leave out most of the MetaModule's diagnostic messages
+(most errors, warnings and info) to save space and time. Your plugin's
+`printf()` output always appears. Firmware built with logging enabled
+(`LOG_LEVEL`, see the firmware's `docs/firmware-debugging.md`) prints much
+more. To enable this, you need to build the firmware. In short:
+
+```bash
+git clone --recurse-submodules https://github.com/4ms/metamodule
+cd metamodule/firmware
+make configure  # <<< This defaults to LOG_LEVEL=DEBUG
+make
+ls -l build/metamodule-firmware-*-firmware-assets.zip
+# Unzip it, copy the metamodule-firmware dir to an SD card or USB drive, and install it on the MetaModule normally
+```
+
+For more details, see [MetaModule firmware building](https://github.com/4ms/metamodule/blob/main/docs/firmware-building.md)
+and [MetaModule firmware debugging](https://github.com/4ms/metamodule/blob/main/docs/firmware-debugging.md#console-output-printf-debugging)
+
+## Color
 
 The MetaModule has three processor cores, and all of them print to the console. Lines
 from different cores are interleaved, but lines ending in `\n` aren't mixed together.
