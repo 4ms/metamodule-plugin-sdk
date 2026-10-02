@@ -50,6 +50,16 @@ is a group name, and its value is the list of elements in that group:
 				"Filter": ["Cutoff", "Resonance", "Cutoff CV"],
 				"Envelope": ["Attack", "Decay", "Sustain", "Release"]
 			}
+		},
+		{
+			"slug": "gain4",
+			"name": "Quad Gain",
+			"groups": {
+				"Channel 1": ["Gain 1", "Polarity 1", "In 1", "Out 1"],
+				"Channel 2": ["Gain 2", "Polarity 2", "In 2", "Out 2"],
+				"Channel 3": ["Gain 3", "Polarity 3", "In 3", "Out 3"],
+				"Channel 4": ["Gain 4", "Polarity 4", "In 4", "Out 4"]
+			}
 		}
 	]
 }
@@ -161,7 +171,7 @@ to the module. Each key is an element, and its value is the name to show:
 ```json
 {
 	"slug": "Swirl",
-    "class": "SwirlModule",
+	"class": "SwirlModule",
 	"groups": {
 		"Red": ["Red Size", "Red Speed", "RED_JITTER_PARAM", "Red Loop"]
 	},
@@ -238,26 +248,26 @@ or `AUDIO_INPUT`, where these two names are from the module class:
 
 ```
 class MyModule : rack::Module {
-    enum ParamIds {
-        CUTOFF_PARAM,
-        //...
-    };
+	enum ParamIds {
+		CUTOFF_PARAM,
+		//...
+	};
 
-    enum InputIds {
-        AUDIO_INPUT,
-        //...
-    };
+	enum InputIds {
+		AUDIO_INPUT,
+		//...
+	};
 ```
 
 For native modules, use the enums like `CutoffKnob` or `AudioIn` from the `Elems` enum:
 
 ```
 struct MyModuleInfo : ModuleInfoBase {
-    enum class Elem {
-        CutoffKnob,
-        AudioIn,
-        //...
-    };
+	enum class Elem {
+		CutoffKnob,
+		AudioIn,
+		//...
+	};
 ```
 
 This way is compile-time checked, and you'll see typos and errors immediately, so
@@ -269,7 +279,7 @@ If you use this method, then you must also include the `class` field like this:
 ```json
 {
 	"slug": "Rad-Mod1",
-    "name": "My Rad Module",
+	"name": "My Rad Module",
 	"class": "MyModule",
 	"groups": {
 		"Filter": ["CUTOFF_PARAM", "RESO_PARAM", "CUTOFF_CV_INPUT"]
@@ -322,6 +332,7 @@ The enum determines what it refers to:
 | `OutputIds` / `OutputId` | an output jack |
 | `LightIds` / `LightId` | a light or display |
 | `Elem` | an element of a native module's info struct |
+
 
 The enum's name only has to end with one of these, so prefixed names such as
 `FadeParamId` or `ExpLightIds` work too. So do plural-first spellings such as
