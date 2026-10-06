@@ -229,7 +229,6 @@ Note: for Windows/msys, use `-G "MSYS Makefiles"` instead of `-G Ninja` in the a
 
 In short:
 
-- No expander modules
 - No support for loading or rendering SVGs (via nanoSvg)
 - Param, Jack, and Light widgets are drawn with the MetaModule engine, not with nanovg. Children of these widgets are ignored.
 
