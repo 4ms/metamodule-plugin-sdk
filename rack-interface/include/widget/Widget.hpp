@@ -414,7 +414,7 @@ struct Widget {
 /** Deprecated Rack v1 event namespace.
 Use events defined in the widget::Widget class instead of this `event::` namespace in new code.
 */
-namespace event
+namespace rack::event
 {
 using Base = rack::widget::BaseEvent;
 using PositionBase = rack::widget::Widget::PositionBaseEvent;
@@ -451,4 +451,7 @@ using Remove = rack::widget::Widget::RemoveEvent;
 using Show = rack::widget::Widget::ShowEvent;
 using Hide = rack::widget::Widget::HideEvent;
 
-} // namespace event
+} // namespace rack::event
+
+// As in Rack, these are rack::event::*. Earlier SDKs had them in a global event namespace.
+namespace event = rack::event;
