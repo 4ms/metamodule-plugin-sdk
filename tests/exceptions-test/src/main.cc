@@ -249,6 +249,8 @@ int run_oom_tests() {
 		try {
 			std::vector<char> v;
 			v.resize(huge);
+			// Defeat allocation elision (aarch64 GCC removes the unused vector entirely)
+			asm volatile("" : : "r"(v.data()) : "memory");
 		} catch (std::bad_alloc &) {
 			ok = true;
 		}

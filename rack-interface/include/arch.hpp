@@ -1,8 +1,10 @@
 #pragma once
 
 // Check CPU
-#ifdef METAMODULE
-#define ARCH_CA7 1
+#if defined(METAMODULE) && defined(__aarch64__)
+#define ARCH_CA35 1 // MetaModule MP2
+#elif defined(METAMODULE)
+#define ARCH_CA7 1 // MetaModule MP1
 #elif defined __x86_64__
 #define ARCH_X64 1
 #elif defined __aarch64__
