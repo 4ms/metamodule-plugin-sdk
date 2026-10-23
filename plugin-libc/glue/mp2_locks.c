@@ -7,9 +7,8 @@
 struct __lock {
 	unsigned int owner;
 	unsigned int count;
-	unsigned int masks_irqs;
-	unsigned int reserved;
-	unsigned long long saved_daif;
+	unsigned int irqs_to_reenable;
+	unsigned int reserved[3];
 };
 
 _Static_assert(sizeof(struct __lock) == 24, "Must match the firmware's struct __lock (system/lock_ca35.cc)");
