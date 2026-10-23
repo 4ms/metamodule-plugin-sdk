@@ -15,8 +15,12 @@ cmake_minimum_required(VERSION 3.19)
 #    own list, and nothing calls them, as on MP1. The loader runs .init_array itself.)
 #  - stat: the firmware exports stat() but not _stat/_stat_r (see MP1's
 #    scripts/build-plugin-libc-autotools.sh)
+#  - the lock functions (lock.o): the firmware's, which work across the A35's two cores. lock.o
+#    also defines the static locks, which the plugin keeps (plugin-libc/glue/mp2_locks.c)
 #  - the DWARF unwinder (libgcc's unwind-dw2*): the firmware's, which the loader registers each
 #    plugin's .eh_frame with, so an exception can unwind through plugin and firmware frames
+#  - the C++ exception globals (eh_globals.o): the firmware's, which are per core, and which an
+#    exception crossing between plugin and firmware code must update in one place
 #  - vterminate/cp-demangle: the plugin gets the SDK's lightweight terminate handler instead
 #    (plugin-libc/glue/vterminate_lite.cc), not the 100kB demangler
 #
@@ -65,11 +69,12 @@ delete_members(libc.a
 	libc_a-abort.o
 	libc_a-closer.o libc_a-fstatr.o libc_a-gettimeofdayr.o
 	libc_a-isattyr.o libc_a-lseekr.o libc_a-openr.o libc_a-readr.o
-	libc_a-sbrkr.o libc_a-signalr.o libc_a-timesr.o libc_a-writer.o)
+	libc_a-sbrkr.o libc_a-signalr.o libc_a-timesr.o libc_a-writer.o
+	libc_a-lock.o)
 
 delete_members(libgcc.a unwind-dw2.o unwind-dw2-fde.o unwind-sjlj.o)
 
-delete_members(libstdc++.a vterminate.o cp-demangle.o)
+delete_members(libstdc++.a vterminate.o cp-demangle.o eh_globals.o)
 
 # Merge them into one archive
 file(WRITE ${WORK_DIR}/merge.mri

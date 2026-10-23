@@ -169,6 +169,7 @@ function(create_plugin)
             ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/plugin-libc/dso_handle.c
             ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/plugin-libc/glue/vterminate_lite.cc
             ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/plugin-libc/glue/mp2_glue.c
+            ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/plugin-libc/glue/mp2_locks.c
         )
     endif()
 
