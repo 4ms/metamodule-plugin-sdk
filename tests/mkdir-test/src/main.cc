@@ -13,7 +13,6 @@
 #include "CoreModules/register_module.hh"
 #include <system.hpp>
 
-#include <cerrno>
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -35,37 +34,41 @@ struct Report {
 	}
 };
 
-// mkdir() returned -1 with this errno
-bool fails_with(std::string const &path, int expected_errno) {
-	errno = 0;
-	return ::mkdir(path.c_str(), 0777) == -1 && errno == expected_errno;
+// Plugins have their own errno, so the one the firmware sets isn't visible here:
+// only the return value can be checked
+bool fails(std::string const &path) {
+	return ::mkdir(path.c_str(), 0777) == -1;
+}
+
+bool is_dir(std::string const &path) {
+	struct stat st {};
+	return ::stat(path.c_str(), &st) == 0 && S_ISDIR(st.st_mode);
 }
 
 // Returns false if the drive isn't present
 bool test_drive(std::string const &vol, Report &r) {
 	using namespace rack::system;
 
-	// A fresh directory for this run: the first mkdir-test-N that mkdir() creates
+	if (!is_dir(vol))
+		return false;
+
+	// A fresh directory for this run: the first mkdir-test-N that doesn't exist yet
 	std::string base;
 	for (int n = 1; n < 1000; n++) {
 		auto path = vol + "mkdir-test-" + std::to_string(n);
-		errno = 0;
-		if (::mkdir(path.c_str(), 0777) == 0) {
+		if (exists(path))
+			continue;
+		if (::mkdir(path.c_str(), 0777) == 0)
 			base = path;
-			break;
-		}
-		if (errno == ENODEV)
-			return false;
-		if (errno != EEXIST)
-			break;
+		break;
 	}
-	r.check(!base.empty(), "mkdir() creates " + (base.empty() ? vol + "mkdir-test-N" : base));
+	r.check(!base.empty() && is_dir(base), "mkdir() creates " + (base.empty() ? vol + "mkdir-test-N" : base));
 	if (base.empty())
 		return true;
 
-	r.check(fails_with(base, EEXIST), "mkdir() on an existing dir fails with EEXIST");
-	r.check(fails_with(base + "/no/such/parent", ENOENT), "mkdir() with a missing parent fails with ENOENT");
-	r.check(fails_with(vol, EEXIST), "mkdir() on the volume root fails with EEXIST");
+	r.check(fails(base), "mkdir() on an existing dir fails");
+	r.check(fails(base + "/no/such/parent") && !exists(base + "/no"), "mkdir() with a missing parent fails");
+	r.check(fails(vol), "mkdir() on the volume root fails");
 
 	r.check(createDirectory(base + "/one"), "createDirectory() creates a dir");
 	r.check(!createDirectory(base + "/one"), "createDirectory() returns false when the dir exists");
@@ -90,8 +93,8 @@ class MkdirTestCore : public CoreProcessor {
 public:
 	MkdirTestCore() {
 		Report r;
-		r.check(fails_with("nor:/mkdir-test", EACCES), "mkdir() on the internal drive fails with EACCES");
-		r.check(fails_with("ram:/mkdir-test", EACCES), "mkdir() on the RAM disk fails with EACCES");
+		r.check(fails("nor:/mkdir-test"), "mkdir() on the internal drive fails");
+		r.check(fails("ram:/mkdir-test"), "mkdir() on the RAM disk fails");
 
 		unsigned failures = r.failures;
 		for (auto vol : {"sdc:/", "usb:/"}) {

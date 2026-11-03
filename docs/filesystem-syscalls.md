@@ -57,19 +57,17 @@ You can use these exactly as they are used on a desktop computer. However, there
 
 Modules can create directories on the SD Card (`sdc:/`) and USB drive (`usb:/`) with `mkdir()` from `<sys/stat.h>`. The `mode` argument is ignored. Like any filesystem access, this is not allowed in the audio context.
 
-`mkdir()` creates one directory, so the parent must already exist. It returns 0 on success, or -1 with `errno` set:
+`mkdir()` creates one directory, so the parent must already exist. It returns 0 on success, or -1 if the directory wasn't created: it (or a file with that name) already exists, the parent doesn't exist, the drive isn't present, the path isn't on the SD Card or USB drive, or the disk is full or write-protected. Directories can't be created on the internal drive (`nor:/`) or the RAM disk (`ram:/`).
 
-- `EEXIST`: the directory (or a file with that name) already exists. This includes the volume root, such as `sdc:/`.
-- `ENOENT`: the parent directory doesn't exist.
-- `ENODEV`: the drive is not present.
-- `EACCES`: the path is not on the SD Card or USB drive. Directories can't be created on the internal drive (`nor:/`) or the RAM disk (`ram:/`).
-- `ENOSPC`, `EROFS`, `EINVAL`, `ETIMEDOUT`, `EIO`: the disk is full, write-protected, the name is invalid, the disk didn't respond, or another disk error.
+The firmware sets `errno`, but a module has its own copy of the C library, so it won't see that value. To find out whether the directory is there, check it afterwards:
 
 ```c++
-#include <cerrno>
 #include <sys/stat.h>
 
-if (mkdir("sdc:/MyBrand", 0777) == 0 || errno == EEXIST) {
+mkdir("sdc:/MyBrand", 0777);
+
+struct stat st;
+if (stat("sdc:/MyBrand", &st) == 0 && S_ISDIR(st.st_mode)) {
     // sdc:/MyBrand is ready to use
 }
 ```
