@@ -1,0 +1,16 @@
+{
+	"slug": "MkdirTest",
+	"name": "Mkdir Test",
+	"version": "2.0.0",
+	"license": "GPL-3.0-or-later",
+	"brand": "MkdirTest",
+	"author": "4ms Company",
+	"description": "Test plugin for creating directories with mkdir() and rack::system::createDirectories()",
+	"modules": [
+		{
+			"slug": "Mkdir",
+			"name": "Mkdir Test",
+			"description": "Creates directories on the SD Card and USB drive and writes a report into them"
+		}
+	]
+}

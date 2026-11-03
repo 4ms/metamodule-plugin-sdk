@@ -1,5 +1,9 @@
 # Change Log for SDK API
 
+### In progress
+- Modules can create directories on the SD Card and USB drive with `mkdir()`, or `rack::system::createDirectory()` and `createDirectories()` in VCV ports. See [Filesystem Calls](docs/filesystem-syscalls.md#creating-directories).
+  - Added test plugin: `tests/mkdir-test`.
+
 ### v2.4.0
 - Native (CoreProcessor) modules can have context menus, using new symbols.
   See `CoreModules/context_menu.hh` and [Context menus](docs/context-menus.md).

@@ -1,0 +1,12 @@
+{
+	"MetaModuleBrandName": "Mkdir Test",
+	"MetaModuleBrandSlug": "MkdirTest",
+	"MetaModulePluginMaintainer": "4ms Company",
+	"MetaModuleDescription": "Test plugin for creating directories with mkdir() and rack::system::createDirectories()",
+	"MetaModuleIncludedModules": [
+		{
+			"slug": "Mkdir",
+			"name": "Mkdir Test"
+		}
+	]
+}
