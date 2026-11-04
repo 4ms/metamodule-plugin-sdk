@@ -1,5 +1,16 @@
 # Change Log for SDK API
 
+### v2.4.1 (unreleased)
+- `register_module()` no longer needs a brand: new overloads register the module under the
+  plugin's brand slug, which `create_plugin()` reads from `plugin.json` (`"slug"`), or
+  from `plugin-mm.json` (`"MetaModuleBrandSlug"`) if present, and defines as
+  `METAMODULE_PLUGIN_BRAND_SLUG`. E.g. `register_module<MyModule, MyModuleInfo>()`.
+  `register_context_menu()` has matching overloads without a brand.
+  See [Module Registry](docs/module-registry.md#the-brand).
+  - The overloads of `register_module()` that take a brand will be deprecated.
+    Until then firmware starting with v2.4.2 will warn when a brand is used
+    that doesn't match the json entry.
+
 ### v2.4.0
 - Native (CoreProcessor) modules can have context menus, using new symbols.
   See `CoreModules/context_menu.hh` and [Context menus](docs/context-menus.md).
