@@ -230,5 +230,5 @@ private:
 
 extern "C" __attribute__((visibility("default"))) void init() {
 	printf("[midi-test] plugin loaded\n");
-	MetaModule::register_module<MidiIoCore, MidiIoInfo>("MidiTest");
+	MetaModule::register_module<MidiIoCore, MidiIoInfo>();
 }

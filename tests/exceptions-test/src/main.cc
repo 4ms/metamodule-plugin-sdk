@@ -560,8 +560,8 @@ struct OomFatalInfo : MetaModule::ModuleInfoBase {
 extern "C" __attribute__((visibility("default"))) void init() {
 	printf("[exc-test] plugin loaded: running exception + stream tests\n");
 	run_all_tests();
-	MetaModule::register_module<ExcTestCore, ExcTestInfo>("ExceptionsTest");
-	MetaModule::register_module<ThrowFatalCore, ThrowFatalInfo>("ExceptionsTest");
-	MetaModule::register_module<OomFatalCore, OomFatalInfo>("ExceptionsTest");
-	MetaModule::register_module<AbortFatalCore, AbortFatalInfo>("ExceptionsTest");
+	MetaModule::register_module<ExcTestCore, ExcTestInfo>();
+	MetaModule::register_module<ThrowFatalCore, ThrowFatalInfo>();
+	MetaModule::register_module<OomFatalCore, OomFatalInfo>();
+	MetaModule::register_module<AbortFatalCore, AbortFatalInfo>();
 }

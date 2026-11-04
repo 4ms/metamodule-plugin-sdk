@@ -32,8 +32,6 @@ namespace
 
 using namespace MetaModule;
 
-constexpr std::string_view Brand{"ElementGroupTest"};
-
 constexpr std::string_view KnobImage{"4ms/comp/knob_x.png"};
 constexpr std::string_view JackImage{"4ms/comp/jack_x.png"};
 
@@ -258,9 +256,9 @@ private:
 extern "C" __attribute__((visibility("default"))) void init() {
 	using namespace MetaModule;
 
-	register_module<GroupFilter, GroupFilterInfo>(Brand);
-	register_module<GroupRefs, GroupRefsInfo>(Brand);
-	register_module<GroupDecl, GroupDeclInfo>(Brand);
+	register_module<GroupFilter, GroupFilterInfo>();
+	register_module<GroupRefs, GroupRefsInfo>();
+	register_module<GroupDecl, GroupDeclInfo>();
 
 	printf("[element-group-test] modules registered; groups come from plugin-mm.json\n");
 }
