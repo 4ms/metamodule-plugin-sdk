@@ -1,0 +1,61 @@
+{
+	"slug": "AsyncChurnTest",
+	"name": "Async Churn Test",
+	"version": "2.0.0",
+	"license": "GPL-3.0-or-later",
+	"brand": "AsyncChurnTest",
+	"author": "gabriel-roth",
+	"description": "Repro for plugin-arena heap aborts: file work and allocation churn on an AsyncThread",
+	"modules": [
+		{
+			"slug": "All",
+			"name": "Churn: all",
+			"description": "Idle churn, folder probes, root listing, JSON reads"
+		},
+		{
+			"slug": "NoChurn",
+			"name": "Churn: steps only",
+			"description": "Probes, listing and reads on each step; no idle churn"
+		},
+		{
+			"slug": "ChurnOnly",
+			"name": "Churn: idle only",
+			"description": "Idle string churn only; no file work"
+		},
+		{
+			"slug": "ProbesOnly",
+			"name": "Churn: probes only",
+			"description": "Failing doubled-volume opendir probes on each step"
+		},
+		{
+			"slug": "ListRead",
+			"name": "Churn: list + read",
+			"description": "Root listing and JSON reads on each step"
+		},
+		{
+			"slug": "AllDisplay",
+			"name": "Churn: all + display",
+			"description": "Everything, plus two displays redrawn every frame"
+		},
+		{
+			"slug": "DisplayOnly",
+			"name": "Churn: display only",
+			"description": "Two displays redrawn every frame; no file thread"
+		},
+		{
+			"slug": "ChurnDisplay",
+			"name": "Churn: idle + display",
+			"description": "Idle string churn plus the displays"
+		},
+		{
+			"slug": "ProbesDisplay",
+			"name": "Churn: probes + display",
+			"description": "Folder probes plus the displays"
+		},
+		{
+			"slug": "ListDisplay",
+			"name": "Churn: list + display",
+			"description": "Root listing and reads plus the displays"
+		}
+	]
+}
