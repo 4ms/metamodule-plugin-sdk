@@ -1,4 +1,5 @@
-// Test plugin for deadlocks in the firmware's newlib locks (firmware/system/lock.cc). See README.md.
+// Test plugin for deadlocks and arena corruption in the firmware's newlib locks (firmware/system/lock.cc). See
+// README.md.
 //
 // One module that allocates from the plugin arena in three contexts at once, each with its own knob for how many
 // allocations it does per call:
@@ -6,6 +7,11 @@
 //   Text display:    get_display_text(), which the firmware calls in the ReadPatchGuiElements interrupt on core 1
 //   Graphic display: draw(), on the GUI thread (Core1Main)
 //   AsyncThread:     on the core the module is assigned to (shown on the text display)
+//
+// A fourth knob sets how much DSP work process() does, to give the audio interrupts realistic, varying lengths.
+//
+// Every context checks that its strings still hold what it wrote, so arena corruption (two contexts handed the same
+// block) shows up on the text display's error count, usually before it crashes the firmware.
 //
 // If the firmware freezes, the text display's counters, the graphic display's moving bar and the heartbeat light
 // (blinked by process()) all stop.
@@ -34,25 +40,55 @@ int current_core() {
 	return mpidr & 0b1;
 }
 
-// Does `count` allocations and as many frees: each new string replaces the one in a slot, which frees the old one.
-// The strings are longer than the small string buffer, so every one of them allocates. (Storing them in the slots
-// also keeps the compiler from leaving out the allocations.)
+std::atomic<unsigned> total_errors{0}; // all modules
+
+// Strings that each allocate (they're longer than the small string buffer), and what was written to each one
 template<size_t N>
-void churn(std::array<std::string, N> &slots, unsigned count) {
-	for (unsigned i = 0; i < count; i++)
-		slots[i % N] = std::string(32 + (i & 31), char('a' + (i & 15)));
-}
+struct Slots {
+	std::array<std::string, N> strings;
+	std::array<char, N> fill{};
+	std::array<uint8_t, N> length{};
+
+	// Does `count` allocations and as many frees: each new string replaces the one in a slot, which frees the old
+	// one. Before replacing a string, checks it still holds what was written to it. Returns the number of strings
+	// that didn't.
+	unsigned churn(unsigned count) {
+		unsigned errors = 0;
+		for (unsigned i = 0; i < count; i++) {
+			auto slot = i % N;
+			if (!intact(slot))
+				errors++;
+
+			length[slot] = 32 + (i & 31);
+			fill[slot] = char('a' + (i & 15));
+			strings[slot] = std::string(length[slot], fill[slot]);
+		}
+		return errors;
+	}
+
+	bool intact(size_t slot) const {
+		auto &s = strings[slot];
+		if (s.size() != length[slot])
+			return false;
+		return std::all_of(s.begin(), s.end(), [c = fill[slot]](char x) { return x == c; });
+	}
+};
 
 struct LockTest : Module {
-	enum ParamIds { TEXT_ALLOCS_PARAM, DRAW_ALLOCS_PARAM, ASYNC_ALLOCS_PARAM, NUM_PARAMS };
+	enum ParamIds { TEXT_ALLOCS_PARAM, DRAW_ALLOCS_PARAM, ASYNC_ALLOCS_PARAM, DSP_LOAD_PARAM, NUM_PARAMS };
+	enum InputIds { SIGNAL_INPUT, NUM_INPUTS };
+	enum OutputIds { SIGNAL_OUTPUT, NUM_OUTPUTS };
 	// A text display needs a light id of its own
 	enum LightIds { HEARTBEAT_LIGHT, TEXT_DISPLAY, NUM_LIGHTS };
 
 	LockTest() {
-		config(NUM_PARAMS, 0, 0, NUM_LIGHTS);
+		config(NUM_PARAMS, NUM_INPUTS, NUM_OUTPUTS, NUM_LIGHTS);
 		configParam(TEXT_ALLOCS_PARAM, 0, 400, 0, "Text display allocations per read");
 		configParam(DRAW_ALLOCS_PARAM, 0, 2000, 0, "Graphic display allocations per frame");
 		configParam(ASYNC_ALLOCS_PARAM, 0, 4000, 0, "AsyncThread allocations per pass");
+		configParam(DSP_LOAD_PARAM, 0, 800, 0, "DSP work per sample (average loop iterations)");
+		configInput(SIGNAL_INPUT, "Mixed into the DSP work");
+		configOutput(SIGNAL_OUTPUT, "Result of the DSP work (quiet)");
 		async.start();
 	}
 
@@ -61,6 +97,12 @@ struct LockTest : Module {
 	}
 
 	void process(const ProcessArgs &args) override {
+		auto core = current_core();
+		if (audio_core.load(std::memory_order_relaxed) != core)
+			audio_core.store(core, std::memory_order_relaxed);
+
+		outputs[SIGNAL_OUTPUT].setVoltage(dsp_work(inputs[SIGNAL_INPUT].getVoltage()));
+
 		blink_time += args.sampleTime;
 		if (blink_time >= 0.25f) {
 			blink_time -= 0.25f;
@@ -69,22 +111,51 @@ struct LockTest : Module {
 		}
 	}
 
+	// Stands in for a module's DSP: reads and writes a 16kB table, in a dependent chain the compiler can't skip.
+	// The number of iterations varies randomly from half to one and a half times the knob's value, so the audio
+	// interrupts end at different times relative to the GUI and the AsyncThreads.
+	float dsp_work(float in) {
+		auto base = allocs(DSP_LOAD_PARAM);
+		if (base == 0)
+			return 0.f;
+
+		auto iterations = base / 2 + next_random() % (base + 1);
+		for (unsigned i = 0; i < iterations; i++) {
+			auto r = next_random();
+			acc = acc * 0.999f + table[r % table.size()] * 0.001f;
+			table[(r >> 16) % table.size()] = acc + in * 0.01f;
+		}
+		return acc * 0.1f;
+	}
+
+	uint32_t next_random() {
+		// xorshift32
+		rng ^= rng << 13;
+		rng ^= rng >> 17;
+		rng ^= rng << 5;
+		return rng;
+	}
+
 	// Called in the ReadPatchGuiElements interrupt on core 1, while this display is on screen
 	size_t get_display_text(int display_id, std::span<char> text) override {
 		if (display_id != TEXT_DISPLAY || text.size() < 2)
 			return 0;
 
-		churn(text_slots, allocs(TEXT_ALLOCS_PARAM));
+		// No name, so it isn't printed: printf here would take the stdio lock, which changes what's being tested
+		count_errors(text_slots.churn(allocs(TEXT_ALLOCS_PARAM)), nullptr);
 		auto reads = text_reads.fetch_add(1) + 1;
 
 		// snprintf into a buffer, without %f, doesn't allocate or take a lock
 		int len = std::snprintf(text.data(),
 								text.size(),
-								"Text %u\nDraw %u\nAsync %u\nAsync core %d",
+								"Text %u\nDraw %u\nAsync %u\nCore: audio %d async %d\nErrors %u/%u",
 								reads,
 								draw_frames.load(),
 								async_passes.load(),
-								async_core.load());
+								audio_core.load(),
+								async_core.load(),
+								errors.load(),
+								total_errors.load());
 		// The firmware terminates the text at the returned length, so leave room for that
 		return len < 0 ? 0 : std::min<size_t>(len, text.size() - 1);
 	}
@@ -94,8 +165,18 @@ struct LockTest : Module {
 		if (async_core.exchange(core) != core)
 			printf("[LockTest] AsyncThread is on core %d\n", core);
 
-		churn(async_slots, allocs(ASYNC_ALLOCS_PARAM));
+		count_errors(async_slots.churn(allocs(ASYNC_ALLOCS_PARAM)), "AsyncThread");
 		async_passes.fetch_add(1);
+	}
+
+	// Prints the errors if `where` is given
+	void count_errors(unsigned n, const char *where) {
+		if (n == 0)
+			return;
+		errors.fetch_add(n);
+		total_errors.fetch_add(n);
+		if (where)
+			printf("[LockTest] %u corrupted strings in the %s (core %d)\n", n, where, current_core());
 	}
 
 	unsigned allocs(int param_id) {
@@ -105,14 +186,20 @@ struct LockTest : Module {
 	std::atomic<unsigned> text_reads{0};
 	std::atomic<unsigned> draw_frames{0};
 	std::atomic<unsigned> async_passes{0};
+	std::atomic<unsigned> errors{0};
 	std::atomic<int> async_core{-1};
+	std::atomic<int> audio_core{-1};
 
 	float blink_time = 0;
 	bool heartbeat = false;
 
+	float acc = 0;
+	uint32_t rng = 0x12345678;
+	std::array<float, 4096> table{};
+
 	// One set of slots per context, so no two contexts touch the same strings
-	std::array<std::string, 8> text_slots;
-	std::array<std::string, 8> async_slots;
+	Slots<8> text_slots;
+	Slots<8> async_slots;
 
 	MetaModule::AsyncThread async{this, [this]() { async_pass(); }};
 };
@@ -120,13 +207,13 @@ struct LockTest : Module {
 // Graphic display: draw() runs on the GUI thread (Core1Main)
 struct ChurnDisplay : Widget {
 	LockTest *module = nullptr;
-	std::array<std::string, 8> slots;
+	Slots<8> slots;
 	unsigned frame = 0;
 
 	void draw(const DrawArgs &args) override {
 		frame++;
 		if (module) {
-			churn(slots, module->allocs(LockTest::DRAW_ALLOCS_PARAM));
+			module->count_errors(slots.churn(module->allocs(LockTest::DRAW_ALLOCS_PARAM)), "graphic display");
 			module->draw_frames.fetch_add(1);
 		}
 
@@ -161,11 +248,15 @@ struct LockTestWidget : ModuleWidget {
 		graphic->module = module;
 		addChild(graphic);
 
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(15, 62)), module, LockTest::TEXT_ALLOCS_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(45, 62)), module, LockTest::DRAW_ALLOCS_PARAM));
-		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(75, 62)), module, LockTest::ASYNC_ALLOCS_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(15, 58)), module, LockTest::TEXT_ALLOCS_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(45, 58)), module, LockTest::DRAW_ALLOCS_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(75, 58)), module, LockTest::ASYNC_ALLOCS_PARAM));
+		addParam(createParamCentered<RoundBlackKnob>(mm2px(Vec(15, 84)), module, LockTest::DSP_LOAD_PARAM));
 
-		addChild(createLightCentered<MediumLight<GreenLight>>(mm2px(Vec(45, 90)), module, LockTest::HEARTBEAT_LIGHT));
+		addChild(createLightCentered<MediumLight<GreenLight>>(mm2px(Vec(45, 84)), module, LockTest::HEARTBEAT_LIGHT));
+
+		addInput(createInputCentered<PJ301MPort>(mm2px(Vec(66, 84)), module, LockTest::SIGNAL_INPUT));
+		addOutput(createOutputCentered<PJ301MPort>(mm2px(Vec(80, 84)), module, LockTest::SIGNAL_OUTPUT));
 	}
 };
 

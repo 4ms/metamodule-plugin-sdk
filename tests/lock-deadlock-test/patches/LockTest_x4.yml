@@ -1,0 +1,200 @@
+PatchData:
+  patch_name: 'Lock Test x4'
+  description: 'Lock Test 1 and 2 on core 0, 3 and 4 on core 1. Knobs A-D: text display, graphic display and AsyncThread allocations, and DSP load, for all four. Set Auto Rebalance to Off.'
+  module_slugs:
+    0: '4msCompany:HubMedium'
+    1: 'LockDeadlockTest:LockTest'
+    2: 'LockDeadlockTest:LockTest'
+    3: 'LockDeadlockTest:LockTest'
+    4: 'LockDeadlockTest:LockTest'
+  int_cables:
+    - out:
+        module_id: 1
+        jack_id: 0
+      ins:
+        - module_id: 3
+          jack_id: 0
+      color: 61865
+    - out:
+        module_id: 3
+        jack_id: 0
+      ins:
+        - module_id: 2
+          jack_id: 0
+      color: 35419
+    - out:
+        module_id: 2
+        jack_id: 0
+      ins:
+        - module_id: 4
+          jack_id: 0
+      color: 1453
+    - out:
+        module_id: 4
+        jack_id: 0
+      ins:
+        - module_id: 1
+          jack_id: 0
+      color: 64934
+  mapped_ins: []
+  mapped_outs: []
+  static_knobs:
+    - module_id: 1
+      param_id: 0
+      value: 0
+    - module_id: 1
+      param_id: 1
+      value: 0
+    - module_id: 1
+      param_id: 2
+      value: 0
+    - module_id: 1
+      param_id: 3
+      value: 0
+    - module_id: 2
+      param_id: 0
+      value: 0
+    - module_id: 2
+      param_id: 1
+      value: 0
+    - module_id: 2
+      param_id: 2
+      value: 0
+    - module_id: 2
+      param_id: 3
+      value: 0
+    - module_id: 3
+      param_id: 0
+      value: 0
+    - module_id: 3
+      param_id: 1
+      value: 0
+    - module_id: 3
+      param_id: 2
+      value: 0
+    - module_id: 3
+      param_id: 3
+      value: 0
+    - module_id: 4
+      param_id: 0
+      value: 0
+    - module_id: 4
+      param_id: 1
+      value: 0
+    - module_id: 4
+      param_id: 2
+      value: 0
+    - module_id: 4
+      param_id: 3
+      value: 0
+  mapped_knobs:
+    - name: 'Lock Test'
+      set:
+        - panel_knob_id: 0
+          module_id: 1
+          param_id: 0
+          curve_type: 0
+          min: 0
+          max: 1
+        - panel_knob_id: 0
+          module_id: 2
+          param_id: 0
+          curve_type: 0
+          min: 0
+          max: 1
+        - panel_knob_id: 0
+          module_id: 3
+          param_id: 0
+          curve_type: 0
+          min: 0
+          max: 1
+        - panel_knob_id: 0
+          module_id: 4
+          param_id: 0
+          curve_type: 0
+          min: 0
+          max: 1
+        - panel_knob_id: 1
+          module_id: 1
+          param_id: 1
+          curve_type: 0
+          min: 0
+          max: 1
+        - panel_knob_id: 1
+          module_id: 2
+          param_id: 1
+          curve_type: 0
+          min: 0
+          max: 1
+        - panel_knob_id: 1
+          module_id: 3
+          param_id: 1
+          curve_type: 0
+          min: 0
+          max: 1
+        - panel_knob_id: 1
+          module_id: 4
+          param_id: 1
+          curve_type: 0
+          min: 0
+          max: 1
+        - panel_knob_id: 2
+          module_id: 1
+          param_id: 2
+          curve_type: 0
+          min: 0
+          max: 1
+        - panel_knob_id: 2
+          module_id: 2
+          param_id: 2
+          curve_type: 0
+          min: 0
+          max: 1
+        - panel_knob_id: 2
+          module_id: 3
+          param_id: 2
+          curve_type: 0
+          min: 0
+          max: 1
+        - panel_knob_id: 2
+          module_id: 4
+          param_id: 2
+          curve_type: 0
+          min: 0
+          max: 1
+        - panel_knob_id: 3
+          module_id: 1
+          param_id: 3
+          curve_type: 0
+          min: 0
+          max: 1
+        - panel_knob_id: 3
+          module_id: 2
+          param_id: 3
+          curve_type: 0
+          min: 0
+          max: 1
+        - panel_knob_id: 3
+          module_id: 3
+          param_id: 3
+          curve_type: 0
+          min: 0
+          max: 1
+        - panel_knob_id: 3
+          module_id: 4
+          param_id: 3
+          curve_type: 0
+          min: 0
+          max: 1
+  module_cores:
+    - 0
+    - 0
+    - 0
+    - 1
+    - 1
+  module_loads:
+    - 0
+    - 1000
+    - 1000
+    - 1000
+    - 1000
