@@ -1,0 +1,16 @@
+{
+	"slug": "AsyncChurnTest",
+	"name": "Async Churn Test",
+	"version": "2.0.0",
+	"license": "GPL-3.0-or-later",
+	"brand": "AsyncChurnTest",
+	"author": "Dan Green",
+	"description": "Async thread that allocates -- for testing",
+	"modules": [
+		{
+			"slug": "asyncalloc",
+			"name": "AsyncAllocator",
+			"description": ""
+		}
+	]
+}

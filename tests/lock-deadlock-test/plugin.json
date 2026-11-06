@@ -1,0 +1,16 @@
+{
+	"slug": "LockDeadlockTest",
+	"name": "Lock Deadlock Test",
+	"version": "2.0.0",
+	"license": "GPL-3.0-or-later",
+	"brand": "LockDeadlockTest",
+	"author": "4ms Company",
+	"description": "Test plugin for deadlocks in the firmware's newlib locks",
+	"modules": [
+		{
+			"slug": "LockTest",
+			"name": "Lock Test",
+			"description": "Allocates from a text display, a graphic display and an AsyncThread at the same time"
+		}
+	]
+}
