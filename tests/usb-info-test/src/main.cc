@@ -262,5 +262,5 @@ struct UsbInfoInfo : MetaModule::ModuleInfoBase {
 extern "C" __attribute__((visibility("default"))) void init() {
 	printf("[usb-test] plugin loaded\n");
 	dump(take_snapshot(), "plugin load");
-	MetaModule::register_module<UsbInfoCore, UsbInfoInfo>("UsbInfoTest");
+	MetaModule::register_module<UsbInfoCore, UsbInfoInfo>();
 }

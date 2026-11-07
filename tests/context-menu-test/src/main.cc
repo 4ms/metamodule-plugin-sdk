@@ -34,8 +34,6 @@ namespace
 
 using namespace MetaModule;
 
-constexpr std::string_view Brand{"ContextMenuTest"};
-
 std::string percent_text(float val) {
 	return std::to_string(int(std::lround(val * 100.f))) + "%";
 }
@@ -269,13 +267,13 @@ extern "C" __attribute__((visibility("default"))) void init() {
 	using namespace MetaModule;
 
 	// A menu can't be registered before its module
-	bool early_ok = register_context_menu(Brand, MenuGainInfo::slug, make_gain_menu());
+	bool early_ok = register_context_menu(MenuGainInfo::slug, make_gain_menu());
 
-	register_module<MenuLfo, MenuLfoInfo>(Brand);
-	register_module<MenuGain, MenuGainInfo>(Brand);
+	register_module<MenuLfo, MenuLfoInfo>();
+	register_module<MenuGain, MenuGainInfo>();
 
-	bool lfo_ok = register_context_menu<MenuLfo, MenuLfoInfo>(Brand, &MenuLfo::menu_items, &MenuLfo::menu_changed);
-	bool gain_ok = register_context_menu(Brand, MenuGainInfo::slug, make_gain_menu());
+	bool lfo_ok = register_context_menu<MenuLfo, MenuLfoInfo>(&MenuLfo::menu_items, &MenuLfo::menu_changed);
+	bool gain_ok = register_context_menu(MenuGainInfo::slug, make_gain_menu());
 
 	printf("[context-menu-test] early registration rejected: %s\n", early_ok ? "FAIL" : "pass");
 	printf("[context-menu-test] MenuLFO menu registered: %s\n", lfo_ok ? "pass" : "FAIL");
