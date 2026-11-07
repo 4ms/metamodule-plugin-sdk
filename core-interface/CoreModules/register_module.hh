@@ -31,16 +31,19 @@ namespace MetaModule
 // The SDK's create_plugin() reads it from those files and defines METAMODULE_PLUGIN_BRAND_SLUG,
 // which the overloads without a brand parameter use.
 //
-// The overloads that take a brand are deprecated for plugins: a brand that doesn't match
+// The overloads that take a brand will be deprecated for plugins: a brand that doesn't match
 // the plugin's slug breaks finding the plugin's modules in patches, the plugin's
 // metadata (plugin.json and plugin-mm.json), and the module/plugin lists on the
 // website. The MetaModule prints a warning when a plugin registers a module under any
 // other brand.
 //
 
-#if defined(METAMODULE_PLUGIN_BRAND_SLUG)
+// Uncomment this when we are ready to deprecate the register_module calls with the brand arg:
+// #define DO_DEPRECATE_REGISTER_MODULE_BRAND_ARG
+
+#if defined(METAMODULE_PLUGIN_BRAND_SLUG) && defined(DO_DEPRECATE_REGISTER_MODULE_BRAND_ARG)
 #define METAMODULE_DEPRECATED_BRAND_ARG                                                                                \
-	[[deprecated("Don't pass a brand: use the overload without one, which registers the module under the plugin's "   \
+	[[deprecated("Don't pass a brand: use the overload without one, which registers the module under the plugin's "    \
 				 "brand slug (\"slug\" in plugin.json, or \"MetaModuleBrandSlug\" in plugin-mm.json)")]]
 #else
 #define METAMODULE_DEPRECATED_BRAND_ARG
