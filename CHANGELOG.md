@@ -10,6 +10,9 @@
   brand is used that doesn't match the json entry. 
   See [Module Registry](docs/module-registry.md#the-brand).
 - `register_context_menu()` has matching overloads without a brand.
+- Modules can create directories on the SD Card and USB drive with
+  `rack::system::createDirectory()` and `createDirectories()` in VCV ports. See
+  [Filesystem Calls](docs/filesystem-syscalls.md#creating-directories).
 
 ### v2.4.0
 - Native (CoreProcessor) modules can have context menus, using new symbols.

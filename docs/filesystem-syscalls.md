@@ -53,6 +53,19 @@ You can use these exactly as they are used on a desktop computer. However, there
 
 
 
+## Creating directories
+
+VCV ports can create directories on the SD card or USB drive using
+`rack::system::createDirectory()` and `rack::system::createDirectories()`.
+These work as they do in VCV Rack: they return true if the (last) directory was
+created, and false if it already existed or could not be created.
+`createDirectories()` creates any missing parent directories too.
+
+```c++
+rack::system::createDirectories("usb:/MyBrand/presets");
+```
+
+
 ## Helper functions
 
 See [filesystem/helpers.hh](../core-interface/filesystem/helpers.hh)
