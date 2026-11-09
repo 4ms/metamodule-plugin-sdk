@@ -108,6 +108,52 @@ function(create_plugin)
         COMMENT "Validating plugin-mm.json"
     )
 
+    # The plugin's brand slug: "MetaModuleBrandSlug" in plugin-mm.json if present,
+    # otherwise "slug" in plugin.json (same as the firmware does when loading the plugin).
+    # Every module must be registered under it: register_module<Module, Info>() uses
+    # METAMODULE_PLUGIN_BRAND_SLUG for the brand.
+    # Re-run cmake when either file changes, so the brand slug stays current
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${PLUGIN_JSON_SOURCE_ABS} ${PLUGIN_MM_JSON_SOURCE})
+
+    file(READ ${PLUGIN_JSON_SOURCE_ABS} PLUGIN_JSON_CONTENTS)
+    string(JSON PLUGIN_BRAND_SLUG ERROR_VARIABLE PLUGIN_JSON_SLUG_ERR GET ${PLUGIN_JSON_CONTENTS} slug)
+    if (NOT PLUGIN_JSON_SLUG_ERR STREQUAL "NOTFOUND")
+        set(PLUGIN_BRAND_SLUG "")
+    endif()
+
+    file(READ ${PLUGIN_MM_JSON_SOURCE} PLUGIN_MM_JSON_CONTENTS)
+    string(JSON PLUGIN_MM_BRAND_SLUG ERROR_VARIABLE PLUGIN_MM_JSON_SLUG_ERR GET ${PLUGIN_MM_JSON_CONTENTS} MetaModuleBrandSlug)
+    if (PLUGIN_MM_JSON_SLUG_ERR STREQUAL "NOTFOUND" AND NOT PLUGIN_MM_BRAND_SLUG STREQUAL "")
+        set(PLUGIN_BRAND_SLUG ${PLUGIN_MM_BRAND_SLUG})
+    endif()
+
+    if (PLUGIN_BRAND_SLUG STREQUAL "")
+        message(WARNING "${PLUGIN_NAME}: no brand slug found: plugin.json has no \"slug\" "
+                        "and plugin-mm.json has no \"MetaModuleBrandSlug\". "
+                        "register_module<Module, Info>() without a brand will not be available.")
+    else()
+        message(STATUS "${PLUGIN_NAME}: brand slug is '${PLUGIN_BRAND_SLUG}'")
+        if (NOT PLUGIN_BRAND_SLUG STREQUAL PLUGIN_NAME)
+            message(STATUS "${PLUGIN_NAME}: note: the plugin file name (${PLUGIN_NAME}.mmplugin) differs from the brand slug")
+        endif()
+
+        # Plugin code may be compiled in libraries linked into the plugin, too
+        set(PLUGIN_SOURCE_TARGETS ${LIB_NAME})
+        get_target_property(PLUGIN_LINKED_LIBS ${LIB_NAME} LINK_LIBRARIES)
+        foreach(LIB IN LISTS PLUGIN_LINKED_LIBS)
+            if (TARGET ${LIB} AND NOT LIB STREQUAL "arch_mp15x_a7" AND NOT LIB STREQUAL "metamodule-sdk")
+                get_target_property(LIB_TYPE ${LIB} TYPE)
+                get_target_property(LIB_IMPORTED ${LIB} IMPORTED)
+                if (NOT LIB_IMPORTED AND (LIB_TYPE STREQUAL "STATIC_LIBRARY" OR LIB_TYPE STREQUAL "OBJECT_LIBRARY"))
+                    list(APPEND PLUGIN_SOURCE_TARGETS ${LIB})
+                endif()
+            endif()
+        endforeach()
+        foreach(TGT IN LISTS PLUGIN_SOURCE_TARGETS)
+            target_compile_definitions(${TGT} PRIVATE "METAMODULE_PLUGIN_BRAND_SLUG=\"${PLUGIN_BRAND_SLUG}\"")
+        endforeach()
+    endif()
+
     ###############
 
 

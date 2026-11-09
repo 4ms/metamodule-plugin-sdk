@@ -241,7 +241,7 @@ When using this technique, when you register your module you will simply pass th
 
 ```c++
 void init() {
-    register_module<MyModuleClass, MyModuleInfo>("MyBrand");
+    register_module<MyModuleClass, MyModuleInfo>();
 }
 ```
 
@@ -327,7 +327,7 @@ To register a module using the `ModuleInfoView` we just created, we have to pass
 and faceplate path to the `register_module` function like this:
 
 ```c++
-MetaModule::register_module<SimpleGain>("NativeExample", "SimpleGain", module_info_view, "NativeExample/simple_gain.png");
+MetaModule::register_module<SimpleGain>("SimpleGain", module_info_view, "NativeExample/simple_gain.png");
 ```
 
 
