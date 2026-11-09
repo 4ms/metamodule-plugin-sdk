@@ -81,5 +81,5 @@ struct FiniTestInfo : MetaModule::ModuleInfoBase {
 extern "C" __attribute__((visibility("default"))) void init() {
 	printf("[fini-test] init(): ctors ran = %d %s\n", step, step == 2 ? "PASS" : "FAIL");
 	printf("[fini-test] unload the plugin to run the .fini_array destructors\n");
-	MetaModule::register_module<FiniTestCore, FiniTestInfo>("FiniArrayTest");
+	MetaModule::register_module<FiniTestCore, FiniTestInfo>();
 }

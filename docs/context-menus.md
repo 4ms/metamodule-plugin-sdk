@@ -66,20 +66,20 @@ private:
 };
 
 void init() {
-    register_module<MyModule, MyModuleInfo>("MyBrand");
-    register_context_menu<MyModule, MyModuleInfo>("MyBrand", &MyModule::menu_items, &MyModule::menu_changed);
+    register_module<MyModule, MyModuleInfo>();
+    register_context_menu<MyModule, MyModuleInfo>(&MyModule::menu_items, &MyModule::menu_changed);
 }
 ```
 
 ## Registering with ContextMenuHandlers
 
 For more control, fill out a `ContextMenuHandlers` struct and pass it with the
-brand and module slugs. Each callback gets a `CoreProcessor *`, which you can
+module slug. Each callback gets a `CoreProcessor *`, which you can
 `static_cast` to your module class (the host only passes modules that were
 created for this slug):
 
 ```c++
-register_context_menu("MyBrand", "MyModule", {
+register_context_menu("MyModule", {
     .get_items = [](CoreProcessor *module) {
         auto m = static_cast<MyModule *>(module);
         return std::vector<ContextMenuItem>{

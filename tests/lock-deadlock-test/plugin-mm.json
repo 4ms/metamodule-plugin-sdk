@@ -1,0 +1,12 @@
+{
+	"MetaModuleBrandName": "Lock Deadlock Test",
+	"MetaModuleBrandSlug": "LockDeadlockTest",
+	"MetaModulePluginMaintainer": "4ms Company",
+	"MetaModuleDescription": "Test plugin for deadlocks in the firmware's newlib locks",
+	"MetaModuleIncludedModules": [
+		{
+			"slug": "LockTest",
+			"name": "Lock Test"
+		}
+	]
+}

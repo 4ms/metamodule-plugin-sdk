@@ -55,11 +55,20 @@ You can use these exactly as they are used on a desktop computer. However, there
 
 ## Creating directories
 
-Modules can create directories on the SD Card (`sdc:/`) and USB drive (`usb:/`) with `mkdir()` from `<sys/stat.h>`. The `mode` argument is ignored. Like any filesystem access, this is not allowed in the audio context.
+Modules can create directories on the SD Card (`sdc:/`) and USB drive (`usb:/`)
+with `mkdir()` from `<sys/stat.h>`. The `mode` argument is ignored. Like any
+filesystem access, this is not allowed in the audio context.
 
-`mkdir()` creates one directory, so the parent must already exist. It returns 0 on success, or -1 if the directory wasn't created: it (or a file with that name) already exists, the parent doesn't exist, the drive isn't present, the path isn't on the SD Card or USB drive, or the disk is full or write-protected. Directories can't be created on the internal drive (`nor:/`) or the RAM disk (`ram:/`).
+`mkdir()` creates one directory, so the parent must already exist. It returns 0
+on success, or -1 if the directory wasn't created: it (or a file with that
+name) already exists, the parent doesn't exist, the drive isn't present, the
+path isn't on the SD Card or USB drive, or the disk is full or write-protected.
+Directories can't be created on the internal drive (`nor:/`) or the RAM disk
+(`ram:/`).
 
-The firmware sets `errno`, but a module has its own copy of the C library, so it won't see that value. To find out whether the directory is there, check it afterwards:
+The firmware sets `errno`, but a module has its own copy of the C library, so
+it won't see that value. To find out whether the directory is there, check it
+afterwards:
 
 ```c++
 #include <sys/stat.h>

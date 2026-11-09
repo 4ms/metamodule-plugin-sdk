@@ -1,8 +1,22 @@
 # Change Log for SDK API
 
-### In progress
-- Modules can create directories on the SD Card and USB drive with `mkdir()`, or `rack::system::createDirectory()` and `createDirectories()` in VCV ports. See [Filesystem Calls](docs/filesystem-syscalls.md#creating-directories).
-  - Added test plugin: `tests/mkdir-test`.
+### v2.5.0 (unreleased)
+- `mkdir()` is added the api. Modules can use this to create directories on the
+  SD card or USB drive.
+
+### v2.4.1
+- `register_module()` has new overloads that don't take a brand string, e.g.:
+  `register_module<MyModule, MyModuleInfo>()`. The brand is automatically read
+  from `plugin.json` or `plugin-mm.json` if present. These new overloads should
+  be used for new code, and old code using the overloads with a brand specified
+  should be updated. The overloads of `register_module()` that take a brand
+  will be deprecated. Until then firmware starting with v2.4.2 will warn when a
+  brand is used that doesn't match the json entry. 
+  See [Module Registry](docs/module-registry.md#the-brand).
+- `register_context_menu()` has matching overloads without a brand.
+- Modules can create directories on the SD Card and USB drive with
+  `rack::system::createDirectory()` and `createDirectories()` in VCV ports. See
+  [Filesystem Calls](docs/filesystem-syscalls.md#creating-directories).
 
 ### v2.4.0
 - Native (CoreProcessor) modules can have context menus, using new symbols.

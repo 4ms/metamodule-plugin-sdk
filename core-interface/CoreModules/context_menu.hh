@@ -47,6 +47,7 @@ bool register_context_menu(std::string_view brand_slug, std::string_view module_
 //
 // Example:
 // register_context_menu<MyModule, MyModuleInfo>("MyBrand", &MyModule::menu_items, &MyModule::menu_changed);
+// Plugins can omit the brand, see below
 template<typename ModuleT, typename ModuleInfoT>
 bool register_context_menu(std::string_view brand_slug,
 						   std::vector<ContextMenuItem> (ModuleT::*get_items)(),
@@ -61,5 +62,20 @@ bool register_context_menu(std::string_view brand_slug,
 									 float value) { (static_cast<ModuleT *>(module)->*on_change)(index, value); },
 		});
 }
+
+#if defined(METAMODULE_PLUGIN_BRAND_SLUG)
+// Same as above, for a module registered under the plugin's brand slug
+// (see register_module.hh). Example:
+// register_context_menu<MyModule, MyModuleInfo>(&MyModule::menu_items, &MyModule::menu_changed);
+template<typename ModuleT, typename ModuleInfoT>
+bool register_context_menu(std::vector<ContextMenuItem> (ModuleT::*get_items)(),
+						   void (ModuleT::*on_change)(unsigned index, float value)) {
+	return register_context_menu<ModuleT, ModuleInfoT>(METAMODULE_PLUGIN_BRAND_SLUG, get_items, on_change);
+}
+
+inline bool register_context_menu(std::string_view module_slug, ContextMenuHandlers handlers) {
+	return register_context_menu(METAMODULE_PLUGIN_BRAND_SLUG, module_slug, std::move(handlers));
+}
+#endif
 
 } // namespace MetaModule
