@@ -1,0 +1,16 @@
+{
+	"slug": "InitFaultTest",
+	"name": "Init Fault Test",
+	"version": "2.0.0",
+	"license": "GPL-3.0-or-later",
+	"brand": "InitFaultTest",
+	"author": "4ms Company",
+	"description": "Test plugin that faults in init(), for the firmware's abort rescue",
+	"modules": [
+		{
+			"slug": "InitFault",
+			"name": "Init Fault (never loads)",
+			"description": "Registered just before init() faults: the firmware must remove it again"
+		}
+	]
+}

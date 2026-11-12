@@ -1,0 +1,12 @@
+{
+	"MetaModuleBrandName": "Init Fault Test",
+	"MetaModuleBrandSlug": "InitFaultTest",
+	"MetaModulePluginMaintainer": "4ms Company",
+	"MetaModuleDescription": "Test plugin that faults in init(), for the firmware's abort rescue",
+	"MetaModuleIncludedModules": [
+		{
+			"slug": "InitFault",
+			"name": "Init Fault (never loads)"
+		}
+	]
+}
