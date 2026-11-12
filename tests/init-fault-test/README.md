@@ -23,6 +23,19 @@ The kind of fault is chosen at configure time with `-DFAULT_TYPE=...`:
 | `undef` | Executes an undefined instruction (`udf #0`) | Undefined instruction |
 | `abort` | Calls `abort()` | The plugin abort hook (`mm_plugin_abort`) |
 
+## With a debugger attached
+
+A debugger that halts the core on exception vectors (vector catch) stops it at the abort vector, before the
+firmware's handler runs. The console stops after `faulting now`, with no `[abort]` line, which looks like a
+freeze. TRACE32 does this by default. Either resume the core (the handler then runs), or turn it off before
+loading the plugin:
+
+```
+TrOnchip.Set DABORT OFF
+TrOnchip.Set PABORT OFF
+TrOnchip.Set UNDEF OFF
+```
+
 ## Test 1: a fault in init() is rescued
 
 - Copy `InitFaultTest.mmplugin` to the SD card or USB drive, and load it from the Plugins tab.
